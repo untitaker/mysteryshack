@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt;
+use std::env;
 use std::fs;
 use std::io::Read;
 use std::path;
@@ -18,6 +19,7 @@ pub struct Config {
 
 impl Config {
     pub fn read_file(path: &path::Path) -> Result<Self, ServerError> {
+        let path = &env::current_dir().unwrap().join(path);
         let mut s = String::new();
         let mut f = try!(fs::File::open(path));
         try!(f.read_to_string(&mut s));
