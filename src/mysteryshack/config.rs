@@ -41,7 +41,7 @@ impl Config {
         };
         
         let data_path = match main_section.remove("data_path") {
-            Some(toml::Value::String(x)) => path.join(&x),
+            Some(toml::Value::String(x)) => path.parent().unwrap().join(&x),
             _ => panic!("The `data_path` parameter is missing.")
         };
 
