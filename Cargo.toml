@@ -1,0 +1,37 @@
+[package]
+name = "mysteryshack"
+version = "0.1.0"
+
+authors = ["Markus Unterwaditzer <markus@unterwaditzer.net>"]
+license = "MIT"
+keywords = ["remotestorage"]
+readme = "README.md"
+
+[lib]
+name = "mysteryshack"
+path = "src/mysteryshack/lib.rs"
+
+[[bin]]
+name = "mysteryshack"
+test = false
+doc = false
+
+[dependencies]
+rustc-serialize = "*"
+iron = "*"
+router = "*"
+hyper = "*"
+toml = "*"
+unicase = "*"
+atomicwrites = "*"
+url = "*"
+clap = "*"
+rust-crypto = "*"
+rand = "*"
+persistent = "*"
+urlencoded = "*"
+handlebars-iron = "*"
+logger = "*"
+log = "*"
+regex = "*"
+iron-login = "*"

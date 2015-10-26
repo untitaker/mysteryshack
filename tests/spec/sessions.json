@@ -1,0 +1,32 @@
+{
+    "scopedtoken123": {
+        "client_id": "hailsatan",
+        "uri": "http://example.com",
+        "permissions": {
+            "api-test": {
+                "can_read": true,
+                "can_write": true
+            }
+        }
+    },
+    "readonlytoken123": {
+        "client_id": "hailsatan",
+        "uri": "http://example.com",
+        "permissions": {
+            "api-test": {
+                "can_read": true,
+                "can_write": false
+            }
+        }
+    },
+    "roottoken123": {
+        "client_id": "hailsatan",
+        "uri": "http://example.com",
+        "permissions": {
+            "": {
+                "can_read": true,
+                "can_write": true
+            }
+        }
+    }
+}

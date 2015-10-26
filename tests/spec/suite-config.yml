@@ -1,0 +1,6 @@
+storage_base_url: http://localhost:6767/storage/testuser
+storage_base_url_other: http://localhost:6767/storage/wronguser
+category: api-test
+token: scopedtoken123
+read_only_token: readonlytoken123
+root_token: roottoken123

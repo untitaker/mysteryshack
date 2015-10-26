@@ -1,0 +1,9 @@
+{{# partial "content" }}
+<form method=post>
+Username: <input type=text name=user {{#if prefill_user }}value="{{prefill_user}}"{{/if}} /><br/>
+Password: <input type=password name=pass /><br/>
+<input type=submit value="Log in" />
+</form>
+{{/partial}}
+
+{{> layout}}

@@ -1,0 +1,15 @@
+{{# partial "content" }}
+<h2>OAuth request</h2>
+<p>redirect_uri: {{ redirect_uri }}</p>
+<p>client_id: {{ client_id }}</p>
+<p>scope: {{ scope }}</p>
+
+<p><strong>Accept?</strong></p>
+<form method=post>
+<input type=radio name=decision value=allow /> Allow</br>
+<input type=radio name=decision value=deny /> Deny</br>
+<input type=submit value=Send />
+</form>
+{{/partial}}
+
+{{> layout}}

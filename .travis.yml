@@ -1,0 +1,12 @@
+language: rust
+
+rust:
+    - stable
+    - nightly
+
+install:
+    - rvm use 2
+    - make install-spectest
+
+script:
+    - make TMP_DIR=$PWD/tmp spectest
