@@ -25,6 +25,7 @@ spectest:
 	echo '[main]' > $(TMP_DIR)/config
 	echo 'listen = "localhost:6767"' >> $(TMP_DIR)/config
 	echo "data_path = \"$(TMP_DIR)\"" >> $(TMP_DIR)/config
+	echo "use_proxy_headers = false" >> $(TMP_DIR)/config
 	cp $(SPEC_TEST_DIR)/suite-config.yml $(SPEC_TEST_DIR)/suite/config.yml
 	set -ex; \
 	bin="$(APP_BINARY) -c $(TMP_DIR)/config"; \
