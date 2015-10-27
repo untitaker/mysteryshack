@@ -93,6 +93,14 @@ macro_rules! check_csrf {
     )
 }
 
+struct ErrorPrinter;
+impl iron::middleware::AfterMiddleware for ErrorPrinter {
+    fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
+        println!("Server error: {:?}", err);
+        Err(err)
+    }
+}
+
 pub fn run_server(config: config::Config) {
     let mut router = Router::new();
 
@@ -129,6 +137,7 @@ pub fn run_server(config: config::Config) {
     chain.link_after(HandlebarsEngine::new("./src/templates/", ".hbs"));
     chain.link_after(utils::CorsMiddleware);
     chain.link_after(logger_after);
+    chain.link_after(ErrorPrinter);
 
     let listen = &config.listen[..];
     println!("Listening on: http://{}", listen);
