@@ -14,7 +14,8 @@ use utils::ServerError;
 #[derive(Clone)]
 pub struct Config {
     pub listen: String,
-    pub data_path: path::PathBuf
+    pub data_path: path::PathBuf,
+    pub use_proxy_headers: bool
 }
 
 impl Config {
@@ -45,9 +46,15 @@ impl Config {
             _ => panic!("The `data_path` parameter is missing.")
         };
 
+        let use_proxy_headers = match main_section.remove("use_proxy_headers") {
+            Some(toml::Value::Boolean(x)) => x,
+            _ => panic!("The `use_proxy_headers` parameter must be a boolean.")
+        };
+
         Ok(Config {
             listen: listen,
-            data_path: data_path
+            data_path: data_path,
+            use_proxy_headers: use_proxy_headers
         })
     }
 }

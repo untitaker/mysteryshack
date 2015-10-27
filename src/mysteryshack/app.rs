@@ -113,6 +113,7 @@ pub fn run_server(config: config::Config) {
     let mut chain = Chain::new(router);
     let (logger_before, logger_after) = Logger::new(None);
     chain.link_before(logger_before);
+    if config.use_proxy_headers { chain.link_before(utils::XForwardedMiddleware); }
     chain.link(persistent::Read::<AppConfig>::both(config.clone()));
     chain.around(LoginManager::new({
         println!("Generating session keys...");

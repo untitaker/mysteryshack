@@ -5,6 +5,8 @@ use std::io::Read;
 use std::io::Write;
 use std::io;
 use std::path;
+use std::net::SocketAddr;
+use std::str::FromStr;
 
 use regex;
 
@@ -14,6 +16,8 @@ use hyper::method::Method;
 use rustc_serialize::json;
 use rustc_serialize::Decodable;
 use rustc_serialize::Encodable;
+
+use url::Host;
 
 use iron;
 use iron::prelude::*;
@@ -225,4 +229,36 @@ pub fn write_json_file<T: Encodable, P: AsRef<path::Path>>(t: T, p: P) -> Result
 
 pub fn is_safe_identifier(string: &str) -> bool {
     regex::Regex::new(r"^[A-Za-z0-9_-]+$").unwrap().is_match(string)
+}
+
+pub struct XForwardedMiddleware;
+
+fn get_one_raw(r: &mut Request, key: &str) -> Option<String> {
+    r.headers
+        .get_raw(key)
+        .and_then(|vals| if vals.len() > 0 { vals.to_owned().pop() } else { None })
+        .and_then(|x| String::from_utf8(x).ok())
+}
+
+impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
+    fn before(&self, r: &mut Request) -> IronResult<()> {
+        get_one_raw(r, "X-Forwarded-Host")
+            .and_then(|host| Host::parse(&host[..]).ok())
+            .map(|x| r.url.host = x);
+
+        get_one_raw(r, "X-Forwarded-For")
+            .and_then(parse_remote_addrs)
+            .map(|ip| r.remote_addr = ip);
+
+        get_one_raw(r, "X-Forwarded-Proto")
+            .map(|scheme| r.url.scheme = scheme.to_lowercase());
+
+        Ok(())
+    }
+}
+
+fn parse_remote_addrs(s: String) -> Option<SocketAddr> {
+    let split = s.split(',');
+    let mut iter_ips = split.map(|x| x.trim()).filter(|x| x.len() > 0);
+    iter_ips.next().and_then(|ip| SocketAddr::from_str(ip).ok())
 }
