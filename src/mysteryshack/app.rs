@@ -13,7 +13,6 @@ use iron::status;
 use iron::method::Method;
 use iron::typemap::Key;
 use router::Router;
-use logger::Logger;
 
 use rand::{Rng,StdRng};
 
@@ -121,8 +120,6 @@ pub fn run_server(config: config::Config) {
     router.post("/oauth/:userid/", oauth_entry);
 
     let mut chain = Chain::new(router);
-    let (logger_before, logger_after) = Logger::new(None);
-    chain.link_before(logger_before);
     if config.use_proxy_headers { chain.link_before(utils::XForwardedMiddleware); }
     chain.link(persistent::Read::<AppConfig>::both(config.clone()));
     chain.around(LoginManager::new({
@@ -136,7 +133,6 @@ pub fn run_server(config: config::Config) {
     // FIXME: Inline templates into bin
     chain.link_after(HandlebarsEngine::new("./src/templates/", ".hbs"));
     chain.link_after(utils::CorsMiddleware);
-    chain.link_after(logger_after);
     chain.link_after(ErrorPrinter);
 
     let listen = &config.listen[..];

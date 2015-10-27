@@ -13,8 +13,6 @@ extern crate rand;
 extern crate persistent;
 extern crate iron_login;
 extern crate handlebars_iron;
-extern crate logger;
-#[macro_use] extern crate log;
 extern crate regex;
 
 pub mod cli;
