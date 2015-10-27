@@ -1,3 +1,4 @@
 [main]
 listen = "localhost:6767"
 data_path = "/tmp/mysteryshack"
+use_proxy_headers = false
