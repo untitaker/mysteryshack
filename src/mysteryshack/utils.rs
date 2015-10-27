@@ -246,6 +246,10 @@ impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
             .and_then(|host| Host::parse(&host[..]).ok())
             .map(|x| r.url.host = x);
 
+        get_one_raw(r, "X-Forwarded-Port")
+            .and_then(|s| u16::from_str(&s[..]).ok())
+            .map(|port| r.url.port = port);
+
         get_one_raw(r, "X-Forwarded-For")
             .and_then(parse_remote_addrs)
             .map(|ip| r.remote_addr = ip);
