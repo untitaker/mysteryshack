@@ -122,7 +122,7 @@ pub trait SessionManager {
     }
 
     fn create_session(&self, session: Session) -> Result<String, ServerError> {
-        let mut sessions = self.read_session_file().unwrap_or_else(collections::HashMap::new);
+        let mut sessions = self.read_session_file().unwrap_or_else(|_| collections::HashMap::new());
         let mut rng = try!(StdRng::new());
         let rand_iter = rng.gen_ascii_chars();
         let token: String = rand_iter.take(24).collect();
