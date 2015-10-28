@@ -6,6 +6,8 @@ use hyper::method::Method;
 
 use url::Host;
 
+use urlencoded;
+
 use unicase::UniCase;
 
 use iron;
@@ -138,3 +140,15 @@ pub fn preconditions_ok(request: &Request, etag: Option<&str>) -> bool {
     true
 }
 
+pub trait FormDataHelper<K: ?Sized, V> {
+    fn get_only<Q: AsRef<K>>(&self, k: Q) -> Option<&String>;
+}
+
+impl FormDataHelper<str, String> for urlencoded::QueryMap {
+    fn get_only<Q: AsRef<str>>(&self, k: Q) -> Option<&String> {
+        match self.get(&k.as_ref().to_owned()) {
+            Some(x) if x.len() == 1 => Some(&x[0]),
+            _ => None
+        }
+    }
+}

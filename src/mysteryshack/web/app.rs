@@ -34,7 +34,7 @@ use models;
 use models::UserNode;
 use models::SessionManager;
 use config;
-use super::utils::{preconditions_ok,EtagMatcher,CorsMiddleware,XForwardedMiddleware};
+use super::utils::{preconditions_ok,EtagMatcher,CorsMiddleware,XForwardedMiddleware,FormDataHelper};
 use super::oauth::OauthRequest;
 
 #[derive(Copy, Clone)]
@@ -252,7 +252,37 @@ fn user_login_post(request: &mut Request) -> IronResult<Response> {
 
 fn user_dashboard(request: &mut Request) -> IronResult<Response> {
     let user = require_login!(request);
-    Ok(Response::with(status::Ok).set(format!("Hello, {}!", user.userid)))
+    let mut sessions = user.read_sessions().unwrap_or_else(|_| collections::HashMap::new());
+
+    match request.method {
+        Method::Get => Ok(Response::with(status::Ok)
+                          .set(Template::new("dashboard", {
+                              let mut rv = collections::BTreeMap::new();
+                              rv.insert("sessions".to_owned(), sessions);
+                              rv
+                          }))),
+        Method::Post => {
+            check_csrf!(request);
+            let query = match request.get_ref::<urlencoded::UrlEncodedQuery>() {
+                Ok(x) => x,
+                Err(_) => return Ok(Response::with(status::BadRequest))
+            };
+
+            match (query.get_only("action").map(Deref::deref), query.get_only("token")) {
+                (Some("delete_token"), Some(token)) => {
+                    match sessions.remove(token) {
+                        Some(_) => {
+                            itry!(user.write_sessions(&sessions));
+                            Ok(Response::with(status::Ok))
+                        },
+                        None => Ok(Response::with(status::NotFound))
+                    }
+                },
+                _ => Ok(Response::with(status::BadRequest))
+            }
+        },
+        _ => Ok(Response::with(status::BadRequest))
+    }
 }
 
 fn oauth_entry(request: &mut Request) -> IronResult<Response> {

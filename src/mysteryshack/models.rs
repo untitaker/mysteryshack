@@ -82,8 +82,8 @@ type SessionMap = collections::HashMap<String, Session>;
 
 
 pub trait SessionManager {
-    fn read_session_file(&self) -> Result<SessionMap, ServerError>;
-    fn write_session_file(&self, map: &SessionMap) -> Result<(), ServerError>;
+    fn read_sessions(&self) -> Result<SessionMap, ServerError>;
+    fn write_sessions(&self, map: &SessionMap) -> Result<(), ServerError>;
 
     fn get_permissions(&self, token_opt: Option<&str>, path: &str) -> CategoryPermissions {
         let anonymous = CategoryPermissions {
@@ -112,7 +112,7 @@ pub trait SessionManager {
     }
 
     fn get_session(&self, token: &str) -> Option<Session> {
-        match self.read_session_file() {
+        match self.read_sessions() {
             Ok(mut x) => x.remove(token),
             Err(e) => {
                 println!("Failed to parse session file: {:?}", e);
@@ -122,7 +122,7 @@ pub trait SessionManager {
     }
 
     fn create_session(&self, session: Session) -> Result<String, ServerError> {
-        let mut sessions = self.read_session_file().unwrap_or_else(|_| collections::HashMap::new());
+        let mut sessions = self.read_sessions().unwrap_or_else(|_| collections::HashMap::new());
         let mut rng = try!(StdRng::new());
         let rand_iter = rng.gen_ascii_chars();
         let token: String = rand_iter.take(24).collect();
@@ -131,17 +131,17 @@ pub trait SessionManager {
             _ => panic!("Access token already given.")
         };
 
-        try!(self.write_session_file(&sessions));
+        try!(self.write_sessions(&sessions));
         Ok(token)
     }
 }
 
 impl SessionManager for User {
-    fn read_session_file(&self) -> Result<SessionMap, ServerError> {
+    fn read_sessions(&self) -> Result<SessionMap, ServerError> {
         utils::read_json_file(self.session_file_path())
     }
 
-    fn write_session_file(&self, map: &SessionMap) -> Result<(), ServerError> {
+    fn write_sessions(&self, map: &SessionMap) -> Result<(), ServerError> {
         utils::write_json_file(map, self.session_file_path())
     }
 }
@@ -197,6 +197,18 @@ impl Session {
             Some(x) => Some(x),
             None => self.permissions.get("")
         }
+    }
+}
+
+impl ToJson for Session {
+    fn to_json(&self) -> json::Json {
+        json::Json::Object({
+            let mut rv = collections::BTreeMap::new();
+            rv.insert("client_id".to_owned(), self.client_id.to_json());
+            rv.insert("uri".to_owned(), self.uri.to_json());
+            rv.insert("permissions".to_owned(), self.permissions.to_json());
+            rv
+        })
     }
 }
 
