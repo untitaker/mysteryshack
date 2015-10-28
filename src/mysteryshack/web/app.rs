@@ -2,6 +2,7 @@ use std::collections;
 use std::io;
 use std::fs;
 use std::ops::Deref;
+use std::error::Error;
 
 use hyper::header;
 
@@ -41,12 +42,11 @@ pub struct AppConfig;
 impl Key for AppConfig { type Value = config::Config; }
 
 macro_rules! itry {
-    ($expr:expr) => (match $expr {
+    ($expr:expr) => (itry!($expr, ::iron::status::InternalServerError));
+
+    ($expr:expr, $modifier:expr) => (match $expr {
         ::std::result::Result::Ok(val) => val,
-        ::std::result::Result::Err(err) => {
-            return ::std::result::Result::Err(
-                ::iron::IronError::new(err, ::iron::status::InternalServerError))
-        }
+        ::std::result::Result::Err(err) => return Err(::iron::IronError::new(err, $modifier))
     })
 }
 
@@ -261,7 +261,15 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
         parts.find("userid").unwrap().to_owned()
     };
     let user = require_login_as!(request, &oauth_userid[..]);
-    let oauth_request = some_or!(OauthRequest::from_http(request), status::BadRequest);
+    let oauth_request = match OauthRequest::from_http(request) {
+        Ok(x) => x,
+        Err(e) => return Ok(Response::with(status::BadRequest)
+            .set(Template::new("oauth_error", json::Json::Object({
+                let mut rv = collections::BTreeMap::new();
+                rv.insert("e_msg".to_owned(), e.description().to_json());
+                rv
+            }))))
+    };
 
     match request.method {
         Method::Get => Ok(Response::with(status::Ok).set(Template::new("oauth_entry", oauth_request.to_json()))),

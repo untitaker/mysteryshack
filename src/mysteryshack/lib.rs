@@ -14,6 +14,7 @@ extern crate persistent;
 extern crate iron_login;
 extern crate handlebars_iron;
 extern crate regex;
+#[macro_use] extern crate quick_error;
 
 pub mod cli;
 mod web;
