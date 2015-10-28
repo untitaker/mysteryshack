@@ -119,6 +119,8 @@ pub fn run_server(config: config::Config) {
     router.get("/oauth/:userid/", oauth_entry);
     router.post("/oauth/:userid/", oauth_entry);
 
+    router.get("/", |_: &mut Request| Ok(Response::with((status::Ok, Template::new("index", "".to_json())))));
+
     let mut chain = Chain::new(router);
     if config.use_proxy_headers { chain.link_before(XForwardedMiddleware); }
     chain.link(persistent::Read::<AppConfig>::both(config.clone()));
