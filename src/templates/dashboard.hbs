@@ -1,5 +1,12 @@
 {{# partial "content" }}
-{{ sessions }}
+<ul>
+    {{#each sessions}}
+    <li>
+        <strong>{{uri}}</strong></br>
+        <small>({{client_id}})</small>
+    </li>
+    {{/each}}
+</ul>
 {{/partial}}
 
 {{> layout}}
