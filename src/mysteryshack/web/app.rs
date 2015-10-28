@@ -33,8 +33,7 @@ use models;
 use models::UserNode;
 use models::SessionManager;
 use config;
-use utils;
-use utils::EtagMatcher;
+use super::utils::{preconditions_ok,EtagMatcher,CorsMiddleware,XForwardedMiddleware};
 
 #[derive(Copy, Clone)]
 pub struct AppConfig;
@@ -120,7 +119,7 @@ pub fn run_server(config: config::Config) {
     router.post("/oauth/:userid/", oauth_entry);
 
     let mut chain = Chain::new(router);
-    if config.use_proxy_headers { chain.link_before(utils::XForwardedMiddleware); }
+    if config.use_proxy_headers { chain.link_before(XForwardedMiddleware); }
     chain.link(persistent::Read::<AppConfig>::both(config.clone()));
     chain.around(LoginManager::new({
         println!("Generating session keys...");
@@ -132,7 +131,7 @@ pub fn run_server(config: config::Config) {
 
     // FIXME: Inline templates into bin
     chain.link_after(HandlebarsEngine::new("./src/templates/", ".hbs"));
-    chain.link_after(utils::CorsMiddleware);
+    chain.link_after(CorsMiddleware);
     chain.link_after(ErrorPrinter);
 
     let listen = &config.listen[..];
@@ -532,7 +531,7 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
     fn respond_delete(self, request: &Request) -> IronResult<Response> {
         let etag = self.read_etag().ok();
         
-        if !utils::preconditions_ok(&request, etag.as_ref().map(Deref::deref)) {
+        if !preconditions_ok(&request, etag.as_ref().map(Deref::deref)) {
             return Ok(Response::with(status::PreconditionFailed));
         };
 
@@ -547,7 +546,7 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
     fn respond_put(self, request: &mut Request) -> IronResult<Response> {
         let etag = self.read_etag().ok();
 
-        if !utils::preconditions_ok(&request, etag.as_ref().map(Deref::deref)) {
+        if !preconditions_ok(&request, etag.as_ref().map(Deref::deref)) {
             return Ok(Response::with(status::PreconditionFailed));
         };
 

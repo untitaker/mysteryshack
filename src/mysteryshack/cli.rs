@@ -5,7 +5,7 @@ use clap::{App, Arg, SubCommand};
 
 use config;
 use models;
-use app;
+use web;
 use utils;
 
 pub fn main() {
@@ -46,7 +46,7 @@ pub fn main() {
     };
 
     if let Some(_) = matches.subcommand_matches("serve") {
-        app::run_server(config);
+        web::run_server(config);
     } else if let Some(user_matches) = matches.subcommand_matches("user") {
         if let Some(user_create_matches) = user_matches.subcommand_matches("create") {
             let username = user_create_matches.value_of("USERNAME").unwrap();

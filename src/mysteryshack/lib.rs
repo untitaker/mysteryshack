@@ -16,7 +16,7 @@ extern crate handlebars_iron;
 extern crate regex;
 
 pub mod cli;
-mod app;
+mod web;
 mod models;
 mod utils;
 mod config;
