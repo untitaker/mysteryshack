@@ -114,6 +114,7 @@ pub fn run_server(config: config::Config) {
 
     router.get("/.well-known/webfinger", webfinger_response);
     router.get("/dashboard/", user_dashboard);
+    router.post("/dashboard/", user_dashboard);
     router.get("/login/", user_login_get);
     router.post("/login/", user_login_post);
     router.get("/oauth/:userid/", oauth_entry);
@@ -265,17 +266,18 @@ fn user_dashboard(request: &mut Request) -> IronResult<Response> {
                           }))),
         Method::Post => {
             check_csrf!(request);
-            let query = match request.get_ref::<urlencoded::UrlEncodedQuery>() {
-                Ok(x) => x,
-                Err(_) => return Ok(Response::with(status::BadRequest))
-            };
+            let back_to = request.url.clone();
+            let (action, token) = some_or!(
+                request.get_ref::<urlencoded::UrlEncodedBody>().ok()
+                    .map(|query| (query.get_only("action").clone(), query.get_only("token").clone())),
+                status::BadRequest);
 
-            match (query.get_only("action").map(Deref::deref), query.get_only("token")) {
+            match (action.map(Deref::deref), token) {
                 (Some("delete_token"), Some(token)) => {
                     match sessions.remove(token) {
                         Some(_) => {
                             itry!(user.write_sessions(&sessions));
-                            Ok(Response::with(status::Ok))
+                            Ok(Response::with((status::Found, Redirect(back_to))))
                         },
                         None => Ok(Response::with(status::NotFound))
                     }

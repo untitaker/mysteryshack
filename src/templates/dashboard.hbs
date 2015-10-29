@@ -4,6 +4,11 @@
     <li>
         <strong>{{uri}}</strong></br>
         <small>({{client_id}})</small>
+        <form method="post">
+            <input type="hidden" name="token" value="{{ @key }}" />
+            <input type="hidden" name="action" value="delete_token" />
+            <input type="submit" value="Delete" />
+        </form>
     </li>
     {{/each}}
 </ul>
