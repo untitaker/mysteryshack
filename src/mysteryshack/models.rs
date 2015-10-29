@@ -17,10 +17,9 @@ use rand::{Rng, StdRng};
 
 use atomicwrites;
 
-use iron::prelude::*;
-
 use utils;
 use utils::ServerError;
+use web::oauth::{Session, CategoryPermissions};
 
 
 pub struct User {
@@ -121,7 +120,7 @@ pub trait SessionManager {
         }
     }
 
-    fn create_session(&self, session: Session) -> Result<String, ServerError> {
+    fn create_session(&self, session: &Session) -> Result<String, ServerError> {
         let mut sessions = self.read_sessions().unwrap_or_else(|_| collections::HashMap::new());
         let mut rng = try!(StdRng::new());
         let rand_iter = rng.gen_ascii_chars();
@@ -184,51 +183,7 @@ impl PasswordHash {
     }
 }
 
-#[derive(RustcDecodable, RustcEncodable, Debug, Clone)]
-pub struct Session {
-    pub client_id: String,
-    pub uri: String,
-    pub permissions: collections::HashMap<String, CategoryPermissions>
-}
 
-impl Session {
-    pub fn permissions_for_category(&self, category: &str) -> Option<&CategoryPermissions> {
-        match self.permissions.get(category) {
-            Some(x) => Some(x),
-            None => self.permissions.get("")
-        }
-    }
-}
-
-impl ToJson for Session {
-    fn to_json(&self) -> json::Json {
-        json::Json::Object({
-            let mut rv = collections::BTreeMap::new();
-            rv.insert("client_id".to_owned(), self.client_id.to_json());
-            rv.insert("uri".to_owned(), self.uri.to_json());
-            rv.insert("permissions".to_owned(), self.permissions.to_json());
-            rv
-        })
-    }
-}
-
-#[derive(RustcDecodable, RustcEncodable, Debug, Clone, Copy)]
-pub struct CategoryPermissions {
-    pub can_read: bool,
-    pub can_write: bool
-}
-
-impl ToJson for CategoryPermissions {
-    // ToJson for passing to template
-    fn to_json(&self) -> json::Json {
-        json::Json::Object({
-            let mut rv = collections::BTreeMap::new();
-            rv.insert("can_read".to_owned(), self.can_read.to_json());
-            rv.insert("can_write".to_owned(), self.can_write.to_json());
-            rv
-        })
-    }
-}
 
 pub trait UserNode<'a> {
     fn from_path(user: &'a User, path: &str) -> Option<Self> where Self: Sized;

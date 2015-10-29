@@ -9,7 +9,7 @@ use hyper::header;
 use iron;
 
 use iron::prelude::*;
-use iron::modifiers::{Header,Redirect};
+use iron::modifiers::Redirect;
 use iron::status;
 use iron::method::Method;
 use iron::typemap::Key;
@@ -35,7 +35,8 @@ use models::UserNode;
 use models::SessionManager;
 use config;
 use super::utils::{preconditions_ok,EtagMatcher,CorsMiddleware,XForwardedMiddleware,FormDataHelper};
-use super::oauth::OauthRequest;
+use super::oauth;
+use super::oauth::HttpResponder;
 
 #[derive(Copy, Clone)]
 pub struct AppConfig;
@@ -295,14 +296,18 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
         parts.find("userid").unwrap().to_owned()
     };
     let user = require_login_as!(request, &oauth_userid[..]);
-    let oauth_request = match OauthRequest::from_http(request) {
+    let oauth_request = match oauth::OauthRequest::from_http(request) {
         Ok(x) => x,
-        Err(e) => return Ok(Response::with(status::BadRequest)
-            .set(Template::new("oauth_error", json::Json::Object({
-                let mut rv = collections::BTreeMap::new();
-                rv.insert("e_msg".to_owned(), e.description().to_json());
-                rv
-            }))))
+        Err(e) => return Ok(
+            e.get_response().unwrap_or_else(|| {
+                Response::with(status::BadRequest)
+                .set(Template::new("oauth_error", json::Json::Object({
+                    let mut rv = collections::BTreeMap::new();
+                    rv.insert("e_msg".to_owned(), e.description().to_json());
+                    rv
+                })))
+            })
+        )
     };
 
     match request.method {
@@ -318,18 +323,12 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
                 }
             }, status::BadRequest);
 
-            let mut redirect_uri = itry!(url::Url::parse(&oauth_request.session.uri[..]));
             if allow {
-                redirect_uri.fragment = Some(url::form_urlencoded::serialize({
-                    let mut rv = collections::BTreeMap::new();
-                    oauth_request.state.map(|x| rv.insert("state", x));
-                    rv.insert("access_token", itry!(user.create_session(oauth_request.session)));
-                    rv
-                }));
+                let token = itry!(user.create_session(&oauth_request.session));
+                Ok(oauth_request.grant(token).get_response().unwrap())
+            } else {
+                Ok(oauth_request.reject().get_response().unwrap())
             }
-            Ok(Response::with(status::Found)
-               // Do not use Redirect modifier here, we need to handle custom URI schemes as well
-               .set(Header(header::Location(redirect_uri.serialize()))))
         },
         _ => Ok(Response::with(status::BadRequest))
     }
