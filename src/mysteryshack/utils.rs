@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::fmt;
 use std::fs;
 use std::io::Read;
 use std::io::Write;
@@ -7,46 +6,23 @@ use std::io;
 use std::path;
 
 use regex;
+use config;
 
 use rustc_serialize::json;
 use rustc_serialize::Decodable;
 use rustc_serialize::Encodable;
 
 
-#[derive(Debug)]
-pub struct ServerError {
-    pub error: Box<Error + Send>
-}
-
-impl fmt::Display for ServerError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.description().fmt(f)
+quick_error! {
+    #[derive(Debug)]
+    pub enum ServerError {
+        InternalError(error: Box<Error + Send>) { from() }
+        Io(error: io::Error) { from() }
+        JsonDecode(error: json::DecoderError) { from() }
+        JsonEncode(error: json::EncoderError) { from() }
+        ConfigError(error: config::Error) { from() }
     }
 }
-
-impl Error for ServerError {
-    fn description(&self) -> &str { self.error.description() }
-    fn cause(&self) -> Option<&Error> { Some(&*self.error) }
-}
-
-impl From<io::Error> for ServerError {
-    fn from(e: io::Error) -> ServerError {
-        ServerError { error: Box::new(e) }
-    }
-}
-
-impl From<json::DecoderError> for ServerError {
-    fn from(e: json::DecoderError) -> ServerError {
-        ServerError { error: Box::new(e) }
-    }
-}
-
-impl From<json::EncoderError> for ServerError {
-    fn from(e: json::EncoderError) -> ServerError {
-        ServerError { error: Box::new(e) }
-    }
-}
-
 
 pub fn safe_join<P: AsRef<path::Path>, Q: AsRef<path::Path>>(base: P, user_input: Q) -> Option<path::PathBuf> {
     let a = base.as_ref();

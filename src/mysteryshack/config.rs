@@ -1,5 +1,3 @@
-use std::error::Error;
-use std::fmt;
 use std::env;
 use std::fs;
 use std::io::Read;
@@ -28,7 +26,7 @@ impl Config {
         let mut parser = toml::Parser::new(&s);
         let mut sections = match parser.parse() {
             Some(x) => x,
-            None => return Err(ConfigError::new(format!("{:?}", parser.errors)).into())
+            None => return Err(Error::ParserError(parser.errors).into())
         };
 
         let mut main_section = match sections.remove("main") {
@@ -59,39 +57,9 @@ impl Config {
     }
 }
 
-#[derive(Debug)]
-pub struct ConfigError {
-    pub msg: String
-}
-
-impl ConfigError {
-    pub fn new(msg: String) -> Self {
-        ConfigError { msg: msg }
+quick_error! {
+    #[derive(Debug)]
+    pub enum Error {
+        ParserError(errors: Vec<toml::ParserError>)
     }
 }
-
-impl fmt::Display for ConfigError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.description().fmt(f)
-    }
-}
-
-impl Error for ConfigError {
-    fn description(&self) -> &str { &self.msg[..] }
-    fn cause(&self) -> Option<&Error> { None }
-}
-
-
-impl From<toml::ParserError> for ServerError {
-    fn from(e: toml::ParserError) -> ServerError {
-        ServerError { error: Box::new(e) }
-    }
-}
-
-
-impl From<ConfigError> for ServerError {
-    fn from(e: ConfigError) -> ServerError {
-        ServerError { error: Box::new(e) }
-    }
-}
-
