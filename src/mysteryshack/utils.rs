@@ -13,7 +13,6 @@ use rustc_serialize::Decodable;
 use rustc_serialize::Encodable;
 
 
-// FIXME: replace with quick_error?
 #[derive(Debug)]
 pub struct ServerError {
     pub error: Box<Error + Send>
