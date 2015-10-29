@@ -40,7 +40,7 @@ pub fn main() {
     let config = match config::Config::read_file(config_path) {
         Ok(x) => x,
         Err(e) => {
-            println!("Failed to parse config: {:?}", e);  // FIXME: nicer UI
+            println!("Failed to parse config: {}", e);
             process::exit(1);
         }
     };

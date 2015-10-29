@@ -60,6 +60,9 @@ impl Config {
 quick_error! {
     #[derive(Debug)]
     pub enum Error {
-        ParserError(errors: Vec<toml::ParserError>)
+        ParserError(errors: Vec<toml::ParserError>) {
+            display("Multiple errors while parsing configuration: {:?}", errors)
+            from()
+        }
     }
 }

@@ -14,13 +14,33 @@ use rustc_serialize::Encodable;
 
 
 quick_error! {
+    // FIXME: https://github.com/tailhook/quick-error/issues/3
     #[derive(Debug)]
     pub enum ServerError {
-        InternalError(error: Box<Error + Send>) { from() }
-        Io(error: io::Error) { from() }
-        JsonDecode(error: json::DecoderError) { from() }
-        JsonEncode(error: json::EncoderError) { from() }
-        ConfigError(error: config::Error) { from() }
+        Io(error: io::Error) {
+            display("{}", error)
+            description(error.description())
+            cause(error)
+            from()
+        }
+        JsonDecode(error: json::DecoderError) {
+            display("{}", error)
+            description(error.description())
+            cause(error)
+            from()
+        }
+        JsonEncode(error: json::EncoderError) {
+            display("{}", error)
+            description(error.description())
+            cause(error)
+            from()
+        }
+        ConfigError(error: config::Error) {
+            display("{}", error)
+            description(error.description())
+            cause(error)
+            from()
+        }
     }
 }
 
