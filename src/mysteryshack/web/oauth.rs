@@ -241,7 +241,12 @@ impl fmt::Display for Error {
 }
 
 impl ErrorTrait for Error {
-    fn description(&self) -> &str { self.kind.as_snake_case() }
+    fn description(&self) -> &str {
+        match self.msg {
+            Some(ref x) => x,
+            None => self.kind.as_snake_case()
+        }
+    }
     fn cause(&self) -> Option<&ErrorTrait> { None }
 }
 
