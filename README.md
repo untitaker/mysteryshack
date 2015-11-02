@@ -16,6 +16,15 @@ Mysteryshack is a lightweight, yet self-contained
   --help` and `mysteryshack user --help`.
 * `mysteryshack serve` to run the server as configured in `./config`.
 
+## Troubleshooting
+
+### OS X and OpenSSL
+
+As of OS X 10.11, OpenSSL isn't installed anymore. You'll need to install it manually:
+
+    brew install openssl
+    brew link --force openssl
+
 ## License
 
 Licensed under the MIT, see `LICENSE`.
