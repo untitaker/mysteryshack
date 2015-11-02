@@ -1,12 +1,20 @@
 # mysteryshack [![Build Status](https://travis-ci.org/untitaker/mysteryshack.svg?branch=master)](https://travis-ci.org/untitaker/mysteryshack)
 
-This is the work-in-progress of a new
-[remoteStorage](http://remotestorage.io/)-server. Goals:
+Mysteryshack is a lightweight, yet self-contained
+[remoteStorage](http://remotestorage.io/)-server.
 
-* Be *lightweight* in CPU- and RAM-usage, but only at runtime, not necessarily
-  compilation time.
+***This project is still in active development. Do not use with sensitive data, or without backup.***
 
-* Be *user-friendly*. There is no such thing as over-protective.
+## Usage
+
+* Install [Rust](https://www.rust-lang.org/).
+* Clone this repository.
+* Edit `config.example` and save it as `config`.
+* Run `cargo build --release`.
+* `./target/release/mysteryshack` is your binary.
+* `mysteryshack user create foo` to create a new user. See also `mysteryshack
+  --help` and `mysteryshack user --help`.
+* `mysteryshack serve` to run the server as configured in `./config`.
 
 ## License
 
