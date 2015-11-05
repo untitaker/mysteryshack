@@ -19,7 +19,7 @@ use rand::{Rng,StdRng};
 
 use persistent;
 
-use handlebars_iron::Template;
+use handlebars_iron::{HandlebarsEngine,Template};
 
 use urlencoded;
 
@@ -37,7 +37,6 @@ use config;
 use super::utils::{preconditions_ok,EtagMatcher,CorsMiddleware,XForwardedMiddleware,FormDataHelper};
 use super::oauth;
 use super::oauth::HttpResponder;
-use super::templates;
 
 #[derive(Copy, Clone)]
 pub struct AppConfig;
@@ -136,7 +135,7 @@ pub fn run_server(config: config::Config) {
     }));
 
     // FIXME: Inline templates into bin
-    chain.link_after(templates::get_engine());
+    chain.link_after(HandlebarsEngine::new("./src/templates/", ".hbs"));
     chain.link_after(CorsMiddleware);
     chain.link_after(ErrorPrinter);
 

@@ -3,7 +3,7 @@
     {{#each sessions}}
     <li>
         <strong>{{uri}}</strong></br>
-        <small>({{client_id}})</small>
+        <small>{{user_agent}}</small>
         <form method="post">
             <input type="hidden" name="token" value="{{ @key }}" />
             <input type="hidden" name="action" value="delete_token" />
