@@ -2,7 +2,7 @@
     var elements = document.getElementsByClassName("user-agent");
     $(".user-agent").html(function() {
         var parser = new UAParser();
-        parser.setUA($("").text());
+        parser.setUA($(this).text());
         var ua = parser.getResult();
 
         var newHTML = "";
