@@ -2,6 +2,7 @@
     "scopedtoken123": {
         "client_id": "hailsatan",
         "uri": "http://example.com",
+        "user_agent": "Mozilla",
         "permissions": {
             "api-test": {
                 "can_read": true,
@@ -12,6 +13,7 @@
     "readonlytoken123": {
         "client_id": "hailsatan",
         "uri": "http://example.com",
+        "user_agent": "Mozilla",
         "permissions": {
             "api-test": {
                 "can_read": true,
@@ -22,6 +24,7 @@
     "roottoken123": {
         "client_id": "hailsatan",
         "uri": "http://example.com",
+        "user_agent": "Mozilla",
         "permissions": {
             "": {
                 "can_read": true,

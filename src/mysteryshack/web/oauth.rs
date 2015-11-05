@@ -1,6 +1,7 @@
 use std::collections;
 use std::fmt;
 use std::error::Error as ErrorTrait;
+use std::ops::Deref;
 
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
@@ -24,6 +25,7 @@ pub struct OauthRequest {
 #[derive(RustcDecodable, RustcEncodable, Debug, Clone)]
 pub struct Session {
     pub client_id: String,
+    pub user_agent: String,
     pub uri: url::Url,
     pub permissions: collections::HashMap<String, CategoryPermissions>
 }
@@ -42,6 +44,7 @@ impl ToJson for Session {
         json::Json::Object({
             let mut rv = collections::BTreeMap::new();
             rv.insert("client_id".to_owned(), self.client_id.to_json());
+            rv.insert("user_agent".to_owned(), self.user_agent.to_json());
             rv.insert("uri".to_owned(), self.uri.serialize().to_json());
             rv.insert("permissions".to_owned(), self.permissions.to_json());
             rv
@@ -70,13 +73,7 @@ impl ToJson for CategoryPermissions {
 impl ToJson for OauthRequest {
     // ToJson for passing to template
     fn to_json(&self) -> json::Json {
-        json::Json::Object({
-            let mut rv = collections::BTreeMap::new();
-            rv.insert("redirect_uri".to_owned(), self.session.uri.serialize().to_json());
-            rv.insert("scope".to_owned(), self.session.permissions.to_json());
-            rv.insert("client_id".to_owned(), self.session.client_id.to_json());
-            rv
-        })
+        self.session.to_json()
     }
 }
 
@@ -94,6 +91,11 @@ fn expect_param(query: &urlencoded::QueryMap, key: &str) -> Result<String, Error
 
 impl OauthRequest {
     pub fn from_http(request: &mut Request) -> Result<Self, Error> {
+        let user_agent = request.headers
+            .get::<header::UserAgent>()
+            .map(Deref::deref).cloned()
+            .unwrap_or_else(|| "".to_string());
+
         // FIXME: validate client_id
         let query = match request.get_ref::<urlencoded::UrlEncodedQuery>().ok() {
             Some(x) => x,
@@ -115,7 +117,8 @@ impl OauthRequest {
                         ne
                     })
                 },
-                permissions: collections::HashMap::new()
+                permissions: collections::HashMap::new(),
+                user_agent: user_agent
             },
             state: expect_param(query, "state").ok() 
         };
