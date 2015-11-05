@@ -1,3 +1,43 @@
-* {
-    font-family: "Comic Sans MS"
+#header, #content, #footer {
+    margin: 0 auto;
+    display: block;
+    max-width: 420px;
+}
+
+#header, #footer {
+    text-align: center;
+}
+
+#applist {
+    list-style: none;
+}
+
+#applist li {
+    margin-bottom: 20px;
+}
+
+.delete-token {
+    background-color: rgb(202, 60, 60);
+    color: white;
+    font-size: 85%;
+    float: right;
+}
+
+.oauth-allow {
+    background-color: rgb(202, 60, 60);
+    color: white;
+}
+
+#login {
+    margin: 0 auto;
+    max-width: 230px;
+}
+
+#login input {
+    width: 100%;
+}
+
+.user-agent img {
+    width: 32px;
+    height: 32px;
 }

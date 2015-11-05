@@ -1,14 +1,12 @@
 {{# partial "content" }}
 <h2>OAuth request</h2>
-<p>redirect_uri: {{ redirect_uri }}</p>
-<p>client_id: {{ client_id }}</p>
-<p>permissions: {{ permissions }}</p>
 
-<p><strong>Accept?</strong></p>
+<p>The application at <code>{{ uri }}<code> wants access to the following scopes:</p>
+<pre>{{ permissions }}</pre>
+
 <form method=post>
-<input type=radio name=decision value=allow /> Allow</br>
-<input type=radio name=decision value=deny /> Deny</br>
-<input type=submit value=Send />
+    <input type=submit name=decision class="pure-button oauth-allow" value=allow />
+    <input type=submit name=decision class="pure-button oauth-deny" value=deny />
 </form>
 {{/partial}}
 

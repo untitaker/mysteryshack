@@ -1,14 +1,14 @@
 {{# partial "content" }}
-<ul>
+<ul id="applist">
     {{#each sessions}}
-    <li>
-        <strong>{{uri}}</strong></br>
-        <small>{{user_agent}}</small>
+    <li class="clearfix">
         <form method="post">
             <input type="hidden" name="token" value="{{ @key }}" />
             <input type="hidden" name="action" value="delete_token" />
-            <input type="submit" value="Delete" />
+            <input type="submit" class="pure-button button-small delete-token" value="Revoke" />
         </form>
+        <a href="{{uri}}">{{uri}}</a><br/>
+        <small class="user-agent">{{user_agent}}</small>
     </li>
     {{/each}}
 </ul>
