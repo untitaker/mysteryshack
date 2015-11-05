@@ -3,6 +3,7 @@ use std::io;
 use std::fs;
 use std::ops::Deref;
 use std::error::Error;
+use std::path::Path;
 
 use hyper::header;
 
@@ -13,19 +14,18 @@ use iron::modifiers::Redirect;
 use iron::status;
 use iron::method::Method;
 use iron::typemap::Key;
-use router::Router;
 
-use rand::{Rng,StdRng};
 
 use persistent;
-
 use handlebars_iron::{HandlebarsEngine,Template};
-
-use urlencoded;
-
+use mount;
 use iron_login::{User,LoginManager};
+use urlencoded;
+use router::Router;
+use staticfile;
 
 use url;
+use rand::{Rng,StdRng};
 
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
@@ -139,9 +139,13 @@ pub fn run_server(config: config::Config) {
     chain.link_after(CorsMiddleware);
     chain.link_after(ErrorPrinter);
 
+    let mut mount = mount::Mount::new();
+    mount.mount("/", chain);
+    mount.mount("/static/", staticfile::Static::new(Path::new("./src/static/")));
+
     let listen = &config.listen[..];
     println!("Listening on: http://{}", listen);
-    Iron::new(chain).listen_with(listen, 1, iron::Protocol::Http).unwrap();
+    Iron::new(mount).listen_with(listen, 1, iron::Protocol::Http).unwrap();
 }
 
 fn user_node_response(req: &mut Request) -> IronResult<Response> {

@@ -34,3 +34,7 @@ handlebars-iron = "*"
 regex = "*"
 iron-login = "*"
 quick-error = "*"
+staticfile = "*"
+
+[dependencies.mount]
+git = "https://github.com/iron/mount.git"
