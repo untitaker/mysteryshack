@@ -1,9 +1,0 @@
-Taken from https://github.com/faisalman/ua-parser-js
-
-image sources:
-======================
-http://iconfinder.com
-http://iconarchive.com
-http://wikimedia.org
-http://distrowatch.com
-https://github.com/alrra/browser-logos
