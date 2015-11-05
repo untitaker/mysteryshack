@@ -1,7 +1,8 @@
 (function() {
     var elements = document.getElementsByClassName("user-agent");
     $(".user-agent").html(function() {
-        var parser = new UAParser($("").text());
+        var parser = new UAParser();
+        parser.setUA($("").text());
         var ua = parser.getResult();
 
         var newHTML = "";
