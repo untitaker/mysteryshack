@@ -50,20 +50,23 @@ fn parse_remote_addrs(s: String) -> Option<SocketAddr> {
 }
 
 
-pub struct CorsMiddleware;
+pub struct SecurityHeaderMiddleware;
 
-impl iron::middleware::AfterMiddleware for CorsMiddleware {
+impl iron::middleware::AfterMiddleware for SecurityHeaderMiddleware {
     fn after(&self, request: &mut Request, mut response: Response) -> IronResult<Response> {
         set_cors_headers(&request, &mut response);
+        set_frame_options(&request, &mut response);
         Ok(response)
     }
 
     fn catch(&self, request: &mut Request, mut error: IronError) -> IronResult<Response> {
         set_cors_headers(&request, &mut error.response);
+        set_frame_options(&request, &mut error.response);
         Err(error)
     }
 }
 
+/// Required by remoteStorage spec
 fn set_cors_headers(rq: &Request, r: &mut Response) {
     match &rq.url.path[0][..] {
         ".well-known" | "storage" => (),
@@ -93,6 +96,18 @@ fn set_cors_headers(rq: &Request, r: &mut Response) {
         UniCase("If-Match".to_owned()),
         UniCase("If-None-Match".to_owned()),
     ]));
+}
+
+/// Prevent clickjacking attacks like described in OAuth RFC
+/// https://tools.ietf.org/html/rfc6749#section-10.13
+fn set_frame_options(rq: &Request, r: &mut Response) {
+    match &rq.url.path[0][..] {
+        // It's probably fine to embed user storage data into other documents
+        "storage" => return,
+        _ => ()
+    };
+
+    r.headers.set_raw("X-Frame-Options", vec![b"DENY".to_vec()]);
 }
 
 pub trait EtagMatcher {

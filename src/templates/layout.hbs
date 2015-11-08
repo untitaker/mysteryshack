@@ -7,6 +7,18 @@
         <link rel="stylesheet" href="/static/pure-min.css" />
         <link rel="stylesheet" href="/static/app.css" />
         {{#block "head"}}{{/block}}
+
+        <!-- https://cdn.elie.net/publications/busting-frame-busting-a-study-of-clickjacking-vulnerabilities-on-popular-sites.pdf -->
+        <style>
+            html { display: none; }
+        </style>
+        <script>
+            if(self == top) {
+                document.documentElement.style.display = 'block';
+            } else {
+                top.location = self.location;
+            }
+        </script>
     </head>
     <body>
         <header id="header">
