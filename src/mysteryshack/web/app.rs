@@ -34,7 +34,7 @@ use models;
 use models::UserNode;
 use models::SessionManager;
 use config;
-use super::utils::{preconditions_ok,EtagMatcher,SecurityHeaderMiddleware,XForwardedMiddleware,FormDataHelper};
+use super::utils::{preconditions_ok,EtagMatcher,SecurityHeaderMiddleware,XForwardedMiddleware,FormDataHelper,get_account_id};
 use super::oauth;
 use super::oauth::HttpResponder;
 
@@ -266,7 +266,8 @@ fn user_dashboard(request: &mut Request) -> IronResult<Response> {
         Method::Get => Ok(Response::with(status::Ok)
                           .set(Template::new("dashboard", {
                               let mut rv = collections::BTreeMap::new();
-                              rv.insert("sessions".to_owned(), sessions);
+                              rv.insert("account_id".to_owned(), get_account_id(&user, &request).to_json());
+                              rv.insert("sessions".to_owned(), sessions.to_json());
                               rv
                           }))),
         Method::Post => {

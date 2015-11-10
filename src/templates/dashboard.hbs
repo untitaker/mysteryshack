@@ -1,16 +1,38 @@
 {{# partial "content" }}
+{{#if sessions}}
+<h2>Connected apps</h2>
+
 <ul id="applist">
     {{#each sessions}}
     <li class="clearfix">
         <form method="post">
             <input type="hidden" name="token" value="{{ @key }}" />
             <input type="hidden" name="action" value="delete_token" />
-            <input type="submit" class="pure-button button-small delete-token" value="Revoke" />
+            <input type="submit" class="pure-button button-small delete-token" value="Disconnect" />
         </form>
         <a href="{{uri}}">{{uri}}</a><br/>
     </li>
     {{/each}}
 </ul>
+
+<h2>Adding new apps</h2>
+{{else}}
+<p>You haven't connect any apps yet!</p>
+{{/if}}
+
+
+<p>Use <strong><code>{{ account_id }}</code></strong> to connect your storage
+to <a href="https://remotestorage.io/">remoteStorage</a>-compatible apps, such
+as:</p>
+
+<ul>
+    <li><a href="https://sharesome.5apps.com/">Sharesome</a></li>
+    <li><a href="https://webmarks.5apps.com/">Webmarks</a></li>
+    <li><a href="https://unterwaditzer.net/taskrs/">Taskrs</a></li>
+    <li><a href="https://remotestorage-browser.5apps.com/">remoteStorage Browser</a></li>
+    <li><a href="https://wiki.remotestorage.io/Apps"><i>More apps&hellip;</i></a></li>
+</ul>
+
 {{/partial}}
 
 {{> layout}}

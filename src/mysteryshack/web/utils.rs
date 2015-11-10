@@ -13,6 +13,8 @@ use unicase::UniCase;
 use iron;
 use iron::prelude::*;
 
+use models;
+
 pub struct XForwardedMiddleware;
 
 fn get_one_raw(r: &mut Request, key: &str) -> Option<String> {
@@ -166,4 +168,9 @@ impl FormDataHelper<str, String> for urlencoded::QueryMap {
             _ => None
         }
     }
+}
+
+pub fn get_account_id(user: &models::User, request: &Request) -> String {
+    let ref url = request.url;
+    format!("{}@{}:{}", user.userid, url.host, url.port)
 }
