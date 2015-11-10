@@ -5,6 +5,7 @@ use hyper::header;
 use hyper::method::Method;
 
 use url::Host;
+use url::SchemeData;
 
 use urlencoded;
 
@@ -171,6 +172,18 @@ impl FormDataHelper<str, String> for urlencoded::QueryMap {
 }
 
 pub fn get_account_id(user: &models::User, request: &Request) -> String {
-    let ref url = request.url;
-    format!("{}@{}:{}", user.userid, url.host, url.port)
+    let url = request.url.clone().into_generic_url();
+    let scheme_data = match url.scheme_data {
+        SchemeData::Relative(ref x) => x,
+        _ => panic!("Expected relative scheme data.")
+    };
+
+    let mut rv = format!("{}@{}", user.userid, scheme_data.host);
+    if let Some(port) = scheme_data.port {
+        if Some(port) != scheme_data.default_port {
+            rv.push_str(&format!(":{}", port)[..]);
+        }
+    };
+
+    rv
 }
