@@ -11,6 +11,7 @@
             <input type="submit" class="pure-button button-small delete-token" value="Disconnect" />
         </form>
         <a href="{{uri}}">{{uri}}</a><br/>
+        {{#block show-permissions}}{{/block}}
     </li>
     {{/each}}
 </ul>

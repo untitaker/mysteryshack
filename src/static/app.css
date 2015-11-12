@@ -1,7 +1,7 @@
 #header, #content, #footer {
     margin: 0 auto;
     display: block;
-    max-width: 420px;
+    max-width: 768px;
 }
 
 #header, #footer {
@@ -10,10 +10,16 @@
 
 #applist {
     list-style: none;
+    padding: 0;
 }
 
 #applist li {
-    margin-bottom: 20px;
+    margin: 0;
+    padding: 10px;
+}
+
+#applist li:hover {
+    background: #efefef;
 }
 
 .delete-token {
@@ -40,4 +46,10 @@
 .user-agent img {
     width: 32px;
     height: 32px;
+}
+
+code, pre {
+    background-color: #FEE9CC;
+    padding: 1px 3px;
+    border-radius: 3px;
 }
