@@ -5,6 +5,7 @@ use std::io::Write;
 use std::io;
 use std::path;
 
+use atomicwrites;
 use regex;
 use config;
 
@@ -114,9 +115,9 @@ pub fn read_json_file<T: Decodable, P: AsRef<path::Path>>(p: P) -> Result<T, Ser
 }
 
 pub fn write_json_file<T: Encodable, P: AsRef<path::Path>>(t: T, p: P) -> Result<(), ServerError> {
-    let mut f = try!(fs::File::create(p.as_ref()));
-    let data = try!(json::encode(&t));
-    try!(f.write(&data.into_bytes()));
+    let data = try!(json::encode(&t)).into_bytes();
+    let f = atomicwrites::AtomicFile::new(p, atomicwrites::AllowOverwrite);
+    try!(f.write(|f| f.write(&data)));
     Ok(())
 }
 

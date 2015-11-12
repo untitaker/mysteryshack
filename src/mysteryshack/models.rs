@@ -1,7 +1,6 @@
 use std::path;
 use std::io;
 use std::io::Read;
-use std::io::Write;
 use std::fs;
 use std::collections;
 use std::os::unix::fs::MetadataExt;
@@ -252,10 +251,7 @@ impl<'a> UserFile<'a> {
     }
 
     pub fn write_meta(&self, meta: UserFileMeta) -> Result<(), ServerError> {
-        let mut f = try!(fs::File::create(&self.meta_path));
-        let data = try!(json::encode(&meta));
-        try!(f.write(&data.into_bytes()));
-        Ok(())
+        utils::write_json_file(meta, &self.meta_path)
     }
 
     pub fn delete(self) -> io::Result<()> {
