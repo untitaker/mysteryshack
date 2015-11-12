@@ -42,6 +42,10 @@ use super::oauth::HttpResponder;
 pub struct AppConfig;
 impl Key for AppConfig { type Value = config::Config; }
 
+#[derive(Copy, Clone)]
+pub struct AppLock;
+impl Key for AppLock { type Value = (); }
+
 macro_rules! itry {
     ($expr:expr) => (itry!($expr, ::iron::status::InternalServerError));
 
@@ -126,6 +130,7 @@ pub fn run_server(config: config::Config) {
     let mut chain = Chain::new(router);
     if config.use_proxy_headers { chain.link_before(XForwardedMiddleware); }
     chain.link(persistent::Read::<AppConfig>::both(config.clone()));
+    chain.link(persistent::State::<AppLock>::both(()));
     chain.around(LoginManager::new({
         println!("Generating session keys...");
         let mut rv = [0u8; 24];
@@ -145,7 +150,7 @@ pub fn run_server(config: config::Config) {
 
     let listen = &config.listen[..];
     println!("Listening on: http://{}", listen);
-    Iron::new(mount).listen_with(listen, 1, iron::Protocol::Http).unwrap();
+    Iron::new(mount).http(listen).unwrap();
 }
 
 fn user_node_response(req: &mut Request) -> IronResult<Response> {
@@ -153,6 +158,14 @@ fn user_node_response(req: &mut Request) -> IronResult<Response> {
         Method::Get | Method::Head => false,
         _ => true
     };
+
+    let lock = req.get::<persistent::State<AppLock>>().unwrap().clone();
+    let _guard = if write_operation {
+        (None, Some(lock.write().unwrap()))
+    } else {
+        (Some(lock.read().unwrap()), None)
+    };
+
     let config = req.get::<persistent::Read<AppConfig>>().unwrap();
     let data_path = &config.data_path;
 
