@@ -10,11 +10,8 @@ test: spectest
 
 install-spectest:
 	set -ex; \
-	[ -d $(SPEC_TEST_DIR)/suite ] || ( \
-		git clone https://github.com/remotestorage/api-test-suite $(SPEC_TEST_DIR)/suite; \
-		cd $(SPEC_TEST_DIR)/suite; \
-		bundle install --path vendor/bundle; \
-	)
+	[ -d $(SPEC_TEST_DIR)/suite ] || git clone https://github.com/remotestorage/api-test-suite $(SPEC_TEST_DIR)/suite
+	cd $(SPEC_TEST_DIR)/suite && bundle install --path vendor/bundle
 	cargo build
 
 spectest:
