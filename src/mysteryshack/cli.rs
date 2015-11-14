@@ -52,7 +52,6 @@ pub fn main() {
             let username = user_create_matches.value_of("USERNAME").unwrap();
 
             let password_hash = match models::PasswordHash::from_password(
-                // FIXME: hidden prompt
                 utils::double_prompt("Password for new user: ")) {
                 Ok(x) => x,
                 Err(e) => {
