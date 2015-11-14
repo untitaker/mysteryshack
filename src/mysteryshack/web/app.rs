@@ -139,7 +139,6 @@ pub fn run_server(config: config::Config) {
         rv.to_vec()
     }));
 
-    // FIXME: Inline templates into bin
     chain.link_after(HandlebarsEngine::new("./src/templates/", ".hbs"));
     chain.link_after(SecurityHeaderMiddleware);
     chain.link_after(ErrorPrinter);
