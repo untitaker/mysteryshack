@@ -15,6 +15,8 @@ use crypto::bcrypt;
 use rand::{Rng, StdRng};
 
 use atomicwrites;
+use time;
+use filetime;
 
 use utils;
 use utils::ServerError;
@@ -251,7 +253,36 @@ impl<'a> UserFile<'a> {
     }
 
     pub fn write_meta(&self, meta: UserFileMeta) -> Result<(), ServerError> {
-        utils::write_json_file(meta, &self.meta_path)
+        try!(utils::write_json_file(meta, &self.meta_path));
+        match self.touch_parents() {
+            Ok(_) => (),
+            Err(e) => println!("Failed to touch parent directories: {:?}", e)
+        };
+        Ok(())
+    }
+
+    fn touch_parents(&self) -> io::Result<()> {
+        let timestamp = {
+            // Stolen from https://github.com/uutils/coreutils/blob/master/src/touch/touch.rs
+            let t = time::now().to_timespec();
+            filetime::FileTime::from_seconds_since_1970(
+                t.sec as u64,
+                t.nsec as u32
+            )
+        };
+        let mut cur_dir = self.data_path.as_path();
+        loop {
+            cur_dir = match cur_dir.parent() {
+                Some(x) => x,
+                None => break
+            };
+            if !cur_dir.starts_with(&self.user.user_path) && cur_dir != self.user.user_path.as_path() {
+                break;
+            }
+            println!("Touching directory: {:?}", cur_dir);
+            try!(filetime::set_file_times(cur_dir, timestamp, timestamp));
+        };
+        Ok(())
     }
 
     pub fn delete(self) -> io::Result<()> {
@@ -260,13 +291,12 @@ impl<'a> UserFile<'a> {
 
         for dir in [&self.data_path, &self.meta_path].iter() {
             let mut cur_dir = dir.as_path();
-
             loop {
                 cur_dir = match cur_dir.parent() {
                     Some(x) => x,
                     None => break
                 };
-                if !self.user.user_path.starts_with(cur_dir) {
+                if !cur_dir.starts_with(&self.user.user_path) && cur_dir != self.user.user_path.as_path() {
                     break;
                 }
                 println!("Cleaning up directory: {:?}", cur_dir);
