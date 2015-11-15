@@ -25,6 +25,19 @@ As of OS X 10.11, OpenSSL isn't installed anymore. You'll need to install it man
     brew install openssl
     brew link --force openssl
 
+## Implementation notes
+
+* Mysteryshack implements `draft-dejong-remotestorage-05.txt`, however, it
+  sends two kinds of webfinger responses to stay compatible with
+  `remotestorage.js`.
+
+* Mysteryshack is set up to be tested against the official [api test
+  suite](https://github.com/remotestorage/api-test-suite/) automatically (in
+  Travis).
+
+* Mysteryshack's approach to concurrency is very simplistic, but is certainly
+  enough for smaller to medium-sized servers.
+
 ## License
 
 Licensed under the MIT, see `LICENSE`.
