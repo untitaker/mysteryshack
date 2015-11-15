@@ -38,6 +38,8 @@ use super::utils::{preconditions_ok,EtagMatcher,SecurityHeaderMiddleware,XForwar
 use super::oauth;
 use super::oauth::HttpResponder;
 
+static REPO_ROOT: &'static str = env!("CARGO_MANIFEST_DIR");
+
 #[derive(Copy, Clone)]
 pub struct AppConfig;
 impl Key for AppConfig { type Value = config::Config; }
@@ -139,13 +141,17 @@ pub fn run_server(config: config::Config) {
         rv.to_vec()
     }));
 
-    chain.link_after(HandlebarsEngine::new("./src/templates/", ".hbs"));
+
+    chain.link_after(HandlebarsEngine::new(
+        Path::new(REPO_ROOT).join("src/templates/").to_str().unwrap(),
+        ".hbs"
+    ));
     chain.link_after(SecurityHeaderMiddleware);
     chain.link_after(ErrorPrinter);
 
     let mut mount = mount::Mount::new();
     mount.mount("/", chain);
-    mount.mount("/static/", staticfile::Static::new(Path::new("./src/static/")));
+    mount.mount("/static/", staticfile::Static::new(Path::new(REPO_ROOT).join("src/static/")));
 
     let listen = &config.listen[..];
     println!("Listening on: http://{}", listen);
