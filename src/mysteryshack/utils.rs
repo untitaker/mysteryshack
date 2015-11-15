@@ -45,7 +45,9 @@ quick_error! {
     }
 }
 
-pub fn safe_join<P: AsRef<path::Path>, Q: AsRef<path::Path>>(base: P, user_input: Q) -> Option<path::PathBuf> {
+pub fn safe_join<P: AsRef<path::Path>, Q: AsRef<path::Path>>(base: P,
+                                                             user_input: Q)
+                                                             -> Option<path::PathBuf> {
     let a = base.as_ref();
     let b = user_input.as_ref();
 
@@ -65,7 +67,9 @@ pub fn prompt<T: AsRef<str>>(text: T) -> String {
     let stdin = io::stdin();
     let mut response = String::new();
     stdin.read_line(&mut response).unwrap();
-    if response.ends_with("\n") { response.pop(); }
+    if response.ends_with("\n") {
+        response.pop();
+    }
     response
 }
 
@@ -90,7 +94,11 @@ pub fn double_prompt<T: AsRef<str>>(text: T) -> String {
 pub fn prompt_confirm<T: AsRef<str>>(question: T, default: bool) -> bool {
     let mut question = question.as_ref().to_owned();
     question.push_str(" ");
-    question.push_str(if default { "[Y/n]" } else { "[y/N]" });
+    question.push_str(if default {
+        "[Y/n]"
+    } else {
+        "[y/N]"
+    });
     question.push_str(" ");
     loop {
         let response = prompt(&question[..]);
@@ -103,7 +111,7 @@ pub fn prompt_confirm<T: AsRef<str>>(question: T, default: bool) -> bool {
                 continue;
             }
         };
-    };
+    }
 }
 
 pub fn read_json_file<T: Decodable, P: AsRef<path::Path>>(p: P) -> Result<T, ServerError> {

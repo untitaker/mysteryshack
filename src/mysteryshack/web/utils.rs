@@ -20,9 +20,15 @@ pub struct XForwardedMiddleware;
 
 fn get_one_raw(r: &mut Request, key: &str) -> Option<String> {
     r.headers
-        .get_raw(key)
-        .and_then(|vals| if vals.len() > 0 { vals.to_owned().pop() } else { None })
-        .and_then(|x| String::from_utf8(x).ok())
+     .get_raw(key)
+     .and_then(|vals| {
+         if vals.len() > 0 {
+             vals.to_owned().pop()
+         } else {
+             None
+         }
+     })
+     .and_then(|x| String::from_utf8(x).ok())
 }
 
 impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
@@ -39,8 +45,7 @@ impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
             .and_then(parse_remote_addrs)
             .map(|ip| r.remote_addr = ip);
 
-        get_one_raw(r, "X-Forwarded-Proto")
-            .map(|scheme| r.url.scheme = scheme.to_lowercase());
+        get_one_raw(r, "X-Forwarded-Proto").map(|scheme| r.url.scheme = scheme.to_lowercase());
 
         Ok(())
     }
@@ -73,24 +78,25 @@ impl iron::middleware::AfterMiddleware for SecurityHeaderMiddleware {
 fn set_cors_headers(rq: &Request, r: &mut Response) {
     match &rq.url.path[0][..] {
         ".well-known" | "storage" => (),
-        _ => return
+        _ => return,
     };
 
     let origin = match rq.headers.get_raw("Origin") {
         Some(x) => if x.len() == 1 {
             match String::from_utf8(x.to_owned().into_iter().next().unwrap()) {
                 Ok(x) => x,
-                Err(_) => return
+                Err(_) => return,
             }
         } else {
             return;
         },
-        None => return
+        None => return,
     };
 
     r.headers.set(header::AccessControlAllowOrigin::Value(origin));
     r.headers.set_raw("Access-Control-Expose-Headers", vec![b"ETag".to_vec()]);
-    r.headers.set(header::AccessControlAllowMethods(vec![Method::Get, Method::Put, Method::Delete]));
+    r.headers
+     .set(header::AccessControlAllowMethods(vec![Method::Get, Method::Put, Method::Delete]));
     r.headers.set(header::AccessControlAllowHeaders(vec![
         UniCase("Authorization".to_owned()),
         UniCase("Content-Type".to_owned()),
@@ -106,7 +112,7 @@ fn set_frame_options(rq: &Request, r: &mut Response) {
     match &rq.url.path[0][..] {
         // It's probably fine to embed user storage data into other documents
         "storage" => return,
-        _ => ()
+        _ => (),
     };
 
     r.headers.set_raw("X-Frame-Options", vec![b"DENY".to_vec()]);
@@ -123,7 +129,7 @@ impl EtagMatcher for header::IfNoneMatch {
             header::IfNoneMatch::Items(ref values) => {
                 match given {
                     Some(given_value) => values.iter().any(|val| val.tag() == &given_value[..]),
-                    None => false
+                    None => false,
                 }
             }
         }
@@ -137,7 +143,7 @@ impl EtagMatcher for header::IfMatch {
             header::IfMatch::Items(ref values) => {
                 match given {
                     Some(given_value) => values.iter().any(|val| val.tag() == &given_value[..]),
-                    None => false
+                    None => false,
                 }
             }
         }
@@ -146,13 +152,17 @@ impl EtagMatcher for header::IfMatch {
 
 pub fn preconditions_ok(request: &Request, etag: Option<&str>) -> bool {
     match request.headers.get::<header::IfNoneMatch>() {
-        Some(header) => if header.matches_etag(etag) { return false; },
-        None => ()
+        Some(header) => if header.matches_etag(etag) {
+            return false;
+        },
+        None => (),
     };
 
     match request.headers.get::<header::IfMatch>() {
-        Some(header) => if !header.matches_etag(etag) { return false; },
-        None => ()
+        Some(header) => if !header.matches_etag(etag) {
+            return false;
+        },
+        None => (),
     };
     true
 }
@@ -165,7 +175,7 @@ impl FormDataHelper<str, String> for urlencoded::QueryMap {
     fn get_only<Q: AsRef<str>>(&self, k: Q) -> Option<&String> {
         match self.get(&k.as_ref().to_owned()) {
             Some(x) if x.len() == 1 => Some(&x[0]),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -174,7 +184,7 @@ pub fn get_account_id(user: &models::User, request: &Request) -> String {
     let url = request.url.clone().into_generic_url();
     let scheme_data = match url.scheme_data {
         SchemeData::Relative(ref x) => x,
-        _ => panic!("Expected relative scheme data.")
+        _ => panic!("Expected relative scheme data."),
     };
 
     let mut rv = format!("{}@{}", user.userid, scheme_data.host);
