@@ -25,14 +25,14 @@ pub struct OauthRequest {
 pub struct Session {
     pub client_id: String,
     pub uri: url::Url,
-    pub permissions: collections::HashMap<String, CategoryPermissions>
+    pub permissions: collections::HashMap<String, CategoryPermissions>,
 }
 
 impl Session {
     pub fn permissions_for_category(&self, category: &str) -> Option<&CategoryPermissions> {
         match self.permissions.get(category) {
             Some(x) => Some(x),
-            None => self.permissions.get("")
+            None => self.permissions.get(""),
         }
     }
 }
@@ -52,7 +52,7 @@ impl ToJson for Session {
 #[derive(RustcDecodable, RustcEncodable, Debug, Clone, Copy)]
 pub struct CategoryPermissions {
     pub can_read: bool,
-    pub can_write: bool
+    pub can_write: bool,
 }
 
 impl ToJson for CategoryPermissions {
@@ -81,7 +81,7 @@ fn expect_param(query: &urlencoded::QueryMap, key: &str) -> Result<String, Error
             let mut rv = Error::new(ErrorKind::InvalidRequest);
             rv.msg = Some(format!("Missing query parameter: {:?}", key));
             rv
-        })
+        }),
     }
 }
 
@@ -94,7 +94,7 @@ impl OauthRequest {
                 let mut e = Error::new(ErrorKind::InvalidRequest);
                 e.msg = Some("No query parameters.".to_owned());
                 e
-            })
+            }),
         };
 
         let mut rv = OauthRequest {
@@ -106,11 +106,11 @@ impl OauthRequest {
                         let mut ne = Error::new(ErrorKind::InvalidRequest);
                         ne.msg = Some(format!("{}", e));
                         ne
-                    })
+                    }),
                 },
-                permissions: collections::HashMap::new()
+                permissions: collections::HashMap::new(),
             },
-            state: expect_param(query, "state").ok() 
+            state: expect_param(query, "state").ok(),
         };
 
         rv.session.client_id = match expect_param(query, "client_id") {
@@ -129,34 +129,51 @@ impl OauthRequest {
             }
         };
 
-        let scope_err = |x| { Err({
-            let mut e = Error::new(ErrorKind::InvalidScope);
-            e.msg = Some("Invalid scope.".to_owned());
-            e.request = Some(x);
-            e
-        }) };
+        let scope_err = |x| {
+            Err({
+                let mut e = Error::new(ErrorKind::InvalidScope);
+                e.msg = Some("Invalid scope.".to_owned());
+                e.request = Some(x);
+                e
+            })
+        };
 
         for category_permission in scope.split(' ') {
             let parts = category_permission.split(':').collect::<Vec<_>>();
-            if parts.len() != 2 { return scope_err(rv); }
+            if parts.len() != 2 {
+                return scope_err(rv);
+            }
 
             let (category, permission) = (parts[0], parts[1]);
-            if category.len() == 0 || permission.len() == 0 { return scope_err(rv); }
+            if category.len() == 0 || permission.len() == 0 {
+                return scope_err(rv);
+            }
 
-            let key = (if category == "*" { "" } else { category }).to_owned();
-            if rv.session.permissions.get(&key).is_some() { return scope_err(rv); }
+            let key = (if category == "*" {
+                          ""
+                      } else {
+                          category
+                      })
+                      .to_owned();
+            if rv.session.permissions.get(&key).is_some() {
+                return scope_err(rv);
+            }
 
-            rv.session.permissions.insert(key, CategoryPermissions {
-                can_read: permission.contains("r"),
-                can_write: permission.contains("w")
-            });
+            rv.session.permissions.insert(key,
+                                          CategoryPermissions {
+                                              can_read: permission.contains("r"),
+                                              can_write: permission.contains("w"),
+                                          });
         }
 
         Ok(rv)
     }
 
     pub fn grant(self, token: String) -> Grant {
-        Grant { request: self, token: token }
+        Grant {
+            request: self,
+            token: token,
+        }
     }
 
     pub fn reject(self) -> Error {
@@ -168,7 +185,7 @@ impl OauthRequest {
 
 pub struct Grant {
     pub request: OauthRequest,
-    pub token: String
+    pub token: String,
 }
 
 impl HttpResponder for Grant {
@@ -189,7 +206,7 @@ pub struct Error {
     pub kind: ErrorKind,
     pub request: Option<OauthRequest>,
     pub error_uri: Option<url::Url>,
-    pub msg: Option<String>
+    pub msg: Option<String>,
 }
 
 impl Error {
@@ -198,7 +215,7 @@ impl Error {
             kind: kind,
             request: None,
             error_uri: None,
-            msg: None
+            msg: None,
         }
     }
 }
@@ -212,7 +229,7 @@ pub enum ErrorKind {
     UnsupportedResponseType,
     InvalidScope,
     ServerError,
-    TemporarilyUnavailable
+    TemporarilyUnavailable,
 }
 
 impl ErrorKind {
@@ -224,23 +241,27 @@ impl ErrorKind {
             ErrorKind::UnsupportedResponseType => "unsupported_response_type",
             ErrorKind::InvalidScope => "invalid_scope",
             ErrorKind::ServerError => "server_error",
-            ErrorKind::TemporarilyUnavailable => "temporarily_unavailable"
+            ErrorKind::TemporarilyUnavailable => "temporarily_unavailable",
         }
     }
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { self.description().fmt(f) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.description().fmt(f)
+    }
 }
 
 impl ErrorTrait for Error {
     fn description(&self) -> &str {
         match self.msg {
             Some(ref x) => x,
-            None => self.kind.as_snake_case()
+            None => self.kind.as_snake_case(),
         }
     }
-    fn cause(&self) -> Option<&ErrorTrait> { None }
+    fn cause(&self) -> Option<&ErrorTrait> {
+        None
+    }
 }
 
 pub trait HttpResponder {
@@ -250,10 +271,9 @@ pub trait HttpResponder {
     fn get_response(&self) -> Option<Response> {
         self.get_redirect_uri()
             .map(|mut uri| {
-                uri.fragment = Some(url::form_urlencoded::serialize(self.get_redirect_uri_params()));
-                Response::with(status::Found)
-                 // Do not use Redirect modifier here, we need to handle custom URI schemes as well
-                 .set(Header(header::Location(uri.serialize())))
+                uri.fragment =
+                    Some(url::form_urlencoded::serialize(self.get_redirect_uri_params()));
+                Response::with(status::Found).set(Header(header::Location(uri.serialize())))
             })
     }
 }
@@ -267,7 +287,9 @@ impl HttpResponder for Error {
         let mut rv = collections::BTreeMap::new();
         rv.insert("error".to_owned(), self.kind.as_snake_case().to_owned());
         self.msg.as_ref().map(|x| rv.insert("error_description".to_owned(), x.clone()));
-        self.request.as_ref().map(|req| req.state.as_ref().map(|state| rv.insert("state".to_owned(), state.clone())));
+        self.request.as_ref().map(|req| {
+            req.state.as_ref().map(|state| rv.insert("state".to_owned(), state.clone()))
+        });
         rv
     }
 }

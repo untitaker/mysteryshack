@@ -25,18 +25,19 @@ use web::oauth::{Session, CategoryPermissions};
 
 pub struct User {
     pub user_path: path::PathBuf,
-    pub userid: String
+    pub userid: String,
 }
 
 impl User {
     fn new_unchecked(basepath: &path::Path, userid: &str) -> User {
         assert!(basepath.is_absolute());
-        assert!(utils::is_safe_identifier(userid), "Invalid chars in username.");
+        assert!(utils::is_safe_identifier(userid),
+                "Invalid chars in username.");
 
         let user_path = basepath.join(userid.to_string() + "/");
         User {
             user_path: user_path,
-            userid: userid.to_owned()
+            userid: userid.to_owned(),
         }
     }
 
@@ -44,7 +45,7 @@ impl User {
         let user = User::new_unchecked(basepath, userid);
         match fs::metadata(user.user_info_path()) {
             Ok(ref x) if x.is_file() => Some(user),
-            _ => None
+            _ => None,
         }
     }
 
@@ -70,12 +71,24 @@ impl User {
         utils::write_json_file(hash, self.password_path())
     }
 
-    fn user_info_path(&self) -> path::PathBuf { self.user_path.join("user.json") }
-    fn password_path(&self) -> path::PathBuf { self.user_path.join("password") }
-    fn session_file_path(&self) -> path::PathBuf { self.user_path.join("sessions.json") }
-    pub fn data_path(&self) -> path::PathBuf { self.user_path.join("data/") }
-    pub fn meta_path(&self) -> path::PathBuf { self.user_path.join("meta/") }
-    pub fn tmp_path(&self) -> path::PathBuf { self.user_path.join("tmp/") }
+    fn user_info_path(&self) -> path::PathBuf {
+        self.user_path.join("user.json")
+    }
+    fn password_path(&self) -> path::PathBuf {
+        self.user_path.join("password")
+    }
+    fn session_file_path(&self) -> path::PathBuf {
+        self.user_path.join("sessions.json")
+    }
+    pub fn data_path(&self) -> path::PathBuf {
+        self.user_path.join("data/")
+    }
+    pub fn meta_path(&self) -> path::PathBuf {
+        self.user_path.join("meta/")
+    }
+    pub fn tmp_path(&self) -> path::PathBuf {
+        self.user_path.join("tmp/")
+    }
 }
 
 type SessionMap = collections::HashMap<String, Session>;
@@ -88,11 +101,17 @@ pub trait SessionManager {
     fn get_permissions(&self, token_opt: Option<&str>, path: &str) -> CategoryPermissions {
         let anonymous = CategoryPermissions {
             can_read: path.starts_with("public/") && !path.ends_with("/"),
-            can_write: false
+            can_write: false,
         };
 
-        let token = match token_opt { Some(x) => x, None => return anonymous };
-        let session = match self.get_session(token) { Some(x) => x, None => return anonymous };
+        let token = match token_opt {
+            Some(x) => x,
+            None => return anonymous,
+        };
+        let session = match self.get_session(token) {
+            Some(x) => x,
+            None => return anonymous,
+        };
 
         let category = path.splitn(2, '/').nth(0).unwrap();
         match session.permissions_for_category(category) {
@@ -102,7 +121,7 @@ pub trait SessionManager {
                     let subcategory = path.splitn(3, '/').nth(1).unwrap();
                     match session.permissions_for_category(subcategory) {
                         Some(x) => x.clone(),
-                        None => anonymous
+                        None => anonymous,
                     }
                 } else {
                     anonymous
@@ -128,7 +147,7 @@ pub trait SessionManager {
         let token: String = rand_iter.take(24).collect();
         match sessions.entry(token.clone()) {
             Entry::Vacant(x) => x.insert(session.clone()),
-            _ => panic!("Access token already given.")
+            _ => panic!("Access token already given."),
         };
 
         try!(self.write_sessions(&sessions));
@@ -150,7 +169,7 @@ impl SessionManager for User {
 pub struct PasswordHash {
     cost: u32,
     salt: Vec<u8>,
-    hash: Vec<u8>
+    hash: Vec<u8>,
 }
 
 impl PasswordHash {
@@ -171,13 +190,15 @@ impl PasswordHash {
         Ok(PasswordHash {
             cost: DEFAULT_COST,
             salt: salt.to_vec(),
-            hash: hash.to_vec()
+            hash: hash.to_vec(),
         })
     }
 
     pub fn equals_password<T: AsRef<str>>(&self, pwd: T) -> bool {
         let mut hash = Vec::with_capacity(self.hash.len());
-        for _ in 0..self.hash.len() { hash.push(0u8); }
+        for _ in 0..self.hash.len() {
+            hash.push(0u8);
+        }
 
         bcrypt::bcrypt(self.cost, &self.salt, pwd.as_ref().as_bytes(), &mut hash);
         hash == self.hash
@@ -188,7 +209,7 @@ impl PasswordHash {
 
 pub trait UserNode<'a> {
     fn from_path(user: &'a User, path: &str) -> Option<Self> where Self: Sized;
-    
+
     // Get frontent-facing path relative to root
     fn get_path(&self) -> &str;
     fn get_basename(&self) -> String;
@@ -204,7 +225,7 @@ pub trait UserNode<'a> {
     fn read_etag(&self) -> Result<String, ServerError> {
         let metadata = match fs::metadata(&self.get_fs_path()) {
             Ok(x) => x,
-            Err(e) => return Err(e.into())
+            Err(e) => return Err(e.into()),
         };
 
         Ok(format!("{}", metadata.mtime_nsec()))
@@ -214,17 +235,17 @@ pub trait UserNode<'a> {
 #[derive(RustcDecodable, RustcEncodable)]
 pub struct UserFileMeta {
     pub content_type: String,
-    pub content_length: usize
+    pub content_length: usize,
 }
 
 pub struct UserFile<'a> {
     pub user: &'a User,
     pub path: String,
     data_path: path::PathBuf,
-    meta_path: path::PathBuf
+    meta_path: path::PathBuf,
 }
 
-impl<'a> UserFile<'a> { 
+impl<'a> UserFile<'a> {
     pub fn read_meta(&self) -> Result<UserFileMeta, ServerError> {
         let mut meta_f = try!(fs::File::open(&self.meta_path));
         let meta_str = {
@@ -245,18 +266,16 @@ impl<'a> UserFile<'a> {
         try!(fs::create_dir_all(self.data_path.parent().unwrap()));
         try!(fs::create_dir_all(self.meta_path.parent().unwrap()));
 
-        Ok(atomicwrites::AtomicFile::new_with_tmpdir(
-            &self.data_path,
-            atomicwrites::AllowOverwrite,
-            &self.user.tmp_path()
-        ))
+        Ok(atomicwrites::AtomicFile::new_with_tmpdir(&self.data_path,
+                                                     atomicwrites::AllowOverwrite,
+                                                     &self.user.tmp_path()))
     }
 
     pub fn write_meta(&self, meta: UserFileMeta) -> Result<(), ServerError> {
         try!(utils::write_json_file(meta, &self.meta_path));
         match self.touch_parents() {
             Ok(_) => (),
-            Err(e) => println!("Failed to touch parent directories: {:?}", e)
+            Err(e) => println!("Failed to touch parent directories: {:?}", e),
         };
         Ok(())
     }
@@ -265,23 +284,21 @@ impl<'a> UserFile<'a> {
         let timestamp = {
             // Stolen from https://github.com/uutils/coreutils/blob/master/src/touch/touch.rs
             let t = time::now().to_timespec();
-            filetime::FileTime::from_seconds_since_1970(
-                t.sec as u64,
-                t.nsec as u32
-            )
+            filetime::FileTime::from_seconds_since_1970(t.sec as u64, t.nsec as u32)
         };
         let mut cur_dir = self.data_path.as_path();
         loop {
             cur_dir = match cur_dir.parent() {
                 Some(x) => x,
-                None => break
+                None => break,
             };
-            if !cur_dir.starts_with(&self.user.user_path) && cur_dir != self.user.user_path.as_path() {
+            if !cur_dir.starts_with(&self.user.user_path) &&
+               cur_dir != self.user.user_path.as_path() {
                 break;
             }
             println!("Touching directory: {:?}", cur_dir);
             try!(filetime::set_file_times(cur_dir, timestamp, timestamp));
-        };
+        }
         Ok(())
     }
 
@@ -294,9 +311,10 @@ impl<'a> UserFile<'a> {
             loop {
                 cur_dir = match cur_dir.parent() {
                     Some(x) => x,
-                    None => break
+                    None => break,
                 };
-                if !cur_dir.starts_with(&self.user.user_path) && cur_dir != self.user.user_path.as_path() {
+                if !cur_dir.starts_with(&self.user.user_path) &&
+                   cur_dir != self.user.user_path.as_path() {
                     break;
                 }
                 println!("Cleaning up directory: {:?}", cur_dir);
@@ -304,8 +322,8 @@ impl<'a> UserFile<'a> {
                     Err(e) => {
                         println!("Failed to remove directory during cleanup: {:?}", e);
                         break;
-                    },
-                    _ => ()
+                    }
+                    _ => (),
                 }
             }
         }
@@ -316,15 +334,17 @@ impl<'a> UserFile<'a> {
 
 impl<'a> UserNode<'a> for UserFile<'a> {
     fn from_path(user: &'a User, path: &str) -> Option<UserFile<'a>> {
-        if path.ends_with("/") { return None; };
+        if path.ends_with("/") {
+            return None;
+        };
 
         let data_path = match utils::safe_join(user.data_path(), path) {
             Some(x) => x,
-            None => return None
+            None => return None,
         };
         let meta_path = match utils::safe_join(user.meta_path(), path) {
             Some(x) => x,
-            None => return None
+            None => return None,
         };
 
         Some(UserFile {
@@ -334,14 +354,20 @@ impl<'a> UserNode<'a> for UserFile<'a> {
             user: user,
         })
     }
-    fn get_user(&self) -> &User { self.user }
-    
-    fn get_path(&self) -> &str { &self.path }
+    fn get_user(&self) -> &User {
+        self.user
+    }
+
+    fn get_path(&self) -> &str {
+        &self.path
+    }
     fn get_basename(&self) -> String {
         self.path.rsplitn(2, '/').nth(0).unwrap().to_owned()
     }
-    fn get_fs_path(&self) -> &path::Path { self.data_path.as_path() }
-    
+    fn get_fs_path(&self) -> &path::Path {
+        self.data_path.as_path()
+    }
+
     fn json_repr(&self) -> Result<json::Json, ServerError> {
         let meta = try!(self.read_meta());
         let mut d = collections::BTreeMap::new();
@@ -356,7 +382,7 @@ impl<'a> UserNode<'a> for UserFile<'a> {
 pub struct UserFolder<'a> {
     pub user: &'a User,
     data_path: path::PathBuf,
-    path: String
+    path: String,
 }
 
 impl<'a> UserFolder<'a> {
@@ -370,15 +396,13 @@ impl<'a> UserFolder<'a> {
             let fname_str = fname_string.to_str().unwrap();
 
             if meta.is_dir() {
-                rv.push(Box::new(UserFolder::from_path(
-                    &self.user,
-                    &(self.path.clone() + fname_str + "/")
-                ).unwrap()));
+                rv.push(Box::new(UserFolder::from_path(&self.user,
+                                                       &(self.path.clone() + fname_str + "/"))
+                                     .unwrap()));
             } else if !fname_str.starts_with(".~") {
-                rv.push(Box::new(UserFile::from_path(
-                    &self.user,
-                    &(self.path.clone() + fname_str)
-                ).unwrap()));
+                rv.push(Box::new(UserFile::from_path(&self.user,
+                                                     &(self.path.clone() + fname_str))
+                                     .unwrap()));
             }
         }
         Ok(rv)
@@ -391,23 +415,29 @@ impl<'a> UserNode<'a> for UserFolder<'a> {
             path: if path.ends_with("/") || path.len() == 0 {
                 path.to_owned()
             } else {
-                return None
+                return None;
             },
             data_path: match utils::safe_join(user.data_path(), path) {
                 Some(x) => x,
-                None => return None
+                None => return None,
             },
-            user: user
+            user: user,
         })
     }
 
-    fn get_path(&self) -> &str { &self.path }
-    fn get_user(&self) -> &User { self.user }
+    fn get_path(&self) -> &str {
+        &self.path
+    }
+    fn get_user(&self) -> &User {
+        self.user
+    }
     fn get_basename(&self) -> String {
         self.path.rsplitn(3, '/').nth(1).unwrap().to_owned() + "/"
     }
 
-    fn get_fs_path(&self) -> &path::Path { self.data_path.as_path() }
+    fn get_fs_path(&self) -> &path::Path {
+        self.data_path.as_path()
+    }
 
     fn json_repr(&self) -> Result<json::Json, ServerError> {
         let mut d = collections::BTreeMap::new();
