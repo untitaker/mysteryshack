@@ -171,7 +171,6 @@ fn user_node_response(req: &mut Request) -> IronResult<Response> {
     let (userid, path_str) = {
         let parts = req.extensions.get::<Router>().unwrap();
         let userid = parts.find("userid").unwrap().to_owned();
-        // FIXME: https://github.com/iron/router/issues/97
         let path_str = String::from_utf8(
             url::percent_encoding::percent_decode(
                 parts.find("path").unwrap_or("").as_bytes())).unwrap();
