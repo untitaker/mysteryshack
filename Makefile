@@ -27,7 +27,7 @@ spectest:
 	set -ex; \
 	bin="$(APP_BINARY) -c $(TMP_DIR)/config"; \
 	yes password123 | $$bin user create testuser; \
-	cp $(SPEC_TEST_DIR)/sessions.json $(TMP_DIR)/testuser/sessions.json; \
+	cp -R $(SPEC_TEST_DIR)/sessions $(TMP_DIR)/testuser/sessions; \
 	($$bin serve &); \
 	( \
 		cd $(SPEC_TEST_DIR)/suite; \

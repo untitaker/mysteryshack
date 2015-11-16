@@ -6,8 +6,6 @@ use std::collections;
 use std::os::unix::fs::MetadataExt;
 use std::error::Error;
 
-use std::collections::hash_map::Entry;
-
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
 
@@ -20,7 +18,7 @@ use filetime;
 
 use utils;
 use utils::ServerError;
-use web::oauth::{Session, CategoryPermissions};
+use web::oauth::{Session as OauthSession, CategoryPermissions};
 
 
 pub struct User {
@@ -72,77 +70,120 @@ impl User {
 
     fn user_info_path(&self) -> path::PathBuf { self.user_path.join("user.json") }
     fn password_path(&self) -> path::PathBuf { self.user_path.join("password") }
-    fn session_file_path(&self) -> path::PathBuf { self.user_path.join("sessions.json") }
+    fn sessions_path(&self) -> path::PathBuf { self.user_path.join("sessions/") }
     pub fn data_path(&self) -> path::PathBuf { self.user_path.join("data/") }
     pub fn meta_path(&self) -> path::PathBuf { self.user_path.join("meta/") }
     pub fn tmp_path(&self) -> path::PathBuf { self.user_path.join("tmp/") }
-}
 
-type SessionMap = collections::HashMap<String, Session>;
+    pub fn walk_sessions(&self) -> io::Result<Vec<Session>> {
+        let mut rv = vec![];
+        for entry in try!(fs::read_dir(self.sessions_path())) {
+            let entry = try!(entry);
+            if try!(entry.metadata()).is_dir() {
+                rv.push(
+                    Session::get(
+                        &self,
+                        &entry.file_name().into_string().unwrap()[..]
+                    ).unwrap()
+                );
+            };
+        };
+        Ok(rv)
+    }
 
-
-pub trait SessionManager {
-    fn read_sessions(&self) -> Result<SessionMap, ServerError>;
-    fn write_sessions(&self, map: &SessionMap) -> Result<(), ServerError>;
-
-    fn get_permissions(&self, token_opt: Option<&str>, path: &str) -> CategoryPermissions {
+    pub fn permissions(&self, path: &str, token: Option<&str>) -> CategoryPermissions {
         let anonymous = CategoryPermissions {
             can_read: path.starts_with("public/") && !path.ends_with("/"),
             can_write: false
         };
 
-        let token = match token_opt { Some(x) => x, None => return anonymous };
-        let session = match self.get_session(token) { Some(x) => x, None => return anonymous };
+        let token = match token { Some(x) => x, None => return anonymous };
+        let session = match Session::get(&self, token) { Some(x) => x, None => return anonymous };
 
-        let category = path.splitn(2, '/').nth(0).unwrap();
-        match session.permissions_for_category(category) {
-            Some(x) => x.clone(),
-            None => {
-                if category == "public" {
-                    let subcategory = path.splitn(3, '/').nth(1).unwrap();
-                    match session.permissions_for_category(subcategory) {
-                        Some(x) => x.clone(),
-                        None => anonymous
-                    }
-                } else {
-                    anonymous
-                }
+        let category = {
+            let mut rv = path.splitn(2, '/').nth(0).unwrap();
+            if rv == "public" {
+                rv = path.splitn(3, '/').nth(1).unwrap();
             }
-        }
-    }
-
-    fn get_session(&self, token: &str) -> Option<Session> {
-        match self.read_sessions() {
-            Ok(mut x) => x.remove(token),
-            Err(e) => {
-                println!("Failed to parse session file: {:?}", e);
-                None
-            }
-        }
-    }
-
-    fn create_session(&self, session: &Session) -> Result<String, ServerError> {
-        let mut sessions = self.read_sessions().unwrap_or_else(|_| collections::HashMap::new());
-        let mut rng = try!(StdRng::new());
-        let rand_iter = rng.gen_ascii_chars();
-        let token: String = rand_iter.take(24).collect();
-        match sessions.entry(token.clone()) {
-            Entry::Vacant(x) => x.insert(session.clone()),
-            _ => panic!("Access token already given.")
+            rv
         };
+        // FIXME: Bump session here
 
-        try!(self.write_sessions(&sessions));
-        Ok(token)
+        let oauth = session.read_oauth().unwrap();
+        oauth.permissions_for_category(category)
+            .map(|x| x.clone())
+            .unwrap_or(anonymous)
     }
 }
 
-impl SessionManager for User {
-    fn read_sessions(&self) -> Result<SessionMap, ServerError> {
-        utils::read_json_file(self.session_file_path())
+pub struct Session<'a> {
+    pub user: &'a User,
+    pub token: String
+}
+
+impl<'a> Session<'a> {
+    fn new_unchecked(user: &'a User, token: String) -> Session<'a> {
+        Session {
+            user: user,
+            token: token
+        }
     }
 
-    fn write_sessions(&self, map: &SessionMap) -> Result<(), ServerError> {
-        utils::write_json_file(map, self.session_file_path())
+    pub fn get(user: &'a User, token: &str) -> Option<Session<'a>> {
+        let rv = Session::new_unchecked(user, token.to_owned());
+        rv.read_oauth().map(|_| rv)
+    }
+
+    pub fn delete(&self) -> io::Result<()> {
+        try!(fs::remove_dir_all(self.path()));
+        Ok(())
+    }
+
+    pub fn create(user: &'a User, oauth: &OauthSession) -> Result<Session<'a>, ServerError> {
+        let mut rng = try!(StdRng::new());
+        let rand_iter = rng.gen_ascii_chars();
+        let token: String = rand_iter.take(24).collect();
+        let rv = Session::new_unchecked(user, token);
+        try!(fs::create_dir_all(rv.path()));
+        match rv.read_oauth() {
+            Some(_) => panic!("Token already issued."),
+            None => ()
+        };
+        try!(rv.write_oauth(oauth));
+        Ok(rv)
+    }
+
+    fn path(&self) -> path::PathBuf {
+        self.user.sessions_path().join(&self.token)
+    }
+
+    fn oauth_path(&self) -> path::PathBuf {
+        self.path().join("oauth.json")
+    }
+
+    pub fn read_oauth(&self) -> Option<OauthSession> {
+        match utils::read_json_file(self.oauth_path()) {
+            Ok(x) => Some(x),
+            Err(e) => { println!("Failed to parse session file: {:?}", e); None }
+        }
+    }
+
+    pub fn write_oauth(&self, s: &OauthSession) -> Result<(), ServerError> {
+        utils::write_json_file(s, self.oauth_path())
+    }
+
+}
+
+impl<'a> ToJson for Session<'a> {
+    // for passing to template
+    fn to_json(&self) -> json::Json {
+        match self.read_oauth().unwrap().to_json() {
+            json::Json::Object(mut map) => {
+                map.insert("token".to_string(), self.token.to_json());
+                json::Json::Object(map)
+            },
+            _ => panic!("Did not expect anything else than Object.")
+        }
     }
 }
 

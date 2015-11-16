@@ -32,7 +32,6 @@ use rustc_serialize::json::ToJson;
 
 use models;
 use models::UserNode;
-use models::SessionManager;
 use config;
 use super::utils::{preconditions_ok,EtagMatcher,SecurityHeaderMiddleware,XForwardedMiddleware,FormDataHelper,get_account_id};
 use super::oauth;
@@ -193,10 +192,7 @@ fn user_node_response(req: &mut Request) -> IronResult<Response> {
         None => None
     };
 
-    let permissions = user.get_permissions(
-        access_token.as_ref().map(Deref::deref),
-        &path_str[..]
-    );
+    let permissions = user.permissions(&path_str[..], access_token.as_ref().map(Deref::deref));
 
     if !permissions.can_read || (write_operation && !permissions.can_write) {
         return Ok(Response::with(status::Forbidden))
@@ -277,13 +273,13 @@ fn user_login_post(request: &mut Request) -> IronResult<Response> {
 
 fn user_dashboard(request: &mut Request) -> IronResult<Response> {
     let user = require_login!(request);
-    let mut sessions = user.read_sessions().unwrap_or_else(|_| collections::HashMap::new());
 
     match request.method {
         Method::Get => Ok(Response::with(status::Ok)
                           .set(Template::new("dashboard", {
                               let mut rv = collections::BTreeMap::new();
                               rv.insert("account_id".to_owned(), get_account_id(&user, &request).to_json());
+                              let sessions = user.walk_sessions().unwrap_or_else(|_| vec![]);
                               rv.insert("sessions".to_owned(), sessions.to_json());
                               rv
                           }))),
@@ -297,13 +293,9 @@ fn user_dashboard(request: &mut Request) -> IronResult<Response> {
 
             match (action.map(Deref::deref), token) {
                 (Some("delete_token"), Some(token)) => {
-                    match sessions.remove(token) {
-                        Some(_) => {
-                            itry!(user.write_sessions(&sessions));
-                            Ok(Response::with((status::Found, Redirect(back_to))))
-                        },
-                        None => Ok(Response::with(status::NotFound))
-                    }
+                    let session = some_or!(models::Session::get(&user, token), status::NotFound);
+                    itry!(session.delete());
+                    Ok(Response::with((status::Found, Redirect(back_to))))
                 },
                 _ => Ok(Response::with(status::BadRequest))
             }
@@ -346,8 +338,8 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
             }, status::BadRequest);
 
             if allow {
-                let token = itry!(user.create_session(&oauth_request.session));
-                Ok(oauth_request.grant(token).get_response().unwrap())
+                let session = itry!(models::Session::create(&user, &oauth_request.session));
+                Ok(oauth_request.grant(session.token).get_response().unwrap())
             } else {
                 Ok(oauth_request.reject().get_response().unwrap())
             }
