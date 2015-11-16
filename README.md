@@ -38,6 +38,10 @@ As of OS X 10.11, OpenSSL isn't installed anymore. You'll need to install it man
 * Mysteryshack's approach to concurrency is very simplistic, but is certainly
   enough for smaller to medium-sized servers.
 
+* Mysteryshack stores OAuth tokens on the harddrive, but web admin sessions are
+  stored inside signed cookies. The key is generated at server startup. To log
+  everybody out, restart the server.
+
 ## License
 
 Licensed under the MIT, see `LICENSE`.
