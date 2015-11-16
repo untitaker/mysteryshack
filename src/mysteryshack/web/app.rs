@@ -237,15 +237,15 @@ fn user_login_post(request: &mut Request) -> IronResult<Response> {
     let (ref username, ref password) = {
         let formdata = itry!(request.get_ref::<urlencoded::UrlEncodedBody>());
         (
-            &formdata.get("user").unwrap()[0].clone(),
-            &formdata.get("pass").unwrap()[0].clone()
+            &some_or!(formdata.get("user"), status::BadRequest)[0].clone(),
+            &some_or!(formdata.get("pass"), status::BadRequest)[0].clone()
         )
     };
 
     let bad_creds = Ok(Response::with((status::Ok, "Wrong credentials.")));
 
     let user = match models::User::get(data_path, &username[..]) {
-        Some(user) => if (&user).get_password_hash().unwrap().equals_password(password) {
+        Some(user) => if itry!((&user).get_password_hash()).equals_password(password) {
             user
         } else {
             return bad_creds;
@@ -338,7 +338,7 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
             check_csrf!(request);
             let allow = some_or!({
                 let formdata = itry!(request.get_ref::<urlencoded::UrlEncodedBody>());
-                match &formdata.get("decision").unwrap()[0][..] {
+                match &some_or!(formdata.get("decision"), status::BadRequest)[0][..] {
                     "allow" => Some(true),
                     "deny" => Some(false),
                     _ => None
@@ -531,10 +531,10 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
         let mut r = Response::with(status::Ok);
 
         r.headers.set(header::ContentType(meta.content_type.parse().unwrap()));
-        r.headers.set(header::ETag(header::EntityTag::new(false, self.read_etag().unwrap())));
+        r.headers.set(header::ETag(header::EntityTag::new(false, itry!(self.read_etag()))));
         // FIXME: https://github.com/hyperium/hyper/issues/666
         r.headers.set_raw("Expires", vec!["0".as_bytes().to_owned()]);
-        r.set_mut(self.open().unwrap());
+        r.set_mut(itry!(self.open()));
         Ok(r)
     }
 
@@ -549,7 +549,7 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
             return Ok(Response::with(status::NotFound));
         }
 
-        self.delete().unwrap();
+        itry!(self.delete());
         Ok(Response::with(status::Ok))
     }
 
@@ -585,14 +585,14 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
                     itry!(Err(e))
                 }
             };
-            self.write_meta(models::UserFileMeta {
+            itry!(self.write_meta(models::UserFileMeta {
                 content_type: String::from_utf8(content_type).unwrap(),
                 content_length: content_length as usize
-            }).unwrap()
+            }));
         }
 
         let mut r = Response::with(status::Created);
-        r.headers.set(header::ETag(header::EntityTag::new(false, self.read_etag().unwrap())));
+        r.headers.set(header::ETag(header::EntityTag::new(false, itry!(self.read_etag()))));
         Ok(r)
     }
 }
