@@ -89,7 +89,10 @@ fn set_cors_headers(rq: &Request, r: &mut Response) {
     };
 
     r.headers.set(header::AccessControlAllowOrigin::Value(origin));
-    r.headers.set_raw("Access-Control-Expose-Headers", vec![b"ETag".to_vec()]);
+    r.headers.set(header::AccessControlExposeHeaders(vec![
+        UniCase("ETag".to_owned()),
+        UniCase("Content-Length".to_owned())
+    ]));
     r.headers.set(header::AccessControlAllowMethods(vec![Method::Get, Method::Put, Method::Delete]));
     r.headers.set(header::AccessControlAllowHeaders(vec![
         UniCase("Authorization".to_owned()),
