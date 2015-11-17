@@ -15,6 +15,7 @@ use iron::status;
 
 use urlencoded;
 
+// FIXME: oauth module should not be concerned with serialization
 #[derive(RustcDecodable, RustcEncodable, Debug, Clone)]
 pub struct OauthRequest {
     pub session: Session,
