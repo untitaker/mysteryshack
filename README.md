@@ -5,6 +5,9 @@ Mysteryshack is a lightweight, yet self-contained
 
 ***This project is still in active development. Do not use with sensitive data, or without backup.***
 
+Use username `demo` and password `demo` on [my
+server](https://shack.unterwaditzer.net) to try it out.
+
 ## Usage
 
 * Install [Rust](https://www.rust-lang.org/).
