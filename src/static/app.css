@@ -8,6 +8,16 @@
     text-align: center;
 }
 
+#logo {
+    display: block;
+    width: 120px;
+    height: 120px;
+    margin: 20px auto 0;
+    text-indent: -9999px;
+    background: url(logo.svg);
+    background-size: 120px 120px;
+}
+
 #applist {
     list-style: none;
     padding: 0;
