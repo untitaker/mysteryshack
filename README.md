@@ -44,4 +44,11 @@ As of OS X 10.11, OpenSSL isn't installed anymore. You'll need to install it man
 
 ## License
 
-Licensed under the MIT, see `LICENSE`.
+* Logo is licensed under
+  [CC-BY-SA](https://creativecommons.org/licenses/by-sa/3.0/), based on:
+
+  * [Rust logo, CC-BY](https://www.rust-lang.org/legal.html)
+
+  * [remoteStorage logo, CC-BY-SA](https://github.com/remotestorage/design)
+
+* Source code is licensed under the MIT, see `LICENSE`.
