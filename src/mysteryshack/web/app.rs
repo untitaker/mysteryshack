@@ -161,13 +161,6 @@ fn user_node_response(req: &mut Request) -> IronResult<Response> {
         _ => true
     };
 
-    let lock = req.get::<persistent::State<AppLock>>().unwrap().clone();
-    let _guard = if write_operation {
-        (None, Some(lock.write().unwrap()))
-    } else {
-        (Some(lock.read().unwrap()), None)
-    };
-
     let config = req.get::<persistent::Read<AppConfig>>().unwrap();
     let data_path = &config.data_path;
 
@@ -195,6 +188,13 @@ fn user_node_response(req: &mut Request) -> IronResult<Response> {
     if !permissions.can_read || (write_operation && !permissions.can_write) {
         return Ok(Response::with(status::Forbidden))
     }
+
+    let lock = req.get::<persistent::State<AppLock>>().unwrap().clone();
+    let _guard = if write_operation {
+        (None, Some(lock.write().unwrap()))
+    } else {
+        (Some(lock.read().unwrap()), None)
+    };
 
     if path_str.len() == 0 || path_str.ends_with("/") {
         match models::UserFolder::from_path(&user, &path_str[..]) {
