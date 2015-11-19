@@ -4,13 +4,15 @@
 
 <ul id="applist">
     {{#each sessions}}
-    <li class="clearfix">
-        <form method="post">
-            <input type="hidden" name="token" value="{{ token }}" />
-            <input type="hidden" name="action" value="delete_token" />
-            <input type="submit" class="pure-button button-small delete-token" value="Disconnect" />
-        </form>
-        <a href="{{uri}}">{{uri}}</a><br/>
+    <li>
+        <div class="clearfix">
+            <a class="app-name" href="{{uri}}">{{uri}}</a>
+            <form method="post">
+                <input type="hidden" name="token" value="{{ token }}" />
+                <input type="hidden" name="action" value="delete_token" />
+                <input type="submit" class="pure-button button-small delete-token" value="Disconnect" />
+            </form>
+        </div>
         {{#block show-permissions}}{{/block}}
     </li>
     {{/each}}

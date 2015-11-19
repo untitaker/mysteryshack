@@ -16,7 +16,14 @@
     margin: 20px auto 0;
     text-indent: -9999px;
     background: url(logo.svg);
-    background-size: 120px 120px;
+    background-size: 100% auto;
+}
+
+@media screen and (max-width: 568px) {
+    #logo {
+        width: 32px;
+        height: 32px;
+    }
 }
 
 #applist {
@@ -38,6 +45,10 @@
     color: white;
     font-size: 85%;
     float: right;
+}
+
+.app-name {
+    float: left;
 }
 
 .oauth-allow {
@@ -63,4 +74,8 @@ code, pre {
     background-color: #FEE9CC;
     padding: 1px 3px;
     border-radius: 3px;
+}
+
+.clearfix {
+    overflow: auto;
 }
