@@ -210,7 +210,7 @@ impl<'a> ToJson for Session<'a> {
             json::Json::Object(mut map) => {
                 map.insert("token".to_string(), self.token.to_json());
                 map.insert("last_used".to_string(),
-                    format!("{}", self.read_last_used().format("%d.%m.%Y %H:%M")).to_json());
+                    format!("{}", self.read_last_used().format("%d.%m.%Y %H:%M %Z")).to_json());
                 json::Json::Object(map)
             },
             _ => panic!("Did not expect anything else than Object.")
