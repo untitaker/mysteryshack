@@ -210,7 +210,7 @@ impl<'a> ToJson for Session<'a> {
                 map.insert("token".to_string(), self.token.to_json());
                 map.insert("last_used".to_string(),
                     self.read_last_used()
-                        .map(|x| format!("{}", x.format("%d.%m.%Y %H:%M %Z")))
+                        .map(|x| format!("{}", x.format("%d. %B %Y %H:%M %Z")))
                         .unwrap_or_else(|| "".to_string())
                         .to_json());
                 json::Json::Object(map)
