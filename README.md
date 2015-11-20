@@ -1,5 +1,7 @@
 # mysteryshack [![Build Status](https://travis-ci.org/untitaker/mysteryshack.svg?branch=master)](https://travis-ci.org/untitaker/mysteryshack)
 
+<img src="https://shack.unterwaditzer.net/static/logo.svg" width=120 height=120 />
+
 Mysteryshack is a lightweight, yet self-contained
 [remoteStorage](http://remotestorage.io/)-server.
 
