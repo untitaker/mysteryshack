@@ -1,6 +1,7 @@
 use std::path;
 use std::io;
 use std::io::Read;
+use std::io::Write;
 use std::fs;
 use std::collections;
 use std::os::unix::fs::MetadataExt;
@@ -13,6 +14,7 @@ use crypto::bcrypt;
 use rand::{Rng, StdRng};
 
 use atomicwrites;
+use chrono::*;
 use time;
 use filetime;
 
@@ -99,6 +101,10 @@ impl User {
 
         let token = match token { Some(x) => x, None => return anonymous };
         let session = match Session::get(&self, token) { Some(x) => x, None => return anonymous };
+        match session.bump_last_used() {
+            Ok(_) => (),
+            Err(e) => println!("WARNING: Failed to update last-used timestamp: {:?}", e)
+        };
 
         let category = {
             let mut rv = path.splitn(2, '/').nth(0).unwrap();
@@ -157,9 +163,8 @@ impl<'a> Session<'a> {
         self.user.sessions_path().join(&self.token)
     }
 
-    fn oauth_path(&self) -> path::PathBuf {
-        self.path().join("oauth.json")
-    }
+    fn oauth_path(&self) -> path::PathBuf { self.path().join("oauth.json") }
+    fn last_used_path(&self) -> path::PathBuf { self.path().join("last_used") }
 
     pub fn read_oauth(&self) -> Option<OauthSession> {
         match utils::read_json_file(self.oauth_path()) {
@@ -172,6 +177,30 @@ impl<'a> Session<'a> {
         utils::write_json_file(s, self.oauth_path())
     }
 
+    pub fn read_last_used(&self) -> DateTime<UTC> {
+        fs::File::open(self.last_used_path())
+            .ok()
+            .and_then(|mut f| {
+                let mut s = String::new();
+                match f.read_to_string(&mut s) {
+                    Ok(_) => Some(s),
+                    Err(_) => None
+                }
+            })
+            .and_then(|x| UTC.datetime_from_str(&x[..], "%+").ok())
+            .unwrap_or(UTC::now())
+    }
+
+    pub fn write_last_used(&self, d: DateTime<UTC>) -> io::Result<()> {
+        let data = d.to_rfc3339().into_bytes();
+        let f = atomicwrites::AtomicFile::new(self.last_used_path(), atomicwrites::AllowOverwrite);
+        try!(f.write(|f| f.write(&data)));
+        Ok(())
+    }
+
+    pub fn bump_last_used(&self) -> io::Result<()> {
+        self.write_last_used(UTC::now())
+    }
 }
 
 impl<'a> ToJson for Session<'a> {
@@ -180,6 +209,8 @@ impl<'a> ToJson for Session<'a> {
         match self.read_oauth().unwrap().to_json() {
             json::Json::Object(mut map) => {
                 map.insert("token".to_string(), self.token.to_json());
+                map.insert("last_used".to_string(),
+                    format!("{}", self.read_last_used().format("%d.%m.%Y %H:%M")).to_json());
                 json::Json::Object(map)
             },
             _ => panic!("Did not expect anything else than Object.")

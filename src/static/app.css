@@ -47,9 +47,7 @@
     float: right;
 }
 
-.app-name {
-    float: left;
-}
+#applist h3 { margin: 0; padding: 0; }
 
 .oauth-allow {
     background-color: rgb(202, 60, 60);

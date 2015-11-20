@@ -19,6 +19,7 @@ extern crate regex;
 #[macro_use] extern crate quick_error;
 extern crate time;
 extern crate filetime;
+extern crate chrono;
 
 pub mod cli;
 mod web;
