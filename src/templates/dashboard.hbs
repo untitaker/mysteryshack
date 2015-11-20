@@ -12,7 +12,7 @@
         </form>
         <h3><a class="app-name" href="{{uri}}">{{uri}}</a></h3>
         {{#block show-permissions}}{{/block}}
-        <small>Last used: {{last_used}}</small>
+        <small>{{#if last_used}}Last used: {{last_used}}{{else}}Never used{{/if}}</small>
     </li>
     {{/each}}
 </ul>

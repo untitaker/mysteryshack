@@ -177,7 +177,7 @@ impl<'a> Session<'a> {
         utils::write_json_file(s, self.oauth_path())
     }
 
-    pub fn read_last_used(&self) -> DateTime<UTC> {
+    pub fn read_last_used(&self) -> Option<DateTime<UTC>> {
         fs::File::open(self.last_used_path())
             .ok()
             .and_then(|mut f| {
@@ -188,7 +188,6 @@ impl<'a> Session<'a> {
                 }
             })
             .and_then(|x| UTC.datetime_from_str(&x[..], "%+").ok())
-            .unwrap_or(UTC::now())
     }
 
     pub fn write_last_used(&self, d: DateTime<UTC>) -> io::Result<()> {
@@ -210,7 +209,10 @@ impl<'a> ToJson for Session<'a> {
             json::Json::Object(mut map) => {
                 map.insert("token".to_string(), self.token.to_json());
                 map.insert("last_used".to_string(),
-                    format!("{}", self.read_last_used().format("%d.%m.%Y %H:%M %Z")).to_json());
+                    self.read_last_used()
+                        .map(|x| format!("{}", x.format("%d.%m.%Y %H:%M %Z")))
+                        .unwrap_or_else(|| "".to_string())
+                        .to_json());
                 json::Json::Object(map)
             },
             _ => panic!("Did not expect anything else than Object.")
