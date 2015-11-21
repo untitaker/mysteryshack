@@ -88,12 +88,21 @@ macro_rules! require_login_as {
 macro_rules! require_login { ($req:expr) => (require_login_as!($req, "")) }
 
 macro_rules! check_csrf {
-    ($req:expr) => (some_or!(
-        $req.headers.get::<header::Referer>()
-            .and_then(|s| url::Url::parse(s).ok())
-            .and_then(|u| if u == $req.url.clone().into_generic_url() { Some(()) } else { None }),
-        (status::BadRequest, "CSRF detected.")
-    ))
+    ($req:expr) => ({
+        let ref req = $req;
+
+        some_or!(
+            req.headers.get::<header::Referer>()
+                .and_then(|s| url::Url::parse(s).ok())
+                .and_then(|referer_u| {
+                    let req_u = req.url.clone().into_generic_url();
+
+                    if referer_u.origin() == req_u.origin() { Some(()) }
+                    else { None }
+                }),
+            (status::BadRequest, "CSRF detected.")
+        )
+    })
 }
 
 struct ErrorPrinter;
