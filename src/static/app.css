@@ -6,7 +6,7 @@
 }
 
 #banner {
-    background-color: #FEE9CC;
+    background-color: #FFD48E;
 }
 
 #banner > div {
@@ -81,7 +81,8 @@
 }
 
 code, pre {
-    background-color: #FEE9CC;
+    background-color: #000;
+    color: #ddd;
     padding: 1px 3px;
     border-radius: 3px;
 }
