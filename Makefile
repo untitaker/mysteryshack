@@ -29,6 +29,7 @@ spectest:
 	yes password123 | $$bin user create testuser; \
 	cp -R $(SPEC_TEST_DIR)/sessions $(TMP_DIR)/testuser/sessions; \
 	($$bin serve &); \
+	wget -q --retry-connrefused --waitretry=1 http://localhost:6767/ -O /dev/null; \
 	( \
 		cd $(SPEC_TEST_DIR)/suite; \
 		rake test; \
