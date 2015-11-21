@@ -55,8 +55,11 @@
 .delete-token {
     background-color: rgb(202, 60, 60);
     color: white;
-    font-size: 85%;
     float: right;
+}
+
+.button-small {
+    font-size: 85%;
 }
 
 #applist h3 { margin: 0; padding: 0; }
