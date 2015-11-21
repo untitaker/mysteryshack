@@ -1,3 +1,9 @@
+{{#partial banner }}
+<p>You are logged in as <code>{{ account_id }}</code>.</p>
+<form method="post" action="/logout/">
+    <input type="submit" class="pure-button button-small" value="Log out" />
+</form>
+{{/partial}}
 {{# partial "content" }}
 {{#if sessions}}
 <h2>Connected apps</h2>

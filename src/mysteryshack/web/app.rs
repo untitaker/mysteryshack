@@ -19,7 +19,7 @@ use iron::typemap::Key;
 use persistent;
 use handlebars_iron::{HandlebarsEngine,Template};
 use mount;
-use iron_login::{User,LoginManager};
+use iron_login::{User,LoginManager,log_out};
 use urlencoded;
 use router::Router;
 use staticfile;
@@ -130,6 +130,7 @@ pub fn run_server(config: config::Config) {
     router.post("/dashboard/", user_dashboard);
     router.get("/login/", user_login_get);
     router.post("/login/", user_login_post);
+    router.post("/logout/", user_logout);
     router.get("/oauth/:userid/", oauth_entry);
     router.post("/oauth/:userid/", oauth_entry);
 
@@ -272,10 +273,24 @@ fn user_login_post(request: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::BadRequest));
     }
 
-    return Ok(Response::with(status::Ok)
-              .set(user.log_in())
-              .set(status::Found)
-              .set(Redirect(url)));
+    Ok(Response::with(status::Ok)
+       .set(user.log_in())
+       .set(status::Found)
+       .set(Redirect(url)))
+}
+
+fn user_logout(request: &mut Request) -> IronResult<Response> {
+    check_csrf!(request);
+    Ok(Response::with(status::Ok)
+       .set(log_out())
+       .set(status::Found)
+       .set(Redirect({
+           let mut rv = request.url.clone();
+           rv.path = vec!["".to_string()];
+           rv.query = None;
+           rv.fragment = None;
+           rv
+       })))
 }
 
 fn user_dashboard(request: &mut Request) -> IronResult<Response> {

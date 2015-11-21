@@ -1,11 +1,23 @@
-#header, #content, #footer {
+#banner > div, #header, #content, #footer {
     margin: 0 auto;
     padding: 0 10px;
     display: block;
     max-width: 768px;
 }
 
-#header, #footer {
+#banner {
+    background-color: #FEE9CC;
+}
+
+#banner > div {
+    padding: 10px;
+}
+
+#banner > div:empty {
+    display: none;
+}
+
+#footer {
     text-align: center;
 }
 
