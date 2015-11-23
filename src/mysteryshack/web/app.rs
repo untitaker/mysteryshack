@@ -10,7 +10,7 @@ use hyper::header;
 use iron;
 
 use iron::prelude::*;
-use iron::modifiers::Redirect;
+use iron::modifiers::{Header,Redirect};
 use iron::status;
 use iron::method::Method;
 use iron::typemap::Key;
@@ -246,16 +246,12 @@ fn user_login_post(request: &mut Request) -> IronResult<Response> {
         )
     };
 
-    let bad_creds = Ok(Response::with((status::Ok, "Wrong credentials.")));
-
-    let user = match models::User::get(data_path, &username[..]) {
-        Some(user) => if itry!((&user).get_password_hash()).equals_password(password) {
-            user
-        } else {
-            return bad_creds;
-        },
-        None => return bad_creds
-    };
+    let user = some_or!(
+        models::User::get(data_path, &username[..])
+            .and_then(|user| user.get_password_hash().ok()
+                      .and_then(|h| if h.equals_password(password) { Some(user) } else { None })),
+        (status::Ok, "Wrong credentials.")
+    );
 
     let url = request.get_ref::<urlencoded::UrlEncodedQuery>().ok()
         .and_then(|query| query.get("redirect_to"))
@@ -372,19 +368,23 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
 
 
 fn webfinger_response(request: &mut Request) -> IronResult<Response> {
-    let bad_request = Ok(Response::with(status::BadRequest));
-    let mut query = collections::BTreeMap::new();
-    for (k, v) in request.url.clone().into_generic_url().query_pairs().unwrap().into_iter() {
-        query.insert(k, v);
-    }
-    let userid = match query.get("resource") {
-        Some(x) => if x.starts_with("acct:") {
-            &x[5..x.find('@').unwrap_or(x.len())]
+    let query = request.url
+        .clone()
+        .into_generic_url()
+        .query_pairs()
+        .unwrap()
+        .into_iter()
+        .collect::<collections::BTreeMap<_, _>>();
+
+    let userid = some_or!(
+        query.get("resource")
+        .and_then(|x| if x.starts_with("acct:") {
+            Some(&x[5..x.find('@').unwrap_or(x.len())])
         } else {
-            return bad_request;
-        },
-        None => return bad_request
-    };
+            None
+        }),
+        status::BadRequest
+    );
 
     let storage_url = {
         let mut url = request.url.clone();
@@ -605,9 +605,10 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
             }));
         }
 
-        let mut r = Response::with(status::Created);
-        r.headers.set(header::ETag(header::EntityTag::new(false, itry!(self.read_etag()))));
-        Ok(r)
+        Ok(Response::with((
+            status::Created,
+            Header(header::ETag(header::EntityTag::new(false, itry!(self.read_etag()))))
+        )))
     }
 }
 
