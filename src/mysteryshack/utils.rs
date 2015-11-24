@@ -124,3 +124,33 @@ pub fn write_json_file<T: Encodable, P: AsRef<path::Path>>(t: T, p: P) -> Result
 pub fn is_safe_identifier(string: &str) -> bool {
     regex::Regex::new(r"^[A-Za-z0-9_-]+$").unwrap().is_match(string)
 }
+
+/// Apply a function to each parent directory of given file `f_path`, stops at folder path `until`.
+///
+/// The function's Ok-value indicates whether mapping should continue.
+pub fn map_parent_dirs<F, A, B>(f_path: A, until: B, f: F)
+    -> io::Result<()>
+    where F: Fn(&path::Path) -> io::Result<bool>,
+          A: AsRef<path::Path>,
+          B: AsRef<path::Path> {
+
+    let mut cur_dir = f_path.as_ref();
+    let stop = until.as_ref();
+
+    loop {
+        cur_dir = match cur_dir.parent() {
+            Some(x) => x,
+            None => break
+        };
+
+        if !cur_dir.starts_with(stop) && cur_dir != stop {
+            break;
+        }
+
+        if !try!(f(cur_dir)) {
+            break;
+        }
+    };
+
+    Ok(())
+}

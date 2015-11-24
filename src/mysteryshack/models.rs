@@ -17,6 +17,7 @@ use atomicwrites;
 use chrono::*;
 use time;
 use filetime;
+use nix::errno;
 
 use utils;
 use utils::ServerError;
@@ -344,46 +345,34 @@ impl<'a> UserFile<'a> {
                 t.nsec as u32
             )
         };
-        let mut cur_dir = self.data_path.as_path();
-        loop {
-            cur_dir = match cur_dir.parent() {
-                Some(x) => x,
-                None => break
-            };
-            if !cur_dir.starts_with(&self.user.user_path) && cur_dir != self.user.user_path.as_path() {
-                break;
-            }
-            println!("Touching directory: {:?}", cur_dir);
-            try!(filetime::set_file_times(cur_dir, timestamp, timestamp));
-        };
-        Ok(())
+
+        utils::map_parent_dirs(&self.data_path, self.user.data_path(), |p| {
+            println!("Touching directory: {:?}", p);
+            filetime::set_file_times(p, timestamp, timestamp).map(|_| true)
+        }).map(|_| ())
     }
 
     pub fn delete(self) -> io::Result<()> {
-        try!(fs::remove_file(&self.data_path));
-        try!(fs::remove_file(&self.meta_path));
-
-        for dir in [&self.data_path, &self.meta_path].iter() {
-            let mut cur_dir = dir.as_path();
-            loop {
-                cur_dir = match cur_dir.parent() {
-                    Some(x) => x,
-                    None => break
-                };
-                if !cur_dir.starts_with(&self.user.user_path) && cur_dir != self.user.user_path.as_path() {
-                    break;
-                }
-                println!("Cleaning up directory: {:?}", cur_dir);
-                match fs::remove_dir(cur_dir) {
-                    Err(e) => {
-                        println!("Failed to remove directory during cleanup: {:?}", e);
-                        break;
-                    },
-                    _ => ()
-                }
+        fn f(p: &path::Path) -> io::Result<bool> {
+            println!("Cleaning up directory: {:?}", p);
+            match fs::remove_dir(p) {
+                Err(e) => {
+                    if let Some(errno) = e.raw_os_error() {
+                        if errno::Errno::from_i32(errno) == errno::Errno::ENOTEMPTY {
+                            return Ok(false);
+                        }
+                    }
+                    println!("Failed to remove directory during cleanup: {:?}", e);
+                    Err(e)
+                },
+                Ok(_) => Ok(true)
             }
         }
 
+        try!(fs::remove_file(&self.data_path));
+        try!(fs::remove_file(&self.meta_path));
+        try!(utils::map_parent_dirs(&self.data_path, self.user.data_path(), f));
+        try!(utils::map_parent_dirs(&self.meta_path, self.user.meta_path(), f));
         Ok(())
     }
 }

@@ -20,6 +20,7 @@ extern crate regex;
 extern crate time;
 extern crate filetime;
 extern crate chrono;
+extern crate nix;
 
 pub mod cli;
 mod web;

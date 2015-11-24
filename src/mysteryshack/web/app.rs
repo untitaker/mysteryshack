@@ -256,7 +256,7 @@ fn user_login_post(request: &mut Request) -> IronResult<Response> {
     let url = request.get_ref::<urlencoded::UrlEncodedQuery>().ok()
         .and_then(|query| query.get("redirect_to"))
         .and_then(|params| params.get(0))
-        .and_then(|x| iron::Url::parse(&x[0].clone()).ok())
+        .and_then(|x| iron::Url::parse(x).ok())
         .unwrap_or_else(|| {
             let mut rv = request.url.clone();
             rv.path = vec!["dashboard".to_string(), "".to_string()];
@@ -575,9 +575,8 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
         };
 
         {
-            let content_type = match request.headers.get_raw("content-type") {
-                Some(x) if x.len() == 1 => x.to_owned().pop().unwrap(),
-                Some(_) => return Ok(Response::with((status::BadRequest, "ONE content type header required."))),
+            let content_type = match request.headers.get::<header::ContentType>() {
+                Some(x) => format!("{}", x),
                 None => return Ok(Response::with((status::BadRequest, "Missing content type.")))
             };
             let local_file = match self.create() {
@@ -600,7 +599,7 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
                 }
             };
             itry!(self.write_meta(models::UserFileMeta {
-                content_type: String::from_utf8(content_type).unwrap(),
+                content_type: content_type,
                 content_length: content_length as usize
             }));
         }
