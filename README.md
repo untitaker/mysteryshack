@@ -23,7 +23,7 @@ either build your own or set some symlinks.
 
 ### Building own binary
 
-* Install [Rust](https://www.rust-lang.org/) and [Cargo](http://doc.crates.io/).
+* Install [Rust](https://www.rust-lang.org/) and [Cargo](https://crates.io/install).
 * Clone this repository.
 * Run `cargo build --release`.
 * Stick `./target/release/mysteryshack` into your PATH.
