@@ -10,13 +10,27 @@ Mysteryshack is a lightweight, yet self-contained
 Use username `demo` and password `demo` on [my
 server](https://shack.unterwaditzer.net) to try it out.
 
-## Usage
+## Installation
+
+### Using precompiled binary
+
+* Download [the precompiled
+  binary](https://unterwaditzer.net/bin/mysteryshack), and stick it somewhere
+  into your PATH.
+
+### Building own binary
 
 * Install [Rust](https://www.rust-lang.org/).
 * Clone this repository.
-* Edit `config.example` and save it as `config`.
 * Run `cargo build --release`.
-* `./target/release/mysteryshack` is your binary.
+* Stick `./target/release/mysteryshack` into your PATH.
+
+## Usage
+
+* Unfortunately for now you still need to `cd` into the repository's root, so
+  that mysteryshack can find its favicon, css etc. [See the relevant
+  issue](https://github.com/untitaker/mysteryshack/issues/8).
+* Edit `config.example` and save it as `config`.
 * `mysteryshack user create foo` to create a new user. See also `mysteryshack
   --help` and `mysteryshack user --help`.
 * `mysteryshack serve` to run the server as configured in `./config`.
