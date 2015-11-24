@@ -226,8 +226,8 @@ fn user_login_get(request: &mut Request) -> IronResult<Response> {
         let mut rv = collections::BTreeMap::new();
         request.get_ref::<urlencoded::UrlEncodedQuery>().ok()
             .and_then(|query| query.get("prefill_user"))
-            .and_then(|params| if params.len() == 1 { Some(params) } else { None })
-            .and_then(|x| rv.insert("prefill_user".to_owned(), x[0].to_json()));
+            .and_then(|params| params.get(0))
+            .and_then(|x| rv.insert("prefill_user".to_owned(), x.to_json()));
         rv
     }));
     Ok(r)
@@ -255,7 +255,7 @@ fn user_login_post(request: &mut Request) -> IronResult<Response> {
 
     let url = request.get_ref::<urlencoded::UrlEncodedQuery>().ok()
         .and_then(|query| query.get("redirect_to"))
-        .and_then(|params| if params.len() == 1 { Some(params) } else { None })
+        .and_then(|params| params.get(0))
         .and_then(|x| iron::Url::parse(&x[0].clone()).ok())
         .unwrap_or_else(|| {
             let mut rv = request.url.clone();
