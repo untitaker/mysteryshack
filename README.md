@@ -14,9 +14,12 @@ server](https://shack.unterwaditzer.net) to try it out.
 
 ### Using precompiled binary
 
-* Download [the precompiled
-  binary](https://unterwaditzer.net/bin/mysteryshack), and stick it somewhere
-  into your PATH.
+Download [the precompiled binary](https://unterwaditzer.net/bin/mysteryshack),
+and stick it somewhere into your PATH.
+
+The binary has been compiled on CentOS 6.7. It seems to work correctly on other
+RedHat distributions. If you're on some other system, you probably have to
+either build your own or set some symlinks.
 
 ### Building own binary
 
