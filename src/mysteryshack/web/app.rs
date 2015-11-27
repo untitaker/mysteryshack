@@ -456,7 +456,16 @@ trait UserNodeResponder where Self: Sized {
     fn respond(self, request: &mut Request) -> IronResult<Response> {
         match request.method {
             Method::Get => self.respond_get(request),
-            Method::Put => self.respond_put(request),
+            Method::Put => {
+                if request.headers.get::<header::ContentRange>().is_some() {
+                    Ok(Response::with((
+                        status::BadRequest,
+                        "Content-Range is invalid on PUT, as per RFC 7231. See https://github.com/remotestorage/spec/issues/124"
+                    )))
+                } else {
+                    self.respond_put(request)
+                }
+            },
             Method::Delete => self.respond_delete(request),
             _ => Ok(Response::with(status::BadRequest))
         }
