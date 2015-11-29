@@ -1,3 +1,5 @@
+// Generated using scripts/make_templates.py. Do NOT edit directly!
+
 use handlebars::Handlebars;
 use handlebars_iron::HandlebarsEngine;
 

@@ -9,6 +9,9 @@ def w(s=''):
         f.write(s)
     f.write('\n')
 
+w("// Generated using scripts/make_templates.py. Do NOT edit directly!")
+w()
+
 w("use handlebars::Handlebars;")
 w("use handlebars_iron::HandlebarsEngine;")
 w()
