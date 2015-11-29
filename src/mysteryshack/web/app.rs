@@ -17,7 +17,7 @@ use iron::typemap::Key;
 
 
 use persistent;
-use handlebars_iron::{HandlebarsEngine,Template};
+use handlebars_iron::Template;
 use mount;
 use iron_login::{User,LoginManager,log_out};
 use urlencoded;
@@ -36,6 +36,7 @@ use config;
 use super::utils::{preconditions_ok,EtagMatcher,SecurityHeaderMiddleware,XForwardedMiddleware,FormDataHelper,get_account_id};
 use super::oauth;
 use super::oauth::HttpResponder;
+use super::templates::get_template_engine;
 
 #[derive(Copy, Clone)]
 pub struct AppConfig;
@@ -146,7 +147,7 @@ pub fn run_server(config: config::Config) {
         rv.to_vec()
     }));
 
-    chain.link_after(HandlebarsEngine::new("./src/templates/", ".hbs"));
+    chain.link_after(get_template_engine());
     chain.link_after(SecurityHeaderMiddleware);
     chain.link_after(ErrorPrinter);
 

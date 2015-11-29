@@ -39,4 +39,7 @@ serve:
 	killall mysteryshack || true
 	cargo run -- serve
 
+templates:
+	python3 scripts/make_templates.py
+
 .PHONY: test

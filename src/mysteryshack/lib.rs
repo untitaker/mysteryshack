@@ -12,6 +12,7 @@ extern crate crypto;
 extern crate rand;
 extern crate persistent;
 extern crate iron_login;
+extern crate handlebars;
 extern crate handlebars_iron;
 extern crate mount;
 extern crate staticfile;
