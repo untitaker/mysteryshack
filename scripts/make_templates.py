@@ -19,7 +19,7 @@ w()
 w("pub fn get_template_engine() -> HandlebarsEngine {")
 w("    let mut registry = Handlebars::new();")
 
-for fname in os.listdir("./src/templates/"):
+for fname in sorted(os.listdir("./src/templates/")):
     w("    registry.register_template_string(\"{name}\", "
       "include_str!(\"../../templates/{fname}\").to_owned()).unwrap();"
       .format(name=fname.replace(".hbs", ""), fname=fname))
