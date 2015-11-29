@@ -10,7 +10,7 @@ dependencies = [
  "handlebars-iron 0.9.0 (git+https://github.com/sunng87/handlebars-iron?branch=feature/sources-api)",
  "hyper 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "iron-login 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "iron-login 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -222,7 +222,7 @@ dependencies = [
 
 [[package]]
 name = "iron-login"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cookie 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
