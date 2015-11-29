@@ -40,6 +40,6 @@ serve:
 	cargo run -- serve
 
 templates:
-	python3 scripts/make_templates.py
+	scripts/make_templates.py
 
 .PHONY: test
