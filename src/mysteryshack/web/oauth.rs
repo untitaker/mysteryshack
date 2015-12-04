@@ -36,6 +36,13 @@ impl Session {
             None => self.permissions.get("")
         }
     }
+
+    pub fn identifier(&self) -> String {
+        match self.uri.origin() {
+            url::Origin::Tuple(scheme, host, port) => format!("{}://{}:{}", scheme, host, port),
+            _ => panic!("Invalid URL: {:?}", self.uri)
+        }
+    }
 }
 
 impl ToJson for Session {

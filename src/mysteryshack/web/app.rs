@@ -292,8 +292,8 @@ fn user_dashboard(request: &mut Request) -> IronResult<Response> {
                           .set(Template::new("dashboard", {
                               let mut rv = collections::BTreeMap::new();
                               rv.insert("account_id".to_owned(), get_account_id(&user, &request).to_json());
-                              let sessions = user.walk_sessions().unwrap_or_else(|_| vec![]);
-                              rv.insert("sessions".to_owned(), sessions.to_json());
+                              let sessions = user.walk_apps().unwrap_or_else(|_| vec![]);
+                              rv.insert("apps".to_owned(), sessions.to_json());
                               rv
                           }))),
         Method::Post => {

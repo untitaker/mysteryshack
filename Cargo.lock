@@ -11,6 +11,7 @@ dependencies = [
  "hyper 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-login 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "itertools 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -229,6 +230,11 @@ dependencies = [
  "iron 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "oven 0.2.16 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "itertools"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "kernel32-sys"

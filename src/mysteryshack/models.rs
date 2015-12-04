@@ -10,6 +10,8 @@ use std::error::Error;
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
 
+use itertools::Itertools;
+
 use crypto::bcrypt;
 use rand::{Rng, StdRng};
 
@@ -78,7 +80,7 @@ impl User {
     pub fn meta_path(&self) -> path::PathBuf { self.user_path.join("meta/") }
     pub fn tmp_path(&self) -> path::PathBuf { self.user_path.join("tmp/") }
 
-    pub fn walk_sessions(&self) -> io::Result<Vec<Session>> {
+    fn walk_sessions(&self) -> io::Result<Vec<Session>> {
         let mut rv = vec![];
         for entry in try!(fs::read_dir(self.sessions_path())) {
             let entry = try!(entry);
@@ -92,6 +94,15 @@ impl User {
             };
         };
         Ok(rv)
+    }
+
+    pub fn walk_apps(&self) -> io::Result<Vec<App>> {
+        self.walk_sessions()
+            .map(|s| s
+                .into_iter()
+                .group_by(|s| s.read_oauth().unwrap().identifier())
+                .map(|(k, s)| App { client_id: k, sessions: s })
+                .collect())
     }
 
     pub fn permissions(&self, path: &str, token: Option<&str>) -> CategoryPermissions {
@@ -114,12 +125,26 @@ impl User {
             }
             rv
         };
-        // FIXME: Bump session here
 
         let oauth = session.read_oauth().unwrap();
         oauth.permissions_for_category(category)
             .map(|x| x.clone())
             .unwrap_or(anonymous)
+    }
+}
+
+pub struct App<'a> {
+    pub client_id: String,
+    pub sessions: Vec<Session<'a>>,
+}
+
+impl<'a> ToJson for App<'a> {
+    // for passing to template
+    fn to_json(&self) -> json::Json {
+        let mut rv = collections::BTreeMap::new();
+        rv.insert("client_id".to_owned(), self.client_id.to_json());
+        rv.insert("sessions".to_owned(), self.sessions.to_json());
+        json::Json::Object(rv)
     }
 }
 

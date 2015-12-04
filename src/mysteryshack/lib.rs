@@ -22,6 +22,7 @@ extern crate time;
 extern crate filetime;
 extern crate chrono;
 extern crate nix;
+extern crate itertools;
 
 pub mod cli;
 mod web;
