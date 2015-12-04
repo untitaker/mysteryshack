@@ -38,8 +38,11 @@ impl Session {
     }
 
     pub fn identifier(&self) -> String {
+        // FIXME: Ugly
         match self.uri.origin() {
-            url::Origin::Tuple(scheme, host, port) => format!("{}://{}:{}", scheme, host, port),
+            url::Origin::Tuple(scheme, host, port) => url::Url::parse(
+                format!("{}://{}:{}", scheme, host, port)
+            ).serialize(),
             _ => panic!("Invalid URL: {:?}", self.uri)
         }
     }
