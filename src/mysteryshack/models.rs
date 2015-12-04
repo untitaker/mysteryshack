@@ -152,6 +152,7 @@ pub struct Session<'a> {
     pub user: &'a User,
     pub token: String,
     oauth: Option<OauthSession>,
+    last_used: Option<DateTime<UTC>>,
 }
 
 impl<'a> Session<'a> {
@@ -159,13 +160,25 @@ impl<'a> Session<'a> {
         let mut rv = Session {
             user: user,
             token: token.to_owned(),
-            oauth: None
+            oauth: None,
+            last_used: None,
         };
 
         rv.oauth = match utils::read_json_file(rv.oauth_path()) {
             Ok(x) => x,
             Err(e) => { println!("Failed to parse session file: {:?}", e); return None }
         };
+
+        rv.last_used = fs::File::open(rv.last_used_path())
+            .ok()
+            .and_then(|mut f| {
+                let mut s = String::new();
+                match f.read_to_string(&mut s) {
+                    Ok(_) => Some(s),
+                    Err(_) => None
+                }
+            })
+            .and_then(|x| UTC.datetime_from_str(&x[..], "%+").ok());
 
         Some(rv)
     }
@@ -189,6 +202,7 @@ impl<'a> Session<'a> {
             user: user,
             token: token,
             oauth: None,
+            last_used: None,
         };
 
         try!(fs::create_dir_all(rv.path()));
@@ -200,27 +214,13 @@ impl<'a> Session<'a> {
     fn oauth_path(&self) -> path::PathBuf { self.path().join("oauth.json") }
     fn last_used_path(&self) -> path::PathBuf { self.path().join("last_used") }
 
-    pub fn get_oauth(&self) -> &OauthSession {
-        self.oauth.as_ref().unwrap()
-    }
+    pub fn get_oauth(&self) -> &OauthSession { self.oauth.as_ref().unwrap() }
+    pub fn get_last_used(&self) -> Option<&DateTime<UTC>> { self.last_used.as_ref() }
 
     pub fn write_oauth(&mut self, s: &OauthSession) -> Result<(), ServerError> {
         try!(utils::write_json_file(s, self.oauth_path()));
         self.oauth = Some(s.clone());
         Ok(())
-    }
-
-    pub fn read_last_used(&self) -> Option<DateTime<UTC>> {
-        fs::File::open(self.last_used_path())
-            .ok()
-            .and_then(|mut f| {
-                let mut s = String::new();
-                match f.read_to_string(&mut s) {
-                    Ok(_) => Some(s),
-                    Err(_) => None
-                }
-            })
-            .and_then(|x| UTC.datetime_from_str(&x[..], "%+").ok())
     }
 
     pub fn write_last_used(&self, d: DateTime<UTC>) -> io::Result<()> {
@@ -242,7 +242,7 @@ impl<'a> ToJson for Session<'a> {
             json::Json::Object(mut map) => {
                 map.insert("token".to_string(), self.token.to_json());
                 map.insert("last_used".to_string(),
-                    self.read_last_used()
+                    self.get_last_used()
                         .map(|x| format!("{}", x.format("%d. %B %Y %H:%M %Z")))
                         .unwrap_or_else(|| "".to_string())
                         .to_json());
@@ -379,14 +379,12 @@ impl<'a> UserFile<'a> {
         };
 
         utils::map_parent_dirs(&self.data_path, self.user.data_path(), |p| {
-            println!("Touching directory: {:?}", p);
             filetime::set_file_times(p, timestamp, timestamp).map(|_| true)
         }).map(|_| ())
     }
 
     pub fn delete(self) -> io::Result<()> {
         fn f(p: &path::Path) -> io::Result<bool> {
-            println!("Cleaning up directory: {:?}", p);
             match fs::remove_dir(p) {
                 Err(e) => {
                     if let Some(errno) = e.raw_os_error() {
