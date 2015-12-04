@@ -97,12 +97,13 @@ impl User {
     }
 
     pub fn walk_apps(&self) -> io::Result<Vec<App>> {
-        self.walk_sessions()
-            .map(|s| s
-                .into_iter()
-                .group_by(|s| s.read_oauth().unwrap().identifier())
-                .map(|(k, s)| App { client_id: k, sessions: s })
-                .collect())
+        let mut s = try!(self.walk_sessions());
+        s.sort_by(|a, b| a.get_oauth().identifier().cmp(&b.get_oauth().identifier()));
+        Ok(s
+           .into_iter()
+           .group_by(|s| s.get_oauth().identifier())
+           .map(|(k, s)| App { client_id: k, sessions: s })
+           .collect())
     }
 
     pub fn permissions(&self, path: &str, token: Option<&str>) -> CategoryPermissions {
@@ -126,8 +127,7 @@ impl User {
             rv
         };
 
-        let oauth = session.read_oauth().unwrap();
-        oauth.permissions_for_category(category)
+        session.get_oauth().permissions_for_category(category)
             .map(|x| x.clone())
             .unwrap_or(anonymous)
     }
@@ -150,20 +150,24 @@ impl<'a> ToJson for App<'a> {
 
 pub struct Session<'a> {
     pub user: &'a User,
-    pub token: String
+    pub token: String,
+    oauth: Option<OauthSession>,
 }
 
 impl<'a> Session<'a> {
-    fn new_unchecked(user: &'a User, token: String) -> Session<'a> {
-        Session {
-            user: user,
-            token: token
-        }
-    }
-
     pub fn get(user: &'a User, token: &str) -> Option<Session<'a>> {
-        let rv = Session::new_unchecked(user, token.to_owned());
-        rv.read_oauth().map(|_| rv)
+        let mut rv = Session {
+            user: user,
+            token: token.to_owned(),
+            oauth: None
+        };
+
+        rv.oauth = match utils::read_json_file(rv.oauth_path()) {
+            Ok(x) => x,
+            Err(e) => { println!("Failed to parse session file: {:?}", e); return None }
+        };
+
+        Some(rv)
     }
 
     pub fn delete(&self) -> io::Result<()> {
@@ -171,36 +175,39 @@ impl<'a> Session<'a> {
         Ok(())
     }
 
-    pub fn create(user: &'a User, oauth: &OauthSession) -> Result<Session<'a>, ServerError> {
+    pub fn create(user: &'a User, oauth: OauthSession) -> Result<Session<'a>, ServerError> {
         let mut rng = try!(StdRng::new());
         let rand_iter = rng.gen_ascii_chars();
         let token: String = rand_iter.take(24).collect();
-        let rv = Session::new_unchecked(user, token);
-        try!(fs::create_dir_all(rv.path()));
-        match rv.read_oauth() {
+
+        match Session::get(user, &token[..]) {
             Some(_) => panic!("Token already issued."),
             None => ()
         };
-        try!(rv.write_oauth(oauth));
+
+        let mut rv = Session {
+            user: user,
+            token: token,
+            oauth: None,
+        };
+
+        try!(fs::create_dir_all(rv.path()));
+        try!(rv.write_oauth(&oauth));
         Ok(rv)
     }
 
-    fn path(&self) -> path::PathBuf {
-        self.user.sessions_path().join(&self.token)
-    }
-
+    fn path(&self) -> path::PathBuf { self.user.sessions_path().join(&self.token) }
     fn oauth_path(&self) -> path::PathBuf { self.path().join("oauth.json") }
     fn last_used_path(&self) -> path::PathBuf { self.path().join("last_used") }
 
-    pub fn read_oauth(&self) -> Option<OauthSession> {
-        match utils::read_json_file(self.oauth_path()) {
-            Ok(x) => Some(x),
-            Err(e) => { println!("Failed to parse session file: {:?}", e); None }
-        }
+    pub fn get_oauth(&self) -> &OauthSession {
+        self.oauth.as_ref().unwrap()
     }
 
-    pub fn write_oauth(&self, s: &OauthSession) -> Result<(), ServerError> {
-        utils::write_json_file(s, self.oauth_path())
+    pub fn write_oauth(&mut self, s: &OauthSession) -> Result<(), ServerError> {
+        try!(utils::write_json_file(s, self.oauth_path()));
+        self.oauth = Some(s.clone());
+        Ok(())
     }
 
     pub fn read_last_used(&self) -> Option<DateTime<UTC>> {
@@ -231,7 +238,7 @@ impl<'a> Session<'a> {
 impl<'a> ToJson for Session<'a> {
     // for passing to template
     fn to_json(&self) -> json::Json {
-        match self.read_oauth().unwrap().to_json() {
+        match self.get_oauth().to_json() {
             json::Json::Object(mut map) => {
                 map.insert("token".to_string(), self.token.to_json());
                 map.insert("last_used".to_string(),
