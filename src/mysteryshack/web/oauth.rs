@@ -42,7 +42,7 @@ impl Session {
         match self.uri.origin() {
             url::Origin::Tuple(scheme, host, port) => url::Url::parse(
                 format!("{}://{}:{}", scheme, host, port)
-            ).serialize(),
+            ).unwrap().serialize(),
             _ => panic!("Invalid URL: {:?}", self.uri)
         }
     }
