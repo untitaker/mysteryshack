@@ -127,8 +127,8 @@ pub fn run_server(config: config::Config) {
     router.get("/.well-known/webfinger", webfinger_response);
     router.get("/dashboard/", user_dashboard);
     router.post("/dashboard/", user_dashboard);
-    router.get("/login/", user_login_get);
-    router.post("/login/", user_login_post);
+    router.get("/login/", user_login);
+    router.post("/login/", user_login);
     router.post("/logout/", user_logout);
     router.get("/oauth/:userid/", oauth_entry);
     router.post("/oauth/:userid/", oauth_entry);
@@ -214,6 +214,32 @@ fn user_node_response(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+fn user_login(request: &mut Request) -> IronResult<Response> {
+    let url = request.get_ref::<urlencoded::UrlEncodedQuery>().ok()
+        .and_then(|query| query.get("redirect_to"))
+        .and_then(|params| params.get(0))
+        .and_then(|x| iron::Url::parse(x).ok())
+        .unwrap_or_else(|| {
+            let mut rv = request.url.clone();
+            rv.path = vec!["dashboard".to_string(), "".to_string()];
+            rv.query = None;
+            rv.fragment = None;
+            rv
+        });
+
+    match request.method {
+        Method::Get => {
+            if models::User::from_request(request).is_some() {
+                Ok(Response::with((status::Found, Redirect(url))))
+            } else {
+                user_login_get(request)
+            }
+        },
+        Method::Post => user_login_post(request, url),
+        _ => Ok(Response::with(status::BadRequest))
+    }
+}
+
 fn user_login_get(request: &mut Request) -> IronResult<Response> {
     let mut r = Response::with(status::Ok);
     r.headers.set(header::ContentType("text/html".parse().unwrap()));
@@ -228,7 +254,7 @@ fn user_login_get(request: &mut Request) -> IronResult<Response> {
     Ok(r)
 }
 
-fn user_login_post(request: &mut Request) -> IronResult<Response> {
+fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response> {
     check_csrf!(request);
     let config = request.get::<persistent::Read<AppConfig>>().unwrap();
     let data_path = &config.data_path;
@@ -248,17 +274,6 @@ fn user_login_post(request: &mut Request) -> IronResult<Response> {
         (status::Ok, "Wrong credentials.")
     );
 
-    let url = request.get_ref::<urlencoded::UrlEncodedQuery>().ok()
-        .and_then(|query| query.get("redirect_to"))
-        .and_then(|params| params.get(0))
-        .and_then(|x| iron::Url::parse(x).ok())
-        .unwrap_or_else(|| {
-            let mut rv = request.url.clone();
-            rv.path = vec!["dashboard".to_string(), "".to_string()];
-            rv.query = None;
-            rv.fragment = None;
-            rv
-        });
 
     if &url.scheme != &request.url.scheme || &url.host != &request.url.host || &url.port != &request.url.port {
         return Ok(Response::with(status::BadRequest));
