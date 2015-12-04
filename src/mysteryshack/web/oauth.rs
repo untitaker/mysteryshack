@@ -41,7 +41,7 @@ impl Session {
         // FIXME: Ugly
         match self.uri.origin() {
             url::Origin::Tuple(scheme, host, port) => url::Url::parse(
-                format!("{}://{}:{}", scheme, host, port)
+                &format!("{}://{}:{}", scheme, host, port)[..]
             ).unwrap().serialize(),
             _ => panic!("Invalid URL: {:?}", self.uri)
         }
