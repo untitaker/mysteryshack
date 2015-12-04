@@ -271,9 +271,8 @@ fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response
 
 fn user_logout(request: &mut Request) -> IronResult<Response> {
     check_csrf!(request);
-    Ok(Response::with(status::Ok)
+    Ok(Response::with(status::Found)
        .set(log_out())
-       .set(status::Found)
        .set(Redirect({
            let mut rv = request.url.clone();
            rv.path = vec!["".to_string()];
