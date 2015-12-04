@@ -46,22 +46,6 @@ impl Key for AppConfig { type Value = config::Config; }
 pub struct AppLock;
 impl Key for AppLock { type Value = (); }
 
-macro_rules! itry {
-    ($expr:expr) => (itry!($expr, ::iron::status::InternalServerError));
-
-    ($expr:expr, $modifier:expr) => (match $expr {
-        ::std::result::Result::Ok(val) => val,
-        ::std::result::Result::Err(err) => return Err(::iron::IronError::new(err, $modifier))
-    })
-}
-
-macro_rules! some_or {
-    ($expr:expr, $modifier:expr) => (match $expr {
-        Some(x) => x,
-        None => return Ok(Response::with($modifier))
-    })
-}
-
 macro_rules! require_login_as {
     ($req:expr, $expect_user:expr) => ({
         let login_redirect = Ok(Response::with((status::Found, Redirect({
@@ -90,7 +74,7 @@ macro_rules! check_csrf {
     ($req:expr) => ({
         let ref req = $req;
 
-        some_or!(
+        iexpect!(
             req.headers.get::<header::Referer>()
                 .and_then(|s| url::Url::parse(s).ok())
                 .and_then(|referer_u| {
@@ -262,12 +246,12 @@ fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response
     let (ref username, ref password) = {
         let formdata = itry!(request.get_ref::<urlencoded::UrlEncodedBody>());
         (
-            &some_or!(formdata.get("user"), status::BadRequest)[0].clone(),
-            &some_or!(formdata.get("pass"), status::BadRequest)[0].clone()
+            &iexpect!(formdata.get("user"))[0].clone(),
+            &iexpect!(formdata.get("pass"))[0].clone()
         )
     };
 
-    let user = some_or!(
+    let user = iexpect!(
         models::User::get(data_path, &username[..])
             .and_then(|user| user.get_password_hash().ok()
                       .and_then(|h| if h.equals_password(password) { Some(user) } else { None })),
@@ -314,14 +298,13 @@ fn user_dashboard(request: &mut Request) -> IronResult<Response> {
         Method::Post => {
             check_csrf!(request);
             let back_to = request.url.clone();
-            let (action, token) = some_or!(
+            let (action, token) = iexpect!(
                 request.get_ref::<urlencoded::UrlEncodedBody>().ok()
-                    .map(|query| (query.get_only("action").clone(), query.get_only("token").clone())),
-                status::BadRequest);
+                    .map(|query| (query.get_only("action").clone(), query.get_only("token").clone())));
 
             match (action.map(Deref::deref), token) {
                 (Some("delete_token"), Some(token)) => {
-                    let session = some_or!(models::Session::get(&user, token), status::NotFound);
+                    let session = iexpect!(models::Session::get(&user, token), status::NotFound);
                     itry!(session.delete());
                     Ok(Response::with((status::Found, Redirect(back_to))))
                 },
@@ -356,14 +339,14 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
         Method::Get => Ok(Response::with(status::Ok).set(Template::new("oauth_entry", oauth_request.to_json()))),
         Method::Post => {
             check_csrf!(request);
-            let allow = some_or!({
+            let allow = iexpect!({
                 let formdata = itry!(request.get_ref::<urlencoded::UrlEncodedBody>());
-                match &some_or!(formdata.get("decision"), status::BadRequest)[0][..] {
+                match &iexpect!(formdata.get("decision"))[0][..] {
                     "allow" => Some(true),
                     "deny" => Some(false),
                     _ => None
                 }
-            }, status::BadRequest);
+            });
 
             if allow {
                 let session = itry!(models::Session::create(&user, oauth_request.session.clone()));
@@ -386,14 +369,13 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
         .into_iter()
         .collect::<collections::BTreeMap<_, _>>();
 
-    let userid = some_or!(
+    let userid = iexpect!(
         query.get("resource")
         .and_then(|x| if x.starts_with("acct:") {
             Some(&x[5..x.find('@').unwrap_or(x.len())])
         } else {
             None
-        }),
-        status::BadRequest
+        })
     );
 
     let storage_url = {
