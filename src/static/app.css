@@ -38,17 +38,17 @@
     }
 }
 
-#applist {
+.sessions {
     list-style: none;
     padding: 0;
 }
 
-#applist li {
+.sessions li {
     margin: 0;
     padding: 10px;
 }
 
-#applist li:hover {
+.sessions li:hover {
     background: #efefef;
 }
 
