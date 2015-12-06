@@ -398,52 +398,41 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
 
     r.set_mut(json::encode(&json::Json::Object({
         let mut d = collections::BTreeMap::new();
-        d.insert("links".to_string(), json::Json::Array(vec![
-            json::Json::Object({
-                let mut d = collections::BTreeMap::new();
-                d.insert("href".to_string(), storage_url.serialize().to_json());
-                d.insert("rel".to_string(), "http://tools.ietf.org/id/draft-dejong-remotestorage".to_json());
-                d.insert("properties".to_string(), json::Json::Object({
-                    let mut d = collections::BTreeMap::new();
-                    d.insert("http://remotestorage.io/spec/version".to_string(),
-                        "draft-dejong-remotestorage-05".to_json());
-                    d.insert("http://tools.ietf.org/html/rfc6749#section-4.2".to_string(),
-                        oauth_url.serialize().to_json());
-                    d.insert("http://tools.ietf.org/html/rfc6750#section-2.3".to_string(),
-                        false.to_json());
-                    d.insert("http://tools.ietf.org/html/rfc7233".to_string(),
-                        false.to_json());
-                    d.insert("http://remotestorage.io/spec/web-authoring".to_string(),
-                        false.to_json());
-                    d
-                }));
-                d
-            }),
+        d.insert("links".to_string(), json::Json::Array({
+            let mut rv = vec![];
             // We need to provide an older webfinger response because remoteStorage.js doesn't
             // support newer ones.
             // https://github.com/remotestorage/remotestorage.js/pull/899
             // https://github.com/silverbucket/webfinger.js/pull/11
-            json::Json::Object({
-                let mut d = collections::BTreeMap::new();
-                d.insert("href".to_string(), storage_url.serialize().to_json());
-                d.insert("rel".to_string(), "remotestorage".to_json());
-                d.insert("properties".to_string(), json::Json::Object({
+            for &(rel, version) in [
+                ("http://tools.ietf.org/id/draft-dejong-remotestorage", "draft-dejong-remotestorage-05"),
+                ("remotestorage", "draft-dejong-remotestorage-02")
+            ].iter() {
+                rv.push(json::Json::Object({
                     let mut d = collections::BTreeMap::new();
-                    d.insert("http://remotestorage.io/spec/version".to_string(),
-                        "draft-dejong-remotestorage-02".to_json());
-                    d.insert("http://tools.ietf.org/html/rfc6749#section-4.2".to_string(),
-                        oauth_url.serialize().to_json());
-                    d.insert("http://tools.ietf.org/html/rfc6750#section-2.3".to_string(),
-                        false.to_json());
-                    d.insert("http://tools.ietf.org/html/rfc2616#section-14.16".to_string(),
-                        false.to_json());
-                    d.insert("http://remotestorage.io/spec/web-authoring".to_string(),
-                        false.to_json());
+                    d.insert("href".to_string(), storage_url.serialize().to_json());
+                    d.insert("rel".to_string(), rel.to_json());
+                    d.insert("properties".to_string(), json::Json::Object({
+                        let mut d = collections::BTreeMap::new();
+                        d.insert("http://remotestorage.io/spec/version".to_string(),
+                            version.to_json());
+                        d.insert("http://tools.ietf.org/html/rfc6749#section-4.2".to_string(),  // OAuth
+                            oauth_url.serialize().to_json());
+                        d.insert("http://tools.ietf.org/html/rfc6750#section-2.3".to_string(),  // FIXME: ???
+                            false.to_json());
+                        d.insert("http://tools.ietf.org/html/rfc2616#section-14.16".to_string(),  // Content-Range as in draft-02
+                            false.to_json());
+                        d.insert("http://tools.ietf.org/html/rfc7233".to_string(),  // Content-Range as in draft-05
+                            false.to_json());
+                        d.insert("http://remotestorage.io/spec/web-authoring".to_string(),
+                            false.to_json());
+                        d
+                    }));
                     d
                 }));
-                d
-            })
-        ]));
+            }
+            rv
+        }));
         d
     })).unwrap());
     Ok(r)
