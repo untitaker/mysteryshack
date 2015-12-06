@@ -31,7 +31,7 @@ rand = "*"
 persistent = "*"
 urlencoded = "*"
 handlebars-iron = { git = "https://github.com/sunng87/handlebars-iron", branch = "feature/sources-api" }
-handlebars = "*"
+handlebars = "0.11"
 regex = "*"
 iron-login = "*"
 quick-error = "*"
