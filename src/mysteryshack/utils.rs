@@ -6,8 +6,8 @@ use std::io;
 use std::path;
 
 use atomicwrites;
-use regex;
 use config;
+use models;
 
 use rustc_serialize::json;
 use rustc_serialize::Decodable;
@@ -37,6 +37,12 @@ quick_error! {
             from()
         }
         ConfigError(error: config::Error) {
+            display("{}", error)
+            description(error.description())
+            cause(error)
+            from()
+        }
+        ModelError(error: models::Error) {
             display("{}", error)
             description(error.description())
             cause(error)
@@ -121,9 +127,6 @@ pub fn write_json_file<T: Encodable, P: AsRef<path::Path>>(t: T, p: P) -> Result
     Ok(())
 }
 
-pub fn is_safe_identifier(string: &str) -> bool {
-    regex::Regex::new(r"^[A-Za-z0-9_-]+$").unwrap().is_match(string)
-}
 
 /// Apply a function to each parent directory of given file `f_path`, stops at folder path `until`.
 ///

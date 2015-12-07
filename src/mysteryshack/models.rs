@@ -5,12 +5,12 @@ use std::io::Write;
 use std::fs;
 use std::collections;
 use std::os::unix::fs::MetadataExt;
-use std::error::Error;
 
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
 
 use itertools::Itertools;
+use regex;
 
 use crypto::bcrypt;
 use rand::{Rng, StdRng};
@@ -25,6 +25,19 @@ use utils;
 use utils::ServerError;
 use web::oauth::{Session as OauthSession, CategoryPermissions};
 
+pub fn is_safe_identifier(string: &str) -> bool {
+    regex::Regex::new(r"^[A-Za-z0-9_-]+$").unwrap().is_match(string)
+}
+
+quick_error! {
+    #[derive(Debug)]
+    pub enum Error {
+        InvalidUserName {
+            description("Invalid chars in username. Allowed are numbers (0-9), letters (a-zA-Z), \
+                        `_` and `-`.")
+        }
+    }
+}
 
 pub struct User {
     pub user_path: path::PathBuf,
@@ -32,27 +45,29 @@ pub struct User {
 }
 
 impl User {
-    fn new_unchecked(basepath: &path::Path, userid: &str) -> User {
+    fn new_unchecked(basepath: &path::Path, userid: &str) -> Result<User, Error> {
         assert!(basepath.is_absolute());
-        assert!(utils::is_safe_identifier(userid), "Invalid chars in username.");
-
-        let user_path = basepath.join(userid.to_string() + "/");
-        User {
-            user_path: user_path,
-            userid: userid.to_owned()
+        if !is_safe_identifier(userid) {
+            Err(Error::InvalidUserName)
+        } else {
+            Ok(User {
+                user_path: basepath.join(userid.to_string()),
+                userid: userid.to_owned()
+            })
         }
     }
 
     pub fn get(basepath: &path::Path, userid: &str) -> Option<User> {
-        let user = User::new_unchecked(basepath, userid);
-        match fs::metadata(user.user_info_path()) {
-            Ok(ref x) if x.is_file() => Some(user),
-            _ => None
-        }
+        User::new_unchecked(basepath, userid)
+            .ok()
+            .and_then(|user| match fs::metadata(user.user_info_path()) {
+                Ok(ref x) if x.is_file() => Some(user),
+                _ => None
+            })
     }
 
-    pub fn create(basepath: &path::Path, userid: &str) -> io::Result<User> {
-        let user = User::new_unchecked(basepath, userid);
+    pub fn create(basepath: &path::Path, userid: &str) -> Result<User, ServerError> {
+        let user = try!(User::new_unchecked(basepath, userid));
         try!(fs::create_dir_all(user.data_path()));
         try!(fs::create_dir_all(user.meta_path()));
         try!(fs::create_dir_all(user.tmp_path()));
