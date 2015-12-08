@@ -11,7 +11,7 @@ use utils;
 pub fn main() {
     let matches =
         App::new("mysteryshack")
-        .version("0.1.0")
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Markus Unterwaditzer & contributors")
         .about("A remoteStorage server.")
         .args_from_usage("-c --config=[CONFIG] 'Use specified config file, defaults to ./config'")
