@@ -7,7 +7,7 @@ dependencies = [
  "clap 1.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "filetime 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars 0.11.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "handlebars-iron 0.9.1 (git+https://github.com/sunng87/handlebars-iron?branch=feature/sources-api)",
+ "handlebars-iron 0.9.1 (git+https://github.com/sunng87/handlebars-iron)",
  "hyper 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-login 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -160,7 +160,7 @@ dependencies = [
 [[package]]
 name = "handlebars-iron"
 version = "0.9.1"
-source = "git+https://github.com/sunng87/handlebars-iron?branch=feature/sources-api#40b2ae27e50f6896ca9b4b868638ff0c7c09490a"
+source = "git+https://github.com/sunng87/handlebars-iron#849ff15efd40103a1ea3af747709014924e56d19"
 dependencies = [
  "handlebars 0.11.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
