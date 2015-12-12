@@ -9,6 +9,9 @@ use std::os::unix::fs::MetadataExt;
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
 
+use jsonwebtoken as jwt;
+use uuid;
+
 use itertools::Itertools;
 use regex;
 
@@ -16,14 +19,14 @@ use crypto::bcrypt;
 use rand::{Rng, StdRng};
 
 use atomicwrites;
-use chrono::*;
 use time;
 use filetime;
 use nix::errno;
 
+use url;
 use utils;
 use utils::ServerError;
-use web::oauth::{Session as OauthSession, CategoryPermissions};
+use web::oauth::{permissions_for_category, PermissionsMap, Session as OauthSession, CategoryPermissions};
 
 pub fn is_safe_identifier(string: &str) -> bool {
     regex::Regex::new(r"^[A-Za-z0-9_-]+$").unwrap().is_match(string)
@@ -71,7 +74,9 @@ impl User {
         try!(fs::create_dir_all(user.data_path()));
         try!(fs::create_dir_all(user.meta_path()));
         try!(fs::create_dir_all(user.tmp_path()));
+        try!(fs::create_dir_all(user.apps_path()));
         try!(fs::File::create(user.user_info_path()));
+        try!(user.new_key());
         Ok(user)
     }
 
@@ -90,18 +95,20 @@ impl User {
 
     fn user_info_path(&self) -> path::PathBuf { self.user_path.join("user.json") }
     fn password_path(&self) -> path::PathBuf { self.user_path.join("password") }
-    fn sessions_path(&self) -> path::PathBuf { self.user_path.join("sessions/") }
     pub fn data_path(&self) -> path::PathBuf { self.user_path.join("data/") }
     pub fn meta_path(&self) -> path::PathBuf { self.user_path.join("meta/") }
     pub fn tmp_path(&self) -> path::PathBuf { self.user_path.join("tmp/") }
+    pub fn apps_path(&self) -> path::PathBuf { self.user_path.join("apps/") }
 
-    fn walk_sessions(&self) -> io::Result<Vec<Session>> {
+    pub fn key_path(&self) -> path::PathBuf { self.user_path.join("user.key") }
+
+    pub fn walk_apps(&self) -> io::Result<Vec<App>> {
         let mut rv = vec![];
-        for entry in try!(fs::read_dir(self.sessions_path())) {
+        for entry in try!(fs::read_dir(self.apps_path())) {
             let entry = try!(entry);
             if try!(entry.metadata()).is_dir() {
                 rv.push(
-                    Session::get(
+                    App::get(
                         &self,
                         &entry.file_name().into_string().unwrap()[..]
                     ).unwrap()
@@ -111,16 +118,6 @@ impl User {
         Ok(rv)
     }
 
-    pub fn walk_apps(&self) -> io::Result<Vec<App>> {
-        let mut s = try!(self.walk_sessions());
-        s.sort_by(|a, b| a.get_oauth().identifier().cmp(&b.get_oauth().identifier()));
-        Ok(s
-           .into_iter()
-           .group_by(|s| s.get_oauth().identifier())
-           .map(|(k, s)| App { client_id: k, sessions: s })
-           .collect())
-    }
-
     pub fn permissions(&self, path: &str, token: Option<&str>) -> CategoryPermissions {
         let anonymous = CategoryPermissions {
             can_read: path.starts_with("public/") && !path.ends_with("/"),
@@ -128,11 +125,7 @@ impl User {
         };
 
         let token = match token { Some(x) => x, None => return anonymous };
-        let session = match Session::get(&self, token) { Some(x) => x, None => return anonymous };
-        match session.bump_last_used() {
-            Ok(_) => (),
-            Err(e) => println!("WARNING: Failed to update last-used timestamp: {:?}", e)
-        };
+        let (_, session) = match Session::get(&self, token) { Some(x) => x, None => return anonymous };
 
         let category = {
             let mut rv = path.splitn(2, '/').nth(0).unwrap();
@@ -142,15 +135,35 @@ impl User {
             rv
         };
 
-        session.get_oauth().permissions_for_category(category)
+        permissions_for_category(&session.permissions, category)
             .map(|x| x.clone())
             .unwrap_or(anonymous)
+    }
+
+    pub fn get_key(&self) -> Vec<u8> {
+        let mut f = fs::File::open(self.key_path()).unwrap();
+        let mut s = vec![];
+        f.read_to_end(&mut s).unwrap();
+        s
+    }
+
+    pub fn new_key(&self) -> io::Result<()> {
+        let mut key = [0u8; 4096];
+        {
+            let mut rng = try!(StdRng::new());
+            rng.fill_bytes(&mut key);
+        };
+
+        let f = atomicwrites::AtomicFile::new(self.key_path(), atomicwrites::AllowOverwrite);
+        try!(f.write(|f| f.write(&key)));
+        Ok(())
     }
 }
 
 pub struct App<'a> {
     pub client_id: String,
-    pub sessions: Vec<Session<'a>>,
+    pub app_id: String,
+    pub user: &'a User
 }
 
 impl<'a> ToJson for App<'a> {
@@ -158,113 +171,108 @@ impl<'a> ToJson for App<'a> {
     fn to_json(&self) -> json::Json {
         let mut rv = collections::BTreeMap::new();
         rv.insert("client_id".to_owned(), self.client_id.to_json());
-        rv.insert("sessions".to_owned(), self.sessions.to_json());
+        rv.insert("app_id".to_owned(), self.app_id.to_json());
         json::Json::Object(rv)
     }
 }
 
-pub struct Session<'a> {
-    pub user: &'a User,
-    pub token: String,
-    oauth: Option<OauthSession>,
-    last_used: Option<DateTime<UTC>>,
-}
+impl<'a> App<'a> {
+    fn get_path(u: &User, client_id: &str) -> path::PathBuf {
+        u.apps_path().join(client_id.replace("/", ""))
+    }
 
-impl<'a> Session<'a> {
-    pub fn get(user: &'a User, token: &str) -> Option<Session<'a>> {
-        let mut rv = Session {
-            user: user,
-            token: token.to_owned(),
-            oauth: None,
-            last_used: None,
+    fn normalize_client_id(client_id: &str) -> String {
+        let u = url::Url::parse(client_id).unwrap();
+        utils::format_origin(&u)
+    }
+
+    pub fn get(u: &'a User, client_id: &str) -> Option<App<'a>> {
+        let p = App::get_path(u, client_id).join("app_id");
+        let mut f = match fs::File::open(p) { Ok(x) => x, Err(_) => return None };
+
+        let app_id = {
+            let mut rv = String::new();
+            match f.read_to_string(&mut rv) {
+                Ok(_) => (),
+                Err(_) => return None
+            };
+            rv
         };
 
-        rv.oauth = match utils::read_json_file(rv.oauth_path()) {
-            Ok(x) => x,
-            Err(e) => { println!("Failed to parse session file: {:?}", e); return None }
-        };
-
-        rv.last_used = fs::File::open(rv.last_used_path())
-            .ok()
-            .and_then(|mut f| {
-                let mut s = String::new();
-                match f.read_to_string(&mut s) {
-                    Ok(_) => Some(s),
-                    Err(_) => None
-                }
-            })
-            .and_then(|x| UTC.datetime_from_str(&x[..], "%+").ok());
-
-        Some(rv)
+        Some(App {
+            user: u,
+            client_id: App::normalize_client_id(client_id),
+            app_id: app_id
+        })
     }
 
     pub fn delete(&self) -> io::Result<()> {
-        try!(fs::remove_dir_all(self.path()));
-        Ok(())
+        fs::remove_dir_all(App::get_path(&self.user, &self.client_id))
     }
 
-    pub fn create(user: &'a User, oauth: OauthSession) -> Result<Session<'a>, ServerError> {
-        let mut rng = try!(StdRng::new());
-        let rand_iter = rng.gen_ascii_chars();
-        let token: String = rand_iter.take(24).collect();
+    pub fn create(u: &'a User, client_id: &str) -> Result<App<'a>, io::Error> {
+        let app_id = uuid::Uuid::new_v4().to_simple_string();
+        if App::get(u, &app_id[..]).is_some() {
+            panic!("app_id already exists.");  // FIXME
+        }
 
-        match Session::get(user, &token[..]) {
-            Some(_) => panic!("Token already issued."),
-            None => ()
-        };
+        let p = App::get_path(u, client_id);
+        try!(fs::create_dir_all(&p));
 
-        let mut rv = Session {
-            user: user,
-            token: token,
-            oauth: None,
-            last_used: None,
-        };
+        let f = atomicwrites::AtomicFile::new(
+            p.join("app_id"),
+            atomicwrites::DisallowOverwrite
+        );
 
-        try!(fs::create_dir_all(rv.path()));
-        try!(rv.write_oauth(&oauth));
-        Ok(rv)
-    }
+        let app_id_bytes = app_id.to_owned().into_bytes();
+        try!(f.write(|f| f.write(&app_id_bytes)));
 
-    fn path(&self) -> path::PathBuf { self.user.sessions_path().join(&self.token) }
-    fn oauth_path(&self) -> path::PathBuf { self.path().join("oauth.json") }
-    fn last_used_path(&self) -> path::PathBuf { self.path().join("last_used") }
-
-    pub fn get_oauth(&self) -> &OauthSession { self.oauth.as_ref().unwrap() }
-    pub fn get_last_used(&self) -> Option<&DateTime<UTC>> { self.last_used.as_ref() }
-
-    pub fn write_oauth(&mut self, s: &OauthSession) -> Result<(), ServerError> {
-        try!(utils::write_json_file(s, self.oauth_path()));
-        self.oauth = Some(s.clone());
-        Ok(())
-    }
-
-    pub fn write_last_used(&self, d: DateTime<UTC>) -> io::Result<()> {
-        let data = d.to_rfc3339().into_bytes();
-        let f = atomicwrites::AtomicFile::new(self.last_used_path(), atomicwrites::AllowOverwrite);
-        try!(f.write(|f| f.write(&data)));
-        Ok(())
-    }
-
-    pub fn bump_last_used(&self) -> io::Result<()> {
-        self.write_last_used(UTC::now())
+        Ok(App {
+            user: u,
+            client_id: client_id.to_owned(),
+            app_id: app_id.to_owned()
+        })
     }
 }
 
-impl<'a> ToJson for Session<'a> {
-    // for passing to template
-    fn to_json(&self) -> json::Json {
-        match self.get_oauth().to_json() {
-            json::Json::Object(mut map) => {
-                map.insert("token".to_string(), self.token.to_json());
-                map.insert("last_used".to_string(),
-                    self.get_last_used()
-                        .map(|x| format!("{}", x.format("%d. %B %Y %H:%M %Z")))
-                        .unwrap_or_else(|| "".to_string())
-                        .to_json());
-                json::Json::Object(map)
-            },
-            _ => panic!("Did not expect anything else than Object.")
-        }
+#[derive(RustcEncodable, RustcDecodable, Debug)]
+pub struct Session {
+    pub app_id: String,
+    pub client_id: String,
+    pub permissions: PermissionsMap
+}
+
+const SESSION_HASH_ALGORITHM: jwt::Algorithm = jwt::Algorithm::HS256;
+
+impl Session {
+    pub fn get<'a>(u: &'a User, token: &str) -> Option<(App<'a>, Self)> {
+        let key = u.get_key();
+        jwt::decode(&token, &key, SESSION_HASH_ALGORITHM)
+            .ok()
+            .and_then(|session: Session| match App::get(u, &session.client_id[..]) {
+                Some(app) => if app.app_id == session.app_id { Some((app, session)) } else { None },
+                None => None
+            })
+    }
+
+    pub fn create<'a>(u: &'a User, sess: OauthSession) -> Result<(App<'a>, Self), ServerError> {
+        let app = match App::get(u, &sess.client_id) {
+            Some(x) => x,
+            None => try!(App::create(u, &sess.client_id))
+        };
+
+        let app_id_cp = app.app_id.clone();
+
+        Ok((app, Session {
+            app_id: app_id_cp,
+            client_id: sess.client_id,
+            permissions: sess.permissions
+        }))
+    }
+
+    pub fn token(&self, u: &User) -> String {
+        let key = u.get_key();
+        jwt::encode(self, &key, SESSION_HASH_ALGORITHM).unwrap()
     }
 }
 

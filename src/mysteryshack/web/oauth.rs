@@ -15,36 +15,28 @@ use iron::status;
 
 use urlencoded;
 
+use super::super::utils;
+
 // FIXME: oauth module should not be concerned with serialization
 #[derive(RustcDecodable, RustcEncodable, Debug, Clone)]
 pub struct OauthRequest {
     pub session: Session,
+    pub redirect_uri: url::Url,
     pub state: Option<String>,
 }
 
 #[derive(RustcDecodable, RustcEncodable, Debug, Clone)]
 pub struct Session {
     pub client_id: String,
-    pub uri: url::Url,
-    pub permissions: collections::HashMap<String, CategoryPermissions>
+    pub permissions: PermissionsMap
 }
 
-impl Session {
-    pub fn permissions_for_category(&self, category: &str) -> Option<&CategoryPermissions> {
-        match self.permissions.get(category) {
-            Some(x) => Some(x),
-            None => self.permissions.get("")
-        }
-    }
+pub type PermissionsMap = collections::HashMap<String, CategoryPermissions>;
 
-    pub fn identifier(&self) -> String {
-        // FIXME: Ugly
-        match self.uri.origin() {
-            url::Origin::Tuple(scheme, host, port) => url::Url::parse(
-                &format!("{}://{}:{}", scheme, host, port)[..]
-            ).unwrap().serialize(),
-            _ => panic!("Invalid URL: {:?}", self.uri)
-        }
+pub fn permissions_for_category<'a>(p: &'a PermissionsMap, category: &str) -> Option<&'a CategoryPermissions> {
+    match p.get(category) {
+        Some(x) => Some(x),
+        None => p.get("")
     }
 }
 
@@ -53,7 +45,6 @@ impl ToJson for Session {
         json::Json::Object({
             let mut rv = collections::BTreeMap::new();
             rv.insert("client_id".to_owned(), self.client_id.to_json());
-            rv.insert("uri".to_owned(), self.uri.serialize().to_json());
             rv.insert("permissions".to_owned(), self.permissions.to_json());
             rv
         })
@@ -111,15 +102,15 @@ impl OauthRequest {
         let mut rv = OauthRequest {
             session: Session {
                 client_id: "".to_owned(),
-                uri: match url::Url::parse(&try!(expect_param(query, "redirect_uri"))[..]) {
-                    Ok(x) => x,
-                    Err(e) => return Err({
-                        let mut ne = Error::new(ErrorKind::InvalidRequest);
-                        ne.msg = Some(format!("{}", e));
-                        ne
-                    })
-                },
                 permissions: collections::HashMap::new()
+            },
+            redirect_uri: match url::Url::parse(&try!(expect_param(query, "redirect_uri"))[..]) {
+                Ok(x) => x,
+                Err(e) => return Err({
+                    let mut ne = Error::new(ErrorKind::InvalidRequest);
+                    ne.msg = Some(format!("{}", e));
+                    ne
+                })
             },
             state: expect_param(query, "state").ok() 
         };
@@ -131,6 +122,22 @@ impl OauthRequest {
                 return Err(e);
             }
         };
+
+
+        // FIXME: Ugly
+        let expected_client_id = utils::format_origin(&rv.redirect_uri);
+
+        {
+            let ref client_id = rv.session.client_id;
+            if client_id != &expected_client_id[..expected_client_id.len() - 1] {
+                return Err({
+                    let mut e = Error::new(ErrorKind::InvalidRequest);
+                    e.msg = Some(format!("Expected client_id {:?}, found {:?}",
+                                         expected_client_id, client_id));
+                    e
+                });
+            }
+        }
 
         let scope = match expect_param(query, "scope") {
             Ok(x) => x,
@@ -184,7 +191,7 @@ pub struct Grant {
 
 impl HttpResponder for Grant {
     fn get_redirect_uri(&self) -> Option<url::Url> {
-        Some(self.request.session.uri.clone())
+        Some(self.request.redirect_uri.clone())
     }
 
     fn get_redirect_uri_params(&self) -> collections::BTreeMap<String, String> {
@@ -271,7 +278,7 @@ pub trait HttpResponder {
 
 impl HttpResponder for Error {
     fn get_redirect_uri(&self) -> Option<url::Url> {
-        self.request.as_ref().map(|req| req.session.uri.clone())
+        self.request.as_ref().map(|req| req.redirect_uri.clone())
     }
 
     fn get_redirect_uri_params(&self) -> collections::BTreeMap<String, String> {

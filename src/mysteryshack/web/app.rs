@@ -297,14 +297,14 @@ fn user_dashboard(request: &mut Request) -> IronResult<Response> {
         Method::Post => {
             check_csrf!(request);
             let back_to = request.url.clone();
-            let (action, token) = iexpect!(
+            let (action, client_id) = iexpect!(
                 request.get_ref::<urlencoded::UrlEncodedBody>().ok()
-                    .map(|query| (query.get_only("action").clone(), query.get_only("token").clone())));
+                    .map(|query| (query.get_only("action").clone(), query.get_only("client_id").clone())));
 
-            match (action.map(Deref::deref), token) {
-                (Some("delete_token"), Some(token)) => {
-                    let session = iexpect!(models::Session::get(&user, token), status::NotFound);
-                    itry!(session.delete());
+            match (action.map(Deref::deref), client_id) {
+                (Some("delete_app"), Some(client_id)) => {
+                    let app = iexpect!(models::App::get(&user, client_id), status::NotFound);
+                    itry!(app.delete());
                     Ok(Response::with((status::Found, Redirect(back_to))))
                 },
                 _ => Ok(Response::with(status::BadRequest))
@@ -348,8 +348,8 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
             });
 
             if allow {
-                let session = itry!(models::Session::create(&user, oauth_request.session.clone()));
-                Ok(oauth_request.grant(session.token).get_response().unwrap())
+                let (_, session) = itry!(models::Session::create(&user, oauth_request.session.clone()));
+                Ok(oauth_request.grant(session.token(&user)).get_response().unwrap())
             } else {
                 Ok(oauth_request.reject().get_response().unwrap())
             }

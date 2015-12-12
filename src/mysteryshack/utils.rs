@@ -9,6 +9,8 @@ use atomicwrites;
 use config;
 use models;
 
+use url;
+
 use rustc_serialize::json;
 use rustc_serialize::Decodable;
 use rustc_serialize::Encodable;
@@ -156,4 +158,15 @@ pub fn map_parent_dirs<F, A, B>(f_path: A, until: B, f: F)
     };
 
     Ok(())
+}
+
+
+pub fn format_origin(u: &url::Url) -> String {
+    // FIXME: Ugly
+    match u.origin() {
+        url::Origin::Tuple(scheme, host, port) => url::Url::parse(
+            &format!("{}://{}:{}", scheme, host, port)[..]
+        ).unwrap().serialize(),
+        _ => panic!("Invalid URL: {:?}", u)
+    }
 }

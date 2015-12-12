@@ -27,13 +27,12 @@ spectest:
 	set -ex; \
 	bin="$(APP_BINARY) -c $(TMP_DIR)/config"; \
 	yes password123 | $$bin user create testuser; \
-	cp -R $(SPEC_TEST_DIR)/sessions $(TMP_DIR)/testuser/sessions; \
-	($$bin serve &); \
-	wget -q --retry-connrefused --waitretry=1 http://localhost:6767/ -O /dev/null; \
-	( \
-		cd $(SPEC_TEST_DIR)/suite; \
-		rake test; \
-	)
+	($$bin serve &)
+	echo -n > $(TMP_DIR)/testuser/user.key # Zero-length key for JWT makes signature constant for all claims
+	mkdir -p $(TMP_DIR)/testuser/apps/https\:example.com
+	echo -n example > $(TMP_DIR)/testuser/apps/https\:example.com/app_id
+	wget -q --retry-connrefused --waitretry=1 http://localhost:6767/ -O /dev/null
+	cd $(SPEC_TEST_DIR)/suite && rake test
 
 serve:
 	killall mysteryshack || true

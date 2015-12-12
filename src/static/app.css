@@ -38,31 +38,33 @@
     }
 }
 
-.sessions {
+#applist {
     list-style: none;
     padding: 0;
 }
 
-.sessions li {
+#applist li {
     margin: 0;
     padding: 10px;
 }
 
-.sessions li:hover {
+#applist li:hover {
     background: #efefef;
 }
 
-.delete-token {
+.delete-app {
     background-color: rgb(202, 60, 60);
     color: white;
     float: right;
 }
 
+.app-name {
+    float: left;
+}
+
 .button-small {
     font-size: 85%;
 }
-
-#applist h3 { margin: 0; padding: 0; }
 
 .oauth-allow {
     background-color: rgb(202, 60, 60);

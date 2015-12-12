@@ -23,6 +23,8 @@ extern crate filetime;
 extern crate chrono;
 extern crate nix;
 extern crate itertools;
+extern crate uuid;
+extern crate jsonwebtoken;
 
 pub mod cli;
 mod web;

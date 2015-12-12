@@ -12,6 +12,7 @@ dependencies = [
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-login 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "jsonwebtoken 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -27,6 +28,7 @@ dependencies = [
  "unicase 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uuid 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -235,6 +237,15 @@ dependencies = [
 name = "itertools"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "jsonwebtoken"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "rust-crypto 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "kernel32-sys"

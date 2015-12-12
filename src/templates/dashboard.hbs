@@ -6,24 +6,18 @@
 {{/partial}}
 {{# partial "content" }}
 {{#if apps}}
-<section id="applist">
+<section>
 <h2>Connected apps</h2>
 
+<ul id="applist">
 {{#each apps}}
-<h3><a class="app-name" href="{{client_id}}">{{client_id}}</a></h3>
-
-<ul class="sessions">
-    {{#each sessions}}
-    <li>
-        <form method="post">
-            <input type="hidden" name="token" value="{{ token }}" />
-            <input type="hidden" name="action" value="delete_token" />
-            <input type="submit" class="pure-button button-small delete-token" value="Disconnect" />
-        </form>
-        {{#block show-permissions}}{{/block}}
-        <small>{{#if last_used}}Last used: {{last_used}}{{else}}Never used{{/if}}</small>
-    </li>
-    {{/each}}
+<li class=clearfix>
+    <form method="post">
+        <input type="hidden" name="client_id" value="{{ client_id }}" />
+        <input type="hidden" name="action" value="delete_app" />
+        <input type="submit" class="pure-button button-small delete-app" value="Disconnect" />
+    </form>
+    <a class="app-name" href="{{client_id}}">{{client_id}}</a>
 </ul>
 {{/each}}
 </section>
