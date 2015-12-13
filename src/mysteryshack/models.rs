@@ -212,9 +212,6 @@ impl<'a> App<'a> {
 
     pub fn create(u: &'a User, client_id: &str) -> Result<App<'a>, io::Error> {
         let app_id = uuid::Uuid::new_v4().to_simple_string();
-        if App::get(u, &app_id[..]).is_some() {
-            panic!("app_id already exists.");  // FIXME
-        }
 
         let p = App::get_path(u, client_id);
         try!(fs::create_dir_all(&p));
