@@ -54,7 +54,7 @@ impl User {
             Err(Error::InvalidUserName)
         } else {
             Ok(User {
-                user_path: basepath.join(userid.to_string()),
+                user_path: basepath.join(userid.to_owned()),
                 userid: userid.to_owned()
             })
         }
@@ -136,8 +136,7 @@ impl User {
         };
 
         permissions_for_category(&session.permissions, category)
-            .map(|x| x.clone())
-            .unwrap_or(anonymous)
+            .map_or(anonymous, |x| x.clone())
     }
 
     pub fn get_key(&self) -> Vec<u8> {
@@ -458,9 +457,9 @@ impl<'a> UserNode<'a> for UserFile<'a> {
     fn json_repr(&self) -> Result<json::Json, ServerError> {
         let meta = try!(self.read_meta());
         let mut d = collections::BTreeMap::new();
-        d.insert("Content-Type".to_string(), meta.content_type.to_json());
-        d.insert("Content-Length".to_string(), meta.content_length.to_json());
-        d.insert("ETag".to_string(), try!(self.read_etag()).to_json());
+        d.insert("Content-Type".to_owned(), meta.content_type.to_json());
+        d.insert("Content-Length".to_owned(), meta.content_length.to_json());
+        d.insert("ETag".to_owned(), try!(self.read_etag()).to_json());
 
         Ok(json::Json::Object(d))
     }
@@ -524,7 +523,7 @@ impl<'a> UserNode<'a> for UserFolder<'a> {
 
     fn json_repr(&self) -> Result<json::Json, ServerError> {
         let mut d = collections::BTreeMap::new();
-        d.insert("ETag".to_string(), try!(self.read_etag()).to_json());
+        d.insert("ETag".to_owned(), try!(self.read_etag()).to_json());
         Ok(json::Json::Object(d))
     }
 }

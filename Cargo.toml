@@ -44,3 +44,7 @@ nix = "*"
 itertools = "*"
 jsonwebtoken = { git = "https://github.com/untitaker/rust-jwt", branch = "arbitrary-bytes" }
 uuid = "*"
+clippy = {version = "*", optional = true}
+
+[features]
+default = []

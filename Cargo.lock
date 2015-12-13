@@ -5,6 +5,7 @@ dependencies = [
  "atomicwrites 0.0.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 1.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy 0.0.30 (registry+https://github.com/rust-lang/crates.io-index)",
  "filetime 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars 0.11.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars-iron 0.9.1 (git+https://github.com/sunng87/handlebars-iron)",
@@ -97,6 +98,14 @@ dependencies = [
  "bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "strsim 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "vec_map 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "clippy"
+version = "0.0.30"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "unicode-normalization 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -589,6 +598,11 @@ dependencies = [
 [[package]]
 name = "unicase"
 version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "unicode-normalization"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]

@@ -106,10 +106,9 @@ fn set_cors_headers(rq: &Request, r: &mut Response) {
 /// Prevent clickjacking attacks like described in OAuth RFC
 /// https://tools.ietf.org/html/rfc6749#section-10.13
 fn set_frame_options(rq: &Request, r: &mut Response) {
-    match &rq.url.path[0][..] {
+    if &rq.url.path[0] == "storage" {
         // It's probably fine to embed user storage data into other documents
-        "storage" => return,
-        _ => ()
+        return
     };
 
     r.headers.set_raw("X-Frame-Options", vec![b"DENY".to_vec()]);
