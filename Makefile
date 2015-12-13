@@ -38,7 +38,16 @@ serve:
 	killall mysteryshack || true
 	cargo run -- serve
 
+install-templates:
+	true
+
 templates:
 	scripts/make_templates.py
+
+install-clippy:
+	true
+
+clippy:
+	cargo build --features clippy
 
 .PHONY: test
