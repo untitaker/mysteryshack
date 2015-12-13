@@ -128,7 +128,7 @@ impl OauthRequest {
         let expected_client_id = utils::format_origin(&rv.redirect_uri);
 
         {
-            let ref client_id = rv.session.client_id;
+            let client_id = &rv.session.client_id;
             if client_id != &expected_client_id[..expected_client_id.len() - 1] {
                 return Err({
                     let mut e = Error::new(ErrorKind::InvalidRequest);

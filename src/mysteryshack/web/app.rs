@@ -72,7 +72,7 @@ macro_rules! require_login { ($req:expr) => (require_login_as!($req, "")) }
 
 macro_rules! check_csrf {
     ($req:expr) => ({
-        let ref req = $req;
+        let req = &$req;
 
         iexpect!(
             req.headers.get::<header::Referer>()
@@ -102,7 +102,7 @@ pub fn run_server(config: config::Config) {
 
     router.options("*", |_: &mut Request| Ok(Response::with(status::Ok)));
 
-    for route in ["/storage/:userid/*path", "/storage/:userid/"].iter() {
+    for route in &["/storage/:userid/*path", "/storage/:userid/"] {
         for method in [Method::Get, Method::Put, Method::Delete].into_iter() {
             router.route(method.clone(), route, user_node_response);
         }
@@ -185,7 +185,7 @@ fn user_node_response(req: &mut Request) -> IronResult<Response> {
         (Some(lock.read().unwrap()), None)
     };
 
-    if path_str.len() == 0 || path_str.ends_with("/") {
+    if path_str.is_empty() || path_str.ends_with("/") {
         match models::UserFolder::from_path(&user, &path_str[..]) {
             Some(x) => x.respond(req),
             None => Ok(Response::with(status::BadRequest))
@@ -205,7 +205,7 @@ fn user_login(request: &mut Request) -> IronResult<Response> {
         .and_then(|x| iron::Url::parse(x).ok())
         .unwrap_or_else(|| {
             let mut rv = request.url.clone();
-            rv.path = vec!["dashboard".to_string(), "".to_string()];
+            rv.path = vec!["dashboard".to_owned(), "".to_owned()];
             rv.query = None;
             rv.fragment = None;
             rv
@@ -275,7 +275,7 @@ fn user_logout(request: &mut Request) -> IronResult<Response> {
        .set(log_out())
        .set(Redirect({
            let mut rv = request.url.clone();
-           rv.path = vec!["".to_string()];
+           rv.path = vec!["".to_owned()];
            rv.query = None;
            rv.fragment = None;
            rv
@@ -381,7 +381,7 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
         let mut url = request.url.clone();
         url.query = None;
         url.fragment = None;
-        url.path = vec!["storage".to_string(), userid.to_string()];
+        url.path = vec!["storage".to_owned(), userid.to_owned()];
         url.into_generic_url()
     };
 
@@ -389,7 +389,7 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
         let mut url = request.url.clone();
         url.query = None;
         url.fragment = None;
-        url.path = vec!["oauth".to_string(), userid.to_string(), "".to_string()];
+        url.path = vec!["oauth".to_owned(), userid.to_owned(), "".to_owned()];
         url.into_generic_url()
     };
 
@@ -398,33 +398,33 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
 
     r.set_mut(json::encode(&json::Json::Object({
         let mut d = collections::BTreeMap::new();
-        d.insert("links".to_string(), json::Json::Array({
+        d.insert("links".to_owned(), json::Json::Array({
             let mut rv = vec![];
             // We need to provide an older webfinger response because remoteStorage.js doesn't
             // support newer ones.
             // https://github.com/remotestorage/remotestorage.js/pull/899
             // https://github.com/silverbucket/webfinger.js/pull/11
-            for &(rel, version) in [
+            for &(rel, version) in &[
                 ("http://tools.ietf.org/id/draft-dejong-remotestorage", "draft-dejong-remotestorage-05"),
                 ("remotestorage", "draft-dejong-remotestorage-02")
-            ].iter() {
+            ] {
                 rv.push(json::Json::Object({
                     let mut d = collections::BTreeMap::new();
-                    d.insert("href".to_string(), storage_url.serialize().to_json());
-                    d.insert("rel".to_string(), rel.to_json());
-                    d.insert("properties".to_string(), json::Json::Object({
+                    d.insert("href".to_owned(), storage_url.serialize().to_json());
+                    d.insert("rel".to_owned(), rel.to_json());
+                    d.insert("properties".to_owned(), json::Json::Object({
                         let mut d = collections::BTreeMap::new();
-                        d.insert("http://remotestorage.io/spec/version".to_string(),
+                        d.insert("http://remotestorage.io/spec/version".to_owned(),
                             version.to_json());
-                        d.insert("http://tools.ietf.org/html/rfc6749#section-4.2".to_string(),  // OAuth
+                        d.insert("http://tools.ietf.org/html/rfc6749#section-4.2".to_owned(),  // OAuth
                             oauth_url.serialize().to_json());
-                        d.insert("http://tools.ietf.org/html/rfc6750#section-2.3".to_string(),  // FIXME: ???
+                        d.insert("http://tools.ietf.org/html/rfc6750#section-2.3".to_owned(),  // FIXME: ???
                             false.to_json());
-                        d.insert("http://tools.ietf.org/html/rfc2616#section-14.16".to_string(),  // Content-Range as in draft-02
+                        d.insert("http://tools.ietf.org/html/rfc2616#section-14.16".to_owned(),  // Content-Range as in draft-02
                             false.to_json());
-                        d.insert("http://tools.ietf.org/html/rfc7233".to_string(),  // Content-Range as in draft-05
+                        d.insert("http://tools.ietf.org/html/rfc7233".to_owned(),  // Content-Range as in draft-05
                             false.to_json());
-                        d.insert("http://remotestorage.io/spec/web-authoring".to_string(),
+                        d.insert("http://remotestorage.io/spec/web-authoring".to_owned(),
                             false.to_json());
                         d
                     }));
@@ -470,7 +470,7 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
     fn respond_get(self, request: &Request) -> IronResult<Response> {
         let etag = self.read_etag().ok();
         // https://github.com/remotestorage/spec/issues/93
-        let shown_etag = etag.unwrap_or("empty".to_string());
+        let shown_etag = etag.unwrap_or("empty".to_owned());
 
         match request.headers.get::<header::IfNoneMatch>() {
             Some(header) => if header.matches_etag(Some(&shown_etag[..])) {
@@ -487,13 +487,13 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
 
         r.set_mut(json::encode(&json::Json::Object({
             let mut d = collections::BTreeMap::new();
-            d.insert("@context".to_string(),
+            d.insert("@context".to_owned(),
             "http://remotestorage.io/spec/folder-description".to_json());
-            d.insert("items".to_string(), json::Json::Object({
+            d.insert("items".to_owned(), json::Json::Object({
                 let mut d = collections::BTreeMap::new();
                 match self.read_children() {
                     Ok(children) => {
-                        for child in children.iter() {
+                        for child in &children {
                             match child.json_repr() {
                                 Ok(json) => {
                                     d.insert(child.get_basename(), json);

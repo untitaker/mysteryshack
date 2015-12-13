@@ -79,7 +79,7 @@ pub fn prompt<T: AsRef<str>>(text: T) -> String {
 
 pub fn double_prompt<T: AsRef<str>>(text: T) -> String {
     let again_text = {
-        let mut x = "(confirm) ".to_string();
+        let mut x = "(confirm) ".to_owned();
         x.push_str(text.as_ref());
         x
     };
