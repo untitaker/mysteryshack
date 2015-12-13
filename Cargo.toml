@@ -42,5 +42,5 @@ filetime = "*"
 chrono = "*"
 nix = "*"
 itertools = "*"
-jsonwebtoken = "*"
+jsonwebtoken = { git = "https://github.com/untitaker/rust-jwt", branch = "arbitrary-bytes" }
 uuid = "*"

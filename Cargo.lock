@@ -12,7 +12,7 @@ dependencies = [
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-login 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "jsonwebtoken 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "jsonwebtoken 0.2.0 (git+https://github.com/untitaker/rust-jwt?branch=arbitrary-bytes)",
  "mount 0.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -241,7 +241,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "jsonwebtoken"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/untitaker/rust-jwt?branch=arbitrary-bytes#869ea4eacca3cb5bce0ceb3a067f6f206db5df8a"
 dependencies = [
  "rust-crypto 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
