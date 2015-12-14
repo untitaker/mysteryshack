@@ -115,29 +115,7 @@ impl OauthRequest {
             state: expect_param(query, "state").ok() 
         };
 
-        rv.session.client_id = match expect_param(query, "client_id") {
-            Ok(x) => x,
-            Err(mut e) => {
-                e.request = Some(rv);
-                return Err(e);
-            }
-        };
-
-
-        // FIXME: Ugly
-        let expected_client_id = utils::format_origin(&rv.redirect_uri);
-
-        {
-            let client_id = &rv.session.client_id;
-            if client_id != &expected_client_id[..expected_client_id.len() - 1] {
-                return Err({
-                    let mut e = Error::new(ErrorKind::InvalidRequest);
-                    e.msg = Some(format!("Expected client_id {:?}, found {:?}",
-                                         expected_client_id, client_id));
-                    e
-                });
-            }
-        }
+        rv.session.client_id = utils::format_origin(&rv.redirect_uri);
 
         let scope = match expect_param(query, "scope") {
             Ok(x) => x,
