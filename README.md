@@ -49,9 +49,13 @@ As of OS X 10.11, OpenSSL isn't installed anymore. You'll need to install it man
 
 ## Implementation notes
 
-* Mysteryshack implements `draft-dejong-remotestorage-05.txt`, however, it
-  sends two kinds of webfinger responses to stay compatible with
-  `remotestorage.js`.
+* Mysteryshack mostly implements `draft-dejong-remotestorage-05.txt`, however:
+
+  - it sends two kinds of webfinger responses to stay compatible with
+    `remotestorage.js`.
+
+  - The app-provided `client_id` is ignored, instead the origin of
+    `redirect_uri` is used for validation.
 
 * Mysteryshack is set up to be tested against the official [api test
   suite](https://github.com/remotestorage/api-test-suite/) automatically (in
@@ -60,9 +64,13 @@ As of OS X 10.11, OpenSSL isn't installed anymore. You'll need to install it man
 * Mysteryshack's approach to concurrency is very simplistic, but is certainly
   enough for smaller to medium-sized servers.
 
-* Mysteryshack stores OAuth tokens on the harddrive, but web admin sessions are
-  stored inside signed cookies. The key is generated at server startup. To log
-  everybody out, restart the server.
+* Web admin sessions are stored inside signed cookies. The key is generated at
+  server startup. To log everybody out, restart the server.
+
+* OAuth tokens are [JWT](https://jwt.io/)s that are signed with a per-user key.
+  The server stores a list of `client_id`s the user has authorized, and checks
+  if the token's `client_id` claim is found in that list.
+
 
 ## License
 
