@@ -12,12 +12,12 @@
 <ul id="applist">
 {{#each apps}}
 <li class=clearfix>
+    <a class="app-name" href="{{client_id}}">{{client_id}}</a>
     <form method="post">
         <input type="hidden" name="client_id" value="{{ client_id }}" />
         <input type="hidden" name="action" value="delete_app" />
         <input type="submit" class="pure-button button-small delete-app" value="Disconnect" />
     </form>
-    <a class="app-name" href="{{client_id}}">{{client_id}}</a>
 {{/each}}
 </ul>
 </section>
