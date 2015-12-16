@@ -250,7 +250,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "jsonwebtoken"
 version = "0.2.0"
-source = "git+https://github.com/untitaker/rust-jwt?branch=arbitrary-bytes#4f606d6c261345ee81ea5d555409747703a42638"
+source = "git+https://github.com/untitaker/rust-jwt?branch=arbitrary-bytes#d6d0ce058b1cfa1d6c579539329abc3bb9b6e891"
 dependencies = [
  "rust-crypto 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
