@@ -42,7 +42,7 @@ filetime = "*"
 chrono = "*"
 nix = "*"
 itertools = "*"
-jsonwebtoken = { git = "https://github.com/untitaker/rust-jwt", branch = "arbitrary-bytes" }
+jsonwebtoken = { git = "https://github.com/Keats/rust-jwt" }
 uuid = "*"
 clippy = {version = "*", optional = true}
 
