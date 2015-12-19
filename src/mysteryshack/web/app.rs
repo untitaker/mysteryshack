@@ -414,18 +414,24 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
                     d.insert("rel".to_owned(), rel.to_json());
                     d.insert("properties".to_owned(), json::Json::Object({
                         let mut d = collections::BTreeMap::new();
-                        d.insert("http://remotestorage.io/spec/version".to_owned(),
-                            version.to_json());
-                        d.insert("http://tools.ietf.org/html/rfc6749#section-4.2".to_owned(),  // OAuth
-                            oauth_url.serialize().to_json());
-                        d.insert("http://tools.ietf.org/html/rfc6750#section-2.3".to_owned(),  // FIXME: ???
-                            false.to_json());
-                        d.insert("http://tools.ietf.org/html/rfc2616#section-14.16".to_owned(),  // Content-Range as in draft-02
-                            false.to_json());
-                        d.insert("http://tools.ietf.org/html/rfc7233".to_owned(),  // Content-Range as in draft-05
-                            false.to_json());
-                        d.insert("http://remotestorage.io/spec/web-authoring".to_owned(),
-                            false.to_json());
+
+                        // Spec version
+                        d.insert("http://remotestorage.io/spec/version".to_owned(), version.to_json());
+
+                        // OAuth
+                        d.insert("http://tools.ietf.org/html/rfc6749#section-4.2".to_owned(), oauth_url.serialize().to_json());
+
+                        // Support for providing the access token via URL query param
+                        d.insert("http://tools.ietf.org/html/rfc6750#section-2.3".to_owned(), false.to_json());
+
+                        // Content-Range as in draft-02
+                        d.insert("http://tools.ietf.org/html/rfc2616#section-14.16".to_owned(), false.to_json());
+
+                        // Content-Range as in draft-05
+                        d.insert("http://tools.ietf.org/html/rfc7233".to_owned(), false.to_json());
+
+                        // Web authoring
+                        d.insert("http://remotestorage.io/spec/web-authoring".to_owned(), false.to_json());
                         d
                     }));
                     d
