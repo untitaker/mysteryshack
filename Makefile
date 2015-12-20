@@ -22,7 +22,6 @@ testserver-config:
 	echo 'listen = "localhost:6767"' >> $(TMP_DIR)/config
 	echo "data_path = \"$(TMP_DIR)\"" >> $(TMP_DIR)/config
 	echo "use_proxy_headers = false" >> $(TMP_DIR)/config
-	cp $(SPEC_TEST_DIR)/suite-config.yml $(SPEC_TEST_DIR)/suite/config.yml
 	yes password123 | $(TEST_CMD) user create testuser
 	echo -n > $(TMP_DIR)/testuser/user.key # Zero-length key for JWT makes signature constant for all claims
 	mkdir -p $(TMP_DIR)/testuser/apps/https\:example.com
@@ -36,6 +35,7 @@ spectest:
 	cargo build
 	($(MAKE) testserver &);
 	wget -q --retry-connrefused --waitretry=1 http://localhost:6767/ -O /dev/null
+	cp $(SPEC_TEST_DIR)/suite-config.yml $(SPEC_TEST_DIR)/suite/config.yml
 	cd $(SPEC_TEST_DIR)/suite && rake test
 
 serve:
