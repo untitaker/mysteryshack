@@ -14,8 +14,7 @@ install-spectest:
 	cd $(SPEC_TEST_DIR)/suite && bundle install --path vendor/bundle
 	cargo build
 
-spectest:
-	cargo build
+testserver:
 	killall mysteryshack || true
 	rm -r $(TMP_DIR) || true
 	mkdir -p $(TMP_DIR)
@@ -32,6 +31,10 @@ spectest:
 	mkdir -p $(TMP_DIR)/testuser/apps/https\:example.com
 	echo -n example > $(TMP_DIR)/testuser/apps/https\:example.com/app_id
 	wget -q --retry-connrefused --waitretry=1 http://localhost:6767/ -O /dev/null
+
+spectest:
+	cargo build
+	$(MAKE) testserver
 	cd $(SPEC_TEST_DIR)/suite && rake test
 
 serve:
