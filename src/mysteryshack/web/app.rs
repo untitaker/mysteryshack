@@ -348,7 +348,7 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
             });
 
             if allow {
-                let (_, session) = itry!(models::Session::create(&user, oauth_request.session.clone()));
+                let (_, session) = itry!(models::Token::create(&user, oauth_request.session.clone()));
                 Ok(oauth_request.grant(session.token(&user)).get_response().unwrap())
             } else {
                 Ok(oauth_request.reject().get_response().unwrap())

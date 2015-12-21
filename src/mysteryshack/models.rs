@@ -127,7 +127,7 @@ impl User {
         };
 
         let token = match token { Some(x) => x, None => return anonymous };
-        let (_, session) = match Session::get(&self, token) { Some(x) => x, None => return anonymous };
+        let (_, session) = match Token::get(&self, token) { Some(x) => x, None => return anonymous };
 
         let category = {
             let mut rv = path.splitn(2, '/').nth(0).unwrap();
@@ -234,7 +234,7 @@ impl<'a> App<'a> {
 }
 
 #[derive(RustcEncodable, RustcDecodable, Debug)]
-pub struct Session {
+pub struct Token {
     pub exp: i64,
     pub app_id: String,
     pub client_id: String,
@@ -243,11 +243,11 @@ pub struct Session {
 
 const SESSION_HASH_ALGORITHM: jwt::Algorithm = jwt::Algorithm::HS256;
 
-impl Session {
+impl Token {
     pub fn get<'a>(u: &'a User, token: &str) -> Option<(App<'a>, Self)> {
         let key = u.get_key();
 
-        let session = match jwt::decode::<Session>(&token, &key, SESSION_HASH_ALGORITHM) {
+        let session = match jwt::decode::<Token>(&token, &key, SESSION_HASH_ALGORITHM) {
             Ok(x) => x,
             Err(_) => return None
         };
@@ -277,7 +277,7 @@ impl Session {
 
         let app_id_cp = app.app_id.clone();
 
-        Ok((app, Session {
+        Ok((app, Token {
             app_id: app_id_cp,
             client_id: sess.client_id,
             permissions: sess.permissions,
@@ -564,8 +564,8 @@ mod tests {
         let t = get_tmp();
         let u = User::create(t.path(), "foo").unwrap();
 
-        assert!(Session::get(&u, "aint a jwt").is_none());
-        let (app, session) = Session::create(&u, OauthSession {
+        assert!(Token::get(&u, "aint a jwt").is_none());
+        let (app, session) = Token::create(&u, OauthSession {
             client_id: "http://example.com".to_owned(),
             permissions: {
                 let mut rv = collections::HashMap::new();
@@ -576,9 +576,9 @@ mod tests {
                 rv
             }
         }).unwrap();
-        assert!(Session::get(&u, &session.token(&u)).is_some());
+        assert!(Token::get(&u, &session.token(&u)).is_some());
 
         app.delete().unwrap();
-        assert!(Session::get(&u, &session.token(&u)).is_none());
+        assert!(Token::get(&u, &session.token(&u)).is_none());
     }
 }
