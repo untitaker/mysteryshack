@@ -7,7 +7,7 @@ TEST_CMD=$(APP_BINARY) -c $(TMP_DIR)/config
 
 install-test: install-spectest
 
-test: spectest
+test: spectest unittest
 
 install-spectest:
 	set -ex; \
@@ -54,5 +54,11 @@ install-clippy:
 
 clippy:
 	cargo build --features clippy
+
+install-unittest:
+	true
+
+unittest:
+	cargo test
 
 .PHONY: test
