@@ -348,11 +348,7 @@ pub trait UserNode<'a> {
 
     // Get etag
     fn read_etag(&self) -> Result<String, ServerError> {
-        let metadata = match fs::metadata(&self.get_fs_path()) {
-            Ok(x) => x,
-            Err(e) => return Err(e.into())
-        };
-
+        let metadata = try!(fs::metadata(&self.get_fs_path()));
         Ok(format!("{}", metadata.mtime_nsec()))
     }
 }
