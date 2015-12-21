@@ -38,7 +38,7 @@ spectest:
 
 testserver:
 	killall mysteryshack || true
-	cargo run -- serve
+	$(TEST_CMD) serve
 
 install-templates:
 	true
