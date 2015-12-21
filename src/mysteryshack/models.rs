@@ -282,7 +282,7 @@ impl Token {
             app_id: app_id_cp,
             client_id: sess.client_id,
             permissions: sess.permissions,
-            exp: (chrono::UTC::now() + chrono::Duration::days(30)).timestamp()
+            exp: (chrono::UTC::now() + chrono::Duration::days(6 * 30)).timestamp()
         }))
     }
 
@@ -598,7 +598,7 @@ mod tests {
         let (_, mut token) = get_root_token(&u);
         assert!(Token::get(&u, &token.token(&u)).is_some());
 
-        token.exp = token.exp - 2700000;  // roughly a month
+        token.exp = token.exp - 2700000 * 60;
         assert!(Token::get(&u, &token.token(&u)).is_none());
     }
 }
