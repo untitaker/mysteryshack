@@ -559,13 +559,8 @@ mod tests {
         TempDir::new("mysteryshack").unwrap()
     }
 
-    #[test]
-    fn test_sessions() {
-        let t = get_tmp();
-        let u = User::create(t.path(), "foo").unwrap();
-
-        assert!(Token::get(&u, "aint a jwt").is_none());
-        let (app, session) = Token::create(&u, OauthSession {
+    fn get_root_token<'a>(u: &'a User) -> (App<'a>, Token) {
+        Token::create(&u, OauthSession {
             client_id: "http://example.com".to_owned(),
             permissions: {
                 let mut rv = collections::HashMap::new();
@@ -575,10 +570,34 @@ mod tests {
                 });
                 rv
             }
-        }).unwrap();
-        assert!(Token::get(&u, &session.token(&u)).is_some());
+        }).unwrap()
+    }
+
+    #[test]
+    fn test_sessions() {
+        let t = get_tmp();
+        let u = User::create(t.path(), "foo").unwrap();
+
+        assert!(Token::get(&u, "aint a jwt").is_none());
+
+        let (app, token) = get_root_token(&u);
+        assert!(Token::get(&u, &token.token(&u)).is_some());
 
         app.delete().unwrap();
-        assert!(Token::get(&u, &session.token(&u)).is_none());
+        assert!(Token::get(&u, &token.token(&u)).is_none());
+    }
+
+    #[test]
+    fn tokens_expiration_time() {
+        let t = get_tmp();
+        let u = User::create(t.path(), "foo").unwrap();
+
+        assert!(Token::get(&u, "aint a jwt").is_none());
+
+        let (_, mut token) = get_root_token(&u);
+        assert!(Token::get(&u, &token.token(&u)).is_some());
+
+        token.exp = token.exp - 2700000;  // roughly a month
+        assert!(Token::get(&u, &token.token(&u)).is_none());
     }
 }
