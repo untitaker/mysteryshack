@@ -31,7 +31,7 @@ testserver-config:
 spectest:
 	cargo build
 	$(MAKE) testserver-config
-	($(MAKE) serve &);
+	($(MAKE) testserver &);
 	wget -q --retry-connrefused --waitretry=1 http://localhost:6767/ -O /dev/null
 	cp $(SPEC_TEST_DIR)/suite-config.yml $(SPEC_TEST_DIR)/suite/config.yml
 	cd $(SPEC_TEST_DIR)/suite && rake test
