@@ -46,5 +46,8 @@ jsonwebtoken = { git = "https://github.com/Keats/rust-jwt" }
 uuid = "*"
 clippy = {version = "*", optional = true}
 
+[dev-dependencies]
+tempdir = "*"
+
 [features]
 default = []

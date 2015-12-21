@@ -32,6 +32,9 @@ extern crate itertools;
 extern crate uuid;
 extern crate jsonwebtoken;
 
+#[cfg(test)]
+extern crate tempdir;
+
 pub mod cli;
 mod web;
 mod models;

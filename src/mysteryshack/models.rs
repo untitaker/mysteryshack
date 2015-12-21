@@ -546,3 +546,39 @@ impl<'a> UserNode<'a> for UserFolder<'a> {
         Ok(json::Json::Object(d))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use web::oauth::Session as OauthSession;
+    use web::oauth::CategoryPermissions;
+    use tempdir::TempDir;
+    use std::collections;
+
+    fn get_tmp() -> TempDir {
+        TempDir::new("mysteryshack").unwrap()
+    }
+
+    #[test]
+    fn test_sessions() {
+        let t = get_tmp();
+        let u = User::create(t.path(), "foo").unwrap();
+
+        assert!(Session::get(&u, "aint a jwt").is_none());
+        let (app, session) = Session::create(&u, OauthSession {
+            client_id: "http://example.com".to_owned(),
+            permissions: {
+                let mut rv = collections::HashMap::new();
+                rv.insert("".to_owned(), CategoryPermissions {
+                    can_read: true,
+                    can_write: true
+                });
+                rv
+            }
+        }).unwrap();
+        assert!(Session::get(&u, &session.token(&u)).is_some());
+
+        app.delete().unwrap();
+        assert!(Session::get(&u, &session.token(&u)).is_none());
+    }
+}
