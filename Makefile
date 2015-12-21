@@ -28,18 +28,15 @@ testserver-config:
 	mkdir -p $(TMP_DIR)/testuser/apps/https\:example.com
 	echo -n example > $(TMP_DIR)/testuser/apps/https\:example.com/app_id
 
-testserver: testserver-config
-	killall mysteryshack || true
-	$(TEST_CMD) serve
-
 spectest:
 	cargo build
-	($(MAKE) testserver &);
+	$(MAKE) testserver-config
+	($(MAKE) serve &);
 	wget -q --retry-connrefused --waitretry=1 http://localhost:6767/ -O /dev/null
 	cp $(SPEC_TEST_DIR)/suite-config.yml $(SPEC_TEST_DIR)/suite/config.yml
 	cd $(SPEC_TEST_DIR)/suite && rake test
 
-serve:
+testserver:
 	killall mysteryshack || true
 	cargo run -- serve
 
