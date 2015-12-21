@@ -235,6 +235,7 @@ impl<'a> App<'a> {
 
 #[derive(RustcEncodable, RustcDecodable, Debug)]
 pub struct Token {
+    // Expiration date as POSIX timestamp. -1 means infinite lifetime.
     pub exp: i64,
     pub app_id: String,
     pub client_id: String,
@@ -254,7 +255,7 @@ impl Token {
 
         let now = chrono::UTC::now().timestamp();
 
-        if session.exp < now {
+        if session.exp < now && session.exp != -1 {
             return None;
         }
 
