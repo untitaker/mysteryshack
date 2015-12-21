@@ -6,6 +6,8 @@ use std::fs;
 use std::collections;
 use std::os::unix::fs::MetadataExt;
 
+use chrono;
+
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
 
@@ -233,6 +235,7 @@ impl<'a> App<'a> {
 
 #[derive(RustcEncodable, RustcDecodable, Debug)]
 pub struct Session {
+    pub exp: i64,
     pub app_id: String,
     pub client_id: String,
     pub permissions: PermissionsMap
@@ -243,12 +246,27 @@ const SESSION_HASH_ALGORITHM: jwt::Algorithm = jwt::Algorithm::HS256;
 impl Session {
     pub fn get<'a>(u: &'a User, token: &str) -> Option<(App<'a>, Self)> {
         let key = u.get_key();
-        jwt::decode(&token, &key, SESSION_HASH_ALGORITHM)
-            .ok()
-            .and_then(|session: Session| match App::get(u, &session.client_id[..]) {
-                Some(app) => if app.app_id == session.app_id { Some((app, session)) } else { None },
-                None => None
-            })
+
+        let session = match jwt::decode::<Session>(&token, &key, SESSION_HASH_ALGORITHM) {
+            Ok(x) => x,
+            Err(_) => return None
+        };
+
+        let now = chrono::UTC::now().timestamp();
+
+        if session.exp < now {
+            return None;
+        }
+
+        let app = match App::get(u, &session.client_id[..]) {
+            Some(app) => {
+                if app.app_id == session.app_id { app }
+                else { return None }
+            },
+            _ => return None
+        };
+
+        Some((app, session))
     }
 
     pub fn create<'a>(u: &'a User, sess: OauthSession) -> Result<(App<'a>, Self), ServerError> {
@@ -262,7 +280,8 @@ impl Session {
         Ok((app, Session {
             app_id: app_id_cp,
             client_id: sess.client_id,
-            permissions: sess.permissions
+            permissions: sess.permissions,
+            exp: (chrono::UTC::now() + chrono::Duration::days(30)).timestamp()
         }))
     }
 
