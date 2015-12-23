@@ -5,21 +5,21 @@ dependencies = [
  "atomicwrites 0.0.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 1.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy 0.0.32 (registry+https://github.com/rust-lang/crates.io-index)",
- "filetime 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy 0.0.33 (registry+https://github.com/rust-lang/crates.io-index)",
+ "filetime 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars 0.11.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "handlebars-iron 0.9.1 (git+https://github.com/sunng87/handlebars-iron)",
+ "handlebars-iron 0.10.0 (git+https://github.com/sunng87/handlebars-iron)",
  "hyper 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-login 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "jsonwebtoken 0.2.0 (git+https://github.com/Keats/rust-jwt)",
+ "jsonwebtoken 1.0.0 (git+https://github.com/Keats/rust-jwt)",
  "mount 0.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "quick-error 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.12 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.1.44 (registry+https://github.com/rust-lang/crates.io-index)",
  "router 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust-crypto 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -103,7 +103,7 @@ dependencies = [
 
 [[package]]
 name = "clippy"
-version = "0.0.32"
+version = "0.0.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "unicode-normalization 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -139,7 +139,7 @@ dependencies = [
 
 [[package]]
 name = "filetime"
-version = "0.1.8"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "kernel32-sys 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -173,14 +173,14 @@ dependencies = [
  "log 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
  "quick-error 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.1.44 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "handlebars-iron"
-version = "0.9.1"
-source = "git+https://github.com/sunng87/handlebars-iron#a8a104c89a1a290df80c2af16c68bf79668c4687"
+version = "0.10.0"
+source = "git+https://github.com/sunng87/handlebars-iron#9ab3a3400c877a061f3bb8234a7d9f3e2c94e2f5"
 dependencies = [
  "handlebars 0.11.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -258,8 +258,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "jsonwebtoken"
-version = "0.2.0"
-source = "git+https://github.com/Keats/rust-jwt#9c75b10abbc1a6a59aba66da02d308b3b70ece3b"
+version = "1.0.0"
+source = "git+https://github.com/Keats/rust-jwt#4ce022fca241d1cf8daf51e4f48fa3a498dbed70"
 dependencies = [
  "rust-crypto 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -476,7 +476,7 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "0.1.43"
+version = "0.1.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "aho-corasick 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",

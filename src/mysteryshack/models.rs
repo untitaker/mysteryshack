@@ -248,10 +248,11 @@ impl Token {
     pub fn get<'a>(u: &'a User, token: &str) -> Option<(App<'a>, Self)> {
         let key = u.get_key();
 
-        let session = match jwt::decode::<Token>(&token, &key, SESSION_HASH_ALGORITHM) {
+        let token_data = match jwt::decode::<Token>(&token, &key, SESSION_HASH_ALGORITHM) {
             Ok(x) => x,
             Err(_) => return None
         };
+        let session = token_data.claims;
 
         let now = chrono::UTC::now().timestamp();
 
@@ -288,7 +289,7 @@ impl Token {
 
     pub fn token(&self, u: &User) -> String {
         let key = u.get_key();
-        jwt::encode(self, &key, SESSION_HASH_ALGORITHM).unwrap()
+        jwt::encode(jwt::Header::new(SESSION_HASH_ALGORITHM), self, &key).unwrap()
     }
 }
 
