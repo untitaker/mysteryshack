@@ -42,7 +42,7 @@ filetime = "*"
 chrono = "*"
 nix = "*"
 itertools = "*"
-jsonwebtoken = { git = "https://github.com/Keats/rust-jwt" }
+jsonwebtoken = "*"
 uuid = "*"
 clippy = {version = "*", optional = true}
 
