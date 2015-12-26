@@ -3,11 +3,19 @@ use std::fs;
 use std::io::Read;
 use std::path;
 
-
 use toml;
 
 use utils::ServerError;
 
+macro_rules! pop_value {
+    ($t:expr, $k:expr, $ty:path, $ty_repr:expr) => (
+         try!(match $t.remove($k) {
+             Some($ty(x)) => Ok(x),
+             Some(_) => Err(Error::ValueError(format!("The {} parameter must be {:?}", $k, $ty_repr))),
+             None => Err(Error::ValueError(format!("The {} parameter is missing", $k)))
+         })
+    )
+}
 
 #[derive(Clone)]
 pub struct Config {
@@ -29,25 +37,10 @@ impl Config {
             None => return Err(Error::ParserError(parser.errors).into())
         };
 
-        let mut main_section = match sections.remove("main") {
-            Some(toml::Value::Table(x)) => x,
-            _ => panic!("Config file is missing `main` section.")
-        };
-
-        let listen = match main_section.remove("listen") {
-            Some(toml::Value::String(x)) => x,
-            _ => panic!("The `listen` parameter is missing.")
-        };
-        
-        let data_path = match main_section.remove("data_path") {
-            Some(toml::Value::String(x)) => path.parent().unwrap().join(&x),
-            _ => panic!("The `data_path` parameter is missing.")
-        };
-
-        let use_proxy_headers = match main_section.remove("use_proxy_headers") {
-            Some(toml::Value::Boolean(x)) => x,
-            _ => panic!("The `use_proxy_headers` parameter must be a boolean.")
-        };
+        let mut main_section = pop_value!(sections, "main", toml::Value::Table, "a section");
+        let listen = pop_value!(main_section, "listen", toml::Value::String, "a string");
+        let data_path = path.parent().unwrap().join(pop_value!(main_section, "data_path", toml::Value::String, "a string"));
+        let use_proxy_headers = pop_value!(main_section, "use_proxy_headers", toml::Value::Boolean, "a boolean");
 
         Ok(Config {
             listen: listen,
@@ -63,6 +56,9 @@ quick_error! {
         ParserError(errors: Vec<toml::ParserError>) {
             display("Multiple errors while parsing configuration: {:?}", errors)
             from()
+        }
+        ValueError(msg: String) {
+            display("{}", msg)
         }
     }
 }
