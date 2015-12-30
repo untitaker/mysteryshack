@@ -236,8 +236,23 @@ impl<'a> App<'a> {
 #[derive(RustcEncodable, RustcDecodable, Debug)]
 pub struct Token {
     // Expiration date as POSIX timestamp. -1 means infinite lifetime.
+    //
+    // This is analogue to the JWT specification, except for the special meaning of -1 as meaning
+    // "infinite expiration date". We need this kind of special value for simplified testing
+    // infrastructure, where it's annoying when tokens that are hardcoded everywhere suddenly
+    // expire.
     pub exp: i64,
+
+    // Each user has a server-stored mapping from client_id/Origin to app_id. The app_id is a
+    // UUIDv4 that is generated when a client is approved the first time.
+    //
+    // This value allows the user to reject all tokens for a client_id, but then issue new tokens
+    // for the same client_id (because the app_id changed, and the old value doesn't validate
+    // anymore).
     pub app_id: String,
+
+    // The client_id as specified in OAuth and remoteStorage specifications. In our case it is
+    // always the Origin.
     pub client_id: String,
     pub permissions: PermissionsMap
 }
