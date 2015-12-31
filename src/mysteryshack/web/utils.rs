@@ -57,65 +57,70 @@ pub struct SecurityHeaderMiddleware;
 
 impl iron::middleware::AfterMiddleware for SecurityHeaderMiddleware {
     fn after(&self, request: &mut Request, mut response: Response) -> IronResult<Response> {
-        set_cors_headers(&request, &mut response);
-        set_frame_options(&request, &mut response);
+        Self::set_security_headers(&request, &mut response);
         Ok(response)
     }
 
     fn catch(&self, request: &mut Request, mut error: IronError) -> IronResult<Response> {
-        set_cors_headers(&request, &mut error.response);
-        set_frame_options(&request, &mut error.response);
+        Self::set_security_headers(&request, &mut error.response);
         Err(error)
     }
 }
 
-/// Required by remoteStorage spec
-fn set_cors_headers(rq: &Request, r: &mut Response) {
-    match &rq.url.path[0][..] {
-        ".well-known" | "storage" => (),
-        _ => return
-    };
+impl SecurityHeaderMiddleware {
+    fn set_security_headers(rq: &Request, r: &mut Response) {
+        Self::set_cors_headers(rq, r);
+        r.headers.set_raw("X-Content-Type-Options", vec![b"nosniff".to_vec()]);
 
-    let origin = match rq.headers.get_raw("Origin") {
-        Some(x) => if x.len() == 1 {
-            match String::from_utf8(x.to_owned().into_iter().next().unwrap()) {
-                Ok(x) => x,
-                Err(_) => return
-            }
-        } else {
-            return;
-        },
-        None => return
-    };
+        let mut csp = vec!["default-src 'self'"];
 
-    r.headers.set(header::AccessControlAllowOrigin::Value(origin));
-    r.headers.set(header::AccessControlExposeHeaders(vec![
-        UniCase("ETag".to_owned()),
-        UniCase("Content-Length".to_owned())
-    ]));
-    r.headers.set(header::AccessControlAllowMethods(vec![Method::Get, Method::Put, Method::Delete]));
-    r.headers.set(header::AccessControlAllowHeaders(vec![
-        UniCase("Authorization".to_owned()),
-        UniCase("Content-Type".to_owned()),
-        UniCase("Origin".to_owned()),
-        UniCase("If-Match".to_owned()),
-        UniCase("If-None-Match".to_owned()),
-    ]));
-}
+        if &rq.url.path[0] != "storage" {
+            // It's probably fine to embed user storage data into other documents
 
-/// Prevent clickjacking attacks like described in OAuth RFC
-/// https://tools.ietf.org/html/rfc6749#section-10.13
-fn set_frame_options(rq: &Request, r: &mut Response) {
-    if &rq.url.path[0] == "storage" {
-        // It's probably fine to embed user storage data into other documents
-        return
-    };
+            // Prevent clickjacking attacks like described in OAuth RFC
+            // https://tools.ietf.org/html/rfc6749#section-10.13
+            r.headers.set_raw("X-Frame-Options", vec![b"DENY".to_vec()]);
 
-    r.headers.set_raw("X-Frame-Options", vec![b"DENY".to_vec()]);
+            // This is a newer way to do what X-Frame-Options does
+            // http://www.w3.org/TR/CSP11/#frame-ancestors-and-frame-options
+            csp.push("frame-ancestors 'none'");
+        };
+        r.headers.set_raw("Content-Security-Policy", vec![csp.join(";").as_bytes().to_vec()]);
+    }
 
-    // This is a newer way to do what X-Frame-Options does
-    // http://www.w3.org/TR/CSP11/#frame-ancestors-and-frame-options
-    r.headers.set_raw("Content-Security-Policy", vec![b"frame-ancestors 'none'".to_vec()]);
+    /// Required by remoteStorage spec
+    fn set_cors_headers(rq: &Request, r: &mut Response) {
+        match &rq.url.path[0][..] {
+            ".well-known" | "storage" => (),
+            _ => return
+        };
+
+        let origin = match rq.headers.get_raw("Origin") {
+            Some(x) => if x.len() == 1 {
+                match String::from_utf8(x.to_owned().into_iter().next().unwrap()) {
+                    Ok(x) => x,
+                    Err(_) => return
+                }
+            } else {
+                return;
+            },
+            None => return
+        };
+
+        r.headers.set(header::AccessControlAllowOrigin::Value(origin));
+        r.headers.set(header::AccessControlExposeHeaders(vec![
+            UniCase("ETag".to_owned()),
+            UniCase("Content-Length".to_owned())
+        ]));
+        r.headers.set(header::AccessControlAllowMethods(vec![Method::Get, Method::Put, Method::Delete]));
+        r.headers.set(header::AccessControlAllowHeaders(vec![
+            UniCase("Authorization".to_owned()),
+            UniCase("Content-Type".to_owned()),
+            UniCase("Origin".to_owned()),
+            UniCase("If-Match".to_owned()),
+            UniCase("If-None-Match".to_owned()),
+        ]));
+    }
 }
 
 pub trait EtagMatcher {
