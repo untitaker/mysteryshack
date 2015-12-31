@@ -112,6 +112,10 @@ fn set_frame_options(rq: &Request, r: &mut Response) {
     };
 
     r.headers.set_raw("X-Frame-Options", vec![b"DENY".to_vec()]);
+
+    // This is a newer way to do what X-Frame-Options does
+    // http://www.w3.org/TR/CSP11/#frame-ancestors-and-frame-options
+    r.headers.set_raw("Content-Security-Policy", vec![b"frame-ancestors 'none'".to_vec()]);
 }
 
 pub trait EtagMatcher {
