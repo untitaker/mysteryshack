@@ -22,6 +22,7 @@
         {{#block "head"}}{{/block}}
 
         <!-- https://cdn.elie.net/publications/busting-frame-busting-a-study-of-clickjacking-vulnerabilities-on-popular-sites.pdf -->
+        <!-- This violates our CSP, but browsers that need this framebreaker don't support CSP -->
         <style>
             html { display: none; }
         </style>
