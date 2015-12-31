@@ -71,6 +71,7 @@ impl SecurityHeaderMiddleware {
     fn set_security_headers(rq: &Request, r: &mut Response) {
         Self::set_cors_headers(rq, r);
         r.headers.set_raw("X-Content-Type-Options", vec![b"nosniff".to_vec()]);
+        r.headers.set_raw("X-XSS-Protection", vec![b"1; mode=block".to_vec()]);
 
         let mut csp = vec!["default-src 'self'"];
 
