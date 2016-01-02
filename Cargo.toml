@@ -44,7 +44,7 @@ nix = "*"
 itertools = "*"
 jsonwebtoken = "*"
 uuid = "*"
-clippy = {version = "*", optional = true}
+clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
 
 [dev-dependencies]
 tempdir = "*"
