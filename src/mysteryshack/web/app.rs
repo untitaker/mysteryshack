@@ -595,7 +595,7 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
             };
             itry!(self.write_meta(models::UserFileMeta {
                 content_type: content_type,
-                content_length: content_length as usize
+                content_length: content_length
             }));
         }
 

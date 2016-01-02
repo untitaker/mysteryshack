@@ -372,7 +372,7 @@ pub trait UserNode<'a> {
 #[derive(RustcDecodable, RustcEncodable)]
 pub struct UserFileMeta {
     pub content_type: String,
-    pub content_length: usize
+    pub content_length: u64
 }
 
 pub struct UserFile<'a> {
