@@ -11,7 +11,7 @@ macro_rules! pop_value {
     ($t:expr, $k:expr, $ty:path, $ty_repr:expr) => (
          try!(match $t.remove($k) {
              Some($ty(x)) => Ok(x),
-             Some(_) => Err(Error::ValueError(format!("The {} parameter must be {:?}", $k, $ty_repr))),
+             Some(_) => Err(Error::ValueError(format!("The {} parameter must be {}", $k, $ty_repr))),
              None => Err(Error::ValueError(format!("The {} parameter is missing", $k)))
          })
     )
