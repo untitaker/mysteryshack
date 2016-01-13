@@ -157,14 +157,16 @@ impl EtagMatcher for header::IfMatch {
 }
 
 pub fn preconditions_ok(request: &Request, etag: Option<&str>) -> bool {
-    match request.headers.get::<header::IfNoneMatch>() {
-        Some(header) => if header.matches_etag(etag) { return false; },
-        None => ()
+    if let Some(header) = request.headers.get::<header::IfNoneMatch>() {
+        if header.matches_etag(etag) {
+            return false
+        }
     };
 
-    match request.headers.get::<header::IfMatch>() {
-        Some(header) => if !header.matches_etag(etag) { return false; },
-        None => ()
+    if let Some(header) = request.headers.get::<header::IfMatch>() {
+        if !header.matches_etag(etag) {
+            return false
+        }
     };
     true
 }

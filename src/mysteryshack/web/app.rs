@@ -478,11 +478,10 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
         // https://github.com/remotestorage/spec/issues/93
         let shown_etag = etag.unwrap_or("empty".to_owned());
 
-        match request.headers.get::<header::IfNoneMatch>() {
-            Some(header) => if header.matches_etag(Some(&shown_etag[..])) {
+        if let Some(header) = request.headers.get::<header::IfNoneMatch>() {
+            if header.matches_etag(Some(&shown_etag[..])) {
                 return Ok(Response::with(status::NotModified));
-            },
-            None => ()
+            }
         };
         let mut r = Response::with(status::Ok);
 
@@ -497,21 +496,18 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
             "http://remotestorage.io/spec/folder-description".to_json());
             d.insert("items".to_owned(), json::Json::Object({
                 let mut d = collections::BTreeMap::new();
-                match self.read_children() {
-                    Ok(children) => {
-                        for child in &children {
-                            match child.json_repr() {
-                                Ok(json) => {
-                                    d.insert(child.get_basename(), json);
-                                },
-                                Err(e) => {
-                                    println!("Failed to show item {:?}: {:?}", child.get_path(), e);
-                                    continue;
-                                }
-                            };
+                if let Ok(children) = self.read_children() {
+                    for child in &children {
+                        match child.json_repr() {
+                            Ok(json) => {
+                                d.insert(child.get_basename(), json);
+                            },
+                            Err(e) => {
+                                println!("Failed to show item {:?}: {:?}", child.get_path(), e);
+                                continue;
+                            }
                         };
-                    }
-                    Err(_) => ()
+                    };
                 };
                 d
             }));
@@ -525,11 +521,10 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
     fn respond_get(self, request: &Request) -> IronResult<Response> {
         let etag = self.read_etag().ok();
 
-        match request.headers.get::<header::IfNoneMatch>() {
-            Some(header) => if header.matches_etag(etag.as_ref().map(Deref::deref)) {
+        if let Some(header) = request.headers.get::<header::IfNoneMatch>() {
+            if header.matches_etag(etag.as_ref().map(Deref::deref)) {
                 return Ok(Response::with(status::NotModified));
-            },
-            None => ()
+            }
         };
 
         let meta = match self.read_meta() {
@@ -583,11 +578,10 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
             }) {
                 Ok(x) => x,
                 Err(e) => {
-                    match fs::metadata(self.get_fs_path()) {
-                        Ok(metadata) => if metadata.is_dir() {
-                            return Ok(Response::with(status::Conflict));
-                        },
-                        Err(_) => ()
+                    if let Ok(metadata) = fs::metadata(self.get_fs_path()) {
+                        if metadata.is_dir() {
+                            return Ok(Response::with(status::Conflict))
+                        }
                     };
 
                     itry!(Err(e))
