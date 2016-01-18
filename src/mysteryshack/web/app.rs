@@ -613,6 +613,7 @@ impl User for models::User {
 }
 
 fn icon_proxy(request: &mut Request) -> IronResult<Response> {
+    require_login!(request);
     let url = iexpect!(request.get_ref::<urlencoded::UrlEncodedQuery>().ok()
         .and_then(|query| query.get("url"))
         .and_then(|params| params.get(0))
