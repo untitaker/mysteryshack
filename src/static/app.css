@@ -59,8 +59,12 @@
     float: right;
 }
 
-.app-name {
+.app-name, .app-icon {
     float: left;
+}
+
+.app-icon {
+    margin-right: 10px;
 }
 
 .button-small {
@@ -79,11 +83,6 @@
 
 #login input {
     width: 100%;
-}
-
-.user-agent img {
-    width: 32px;
-    height: 32px;
 }
 
 code, pre {
