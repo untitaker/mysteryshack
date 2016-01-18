@@ -40,6 +40,10 @@ testserver:
 	killall mysteryshack || true
 	$(TEST_CMD) serve
 
+serve:
+	cargo build
+	$(MAKE) testserver-config testserver
+
 install-templates:
 	true
 
