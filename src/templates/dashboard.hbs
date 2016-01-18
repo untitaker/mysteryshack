@@ -12,8 +12,9 @@
 <ul id="applist">
 {{#each apps}}
 <li class=clearfix>
+    <a class="app-name" href="{{client_id}}">{{client_id}}
     <img class="app-icon" src="/dashboard/icon?url={{client_id}}" width=72 height=72 />
-    <a class="app-name" href="{{client_id}}">{{client_id}}</a>
+    </a>
     <form method="post">
         <input type="hidden" name="client_id" value="{{ client_id }}" />
         <input type="hidden" name="action" value="delete_app" />
