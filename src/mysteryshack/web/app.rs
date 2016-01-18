@@ -622,8 +622,12 @@ fn icon_proxy(request: &mut Request) -> IronResult<Response> {
     let mut parser = webicon::IconScraper::from_url(url);
     itry!(parser.fetch_document());
     parser.fetch_icons();
-    let icons = parser.largest();
-    let mut icon = iexpect!(icons.into_iter().next(), status::NotFound);
+    let icons = parser.at_least(128, 128);
+    let mut icon = iexpect!(icons.into_iter().next(), (
+        status::Ok,
+        Header(header::ContentType("image/gif".parse().unwrap())),
+        &include_bytes!("../../static/blank.gif")[..],
+    ));
     itry!(icon.fetch());
     Ok(Response::with((status::Ok, icon.mime_type.unwrap(), icon.raw.unwrap())))
 }
