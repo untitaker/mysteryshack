@@ -26,6 +26,7 @@ use staticfile;
 
 use url;
 use rand::{Rng,StdRng};
+use webicon;
 
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
@@ -109,6 +110,7 @@ pub fn run_server(config: config::Config) {
     }
 
     router.get("/.well-known/webfinger", webfinger_response);
+    router.get("/dashboard/icon", icon_proxy);
     router.get("/dashboard/", user_dashboard);
     router.post("/dashboard/", user_dashboard);
     router.get("/login/", user_login);
@@ -610,3 +612,18 @@ impl User for models::User {
     }
 }
 
+fn icon_proxy(request: &mut Request) -> IronResult<Response> {
+    let url = iexpect!(request.get_ref::<urlencoded::UrlEncodedQuery>().ok()
+        .and_then(|query| query.get("url"))
+        .and_then(|params| params.get(0))
+        .and_then(|x| url::Url::parse(x).ok())
+        .and_then(|url| url.join("/").ok()));
+
+    let mut parser = webicon::IconScraper::from_url(url);
+    itry!(parser.fetch_document());
+    parser.fetch_icons();
+    let icons = parser.largest();
+    let mut icon = iexpect!(icons.into_iter().next(), status::NotFound);
+    itry!(icon.fetch());
+    Ok(Response::with((status::Ok, icon.mime_type.unwrap(), icon.raw.unwrap())))
+}

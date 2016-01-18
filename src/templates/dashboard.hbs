@@ -12,6 +12,7 @@
 <ul id="applist">
 {{#each apps}}
 <li class=clearfix>
+    <img class="app-icon" src="/dashboard/icon?url={{client_id}}" width=72 height=72 />
     <a class="app-name" href="{{client_id}}">{{client_id}}</a>
     <form method="post">
         <input type="hidden" name="client_id" value="{{ client_id }}" />
