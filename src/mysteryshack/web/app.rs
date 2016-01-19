@@ -620,15 +620,15 @@ fn icon_proxy(request: &mut Request) -> IronResult<Response> {
         .and_then(|x| url::Url::parse(x).ok())
         .and_then(|url| url.join("/").ok()));
 
-    let mut parser = webicon::IconScraper::from_url(url);
-    itry!(parser.fetch_document());
-    parser.fetch_icons();
-    let icons = parser.at_least(128, 128);
-    let mut icon = iexpect!(icons.into_iter().next(), (
-        status::Ok,
-        Header(header::ContentType("image/svg+xml".parse().unwrap())),
-        &include_bytes!("../../static/app.svg")[..],
-    ));
+    let mut parser = itry!(webicon::IconScraper::from_url(url));
+    let mut icon = iexpect!(
+        parser.fetch_icons().at_least(128, 128),
+        (
+            status::Ok,
+            Header(header::ContentType("image/svg+xml".parse().unwrap())),
+            &include_bytes!("../../static/app.svg")[..],
+        )
+    );
     itry!(icon.fetch());
     Ok(Response::with((status::Ok, icon.mime_type.unwrap(), icon.raw.unwrap())))
 }
