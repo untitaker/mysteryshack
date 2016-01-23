@@ -620,7 +620,7 @@ fn icon_proxy(request: &mut Request) -> IronResult<Response> {
         .and_then(|x| url::Url::parse(x).ok())
         .and_then(|url| url.join("/").ok()));
 
-    let mut parser = itry!(webicon::IconScraper::from_url(url));
+    let mut parser = webicon::IconScraper::from_url(url);
     let mut icon = iexpect!(
         parser.fetch_icons().at_least(128, 128),
         (
