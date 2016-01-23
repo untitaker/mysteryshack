@@ -1,12 +1,19 @@
-{{#partial show-permissions }}
-<ul>
-{{#each permissions }}
-<li>
-    {{#if @key}}<code>{{@key}}</code>{{else}}Everything{{/if}} &ndash;
-    {{#if can_write}}Read and write{{else}}Read (but not write){{/if}}
-</li>
-{{/each}}
-</ul>
+{{#partial show-app }}
+<img class="app-icon" src="/dashboard/icon?url={{client_id}}" width=72 height=72 />
+<div class="app-text">
+    <a class="app-name" href="{{client_id}}">{{client_id}}</a>
+
+    {{#if permissions}}
+    <ul class="permissions">
+    {{#each permissions }}
+    <li>
+        {{#if @key}}<code>{{@key}}</code>{{else}}Everything{{/if}} &ndash;
+        {{#if can_write}}Read and write{{else}}Read (but not write){{/if}}
+    </li>
+    {{/each}}
+    </ul>
+    {{/if}}
+</div>
 {{/partial}}
 <!DOCTYPE html>
 <html>

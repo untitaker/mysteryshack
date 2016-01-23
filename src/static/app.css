@@ -43,13 +43,13 @@
     padding: 0;
 }
 
-#applist li {
-    margin: 0;
+#applist li, .app-info {
     padding: 10px;
+    margin: 5px;
     border-radius: 3px;
 }
 
-#applist li:hover {
+#applist li:hover, .app-info {
     background: #efefef;
 }
 
@@ -59,12 +59,13 @@
     float: right;
 }
 
-.app-name, .app-icon {
+.app-icon {
     float: left;
+    margin-right: 10px;
 }
 
-.app-icon {
-    margin-right: 10px;
+.app-text {
+    margin-left: 82px;  /* Hack required for proper indentation of <ul> */
 }
 
 .button-small {

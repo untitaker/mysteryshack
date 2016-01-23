@@ -1,13 +1,17 @@
 {{# partial "content" }}
 <h2>OAuth request</h2>
 
-<p>The application at <code>{{ client_id }}</code> wants the following permissions:</p>
-{{#block show-permissions }}{{/block}}
+<p>The following application wants to access your data:</p>
+
+<div class="app-info">
+{{#block show-app }}{{/block}}
 
 <form method=post>
     <input type=submit name=decision class="pure-button oauth-allow" value=allow />
     <input type=submit name=decision class="pure-button oauth-deny" value=deny />
 </form>
+</div>
+
 {{/partial}}
 
 {{> layout}}
