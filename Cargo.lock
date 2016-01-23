@@ -1036,7 +1036,7 @@ dependencies = [
 [[package]]
 name = "webicon"
 version = "0.1.0"
-source = "git+https://github.com/untitaker/rust-webicon#480d0d4c3846ef79d8c0136958f663e844aa9e77"
+source = "git+https://github.com/untitaker/rust-webicon#379fc12692479d34cfb33e41f90032070392e1ec"
 dependencies = [
  "hyper 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
