@@ -3,7 +3,6 @@ use std::io;
 use std::fs;
 use std::ops::Deref;
 use std::error::Error;
-use std::path::Path;
 
 use hyper::header;
 
@@ -22,7 +21,6 @@ use mount;
 use iron_login::{User,LoginManager};
 use urlencoded;
 use router::Router;
-use staticfile;
 
 use url;
 use rand::{Rng,StdRng};
@@ -38,6 +36,7 @@ use super::utils::{preconditions_ok,EtagMatcher,SecurityHeaderMiddleware,XForwar
 use super::oauth;
 use super::oauth::HttpResponder;
 use super::templates::get_template_engine;
+use super::staticfiles::get_static_handler;
 
 #[derive(Copy, Clone)]
 pub struct AppConfig;
@@ -139,7 +138,7 @@ pub fn run_server(config: config::Config) {
 
     let mut mount = mount::Mount::new();
     mount.mount("/", chain);
-    mount.mount("/static/", staticfile::Static::new(Path::new("./src/static/")));
+    mount.mount("/static/", get_static_handler());
 
     let listen = &config.listen[..];
     println!("Listening on: http://{}", listen);

@@ -30,9 +30,6 @@ either build your own or set some symlinks.
 
 ## Usage
 
-* Unfortunately for now you still need to `cd` into the repository's root, so
-  that mysteryshack can find its favicon, css etc. [See the relevant
-  issue](https://github.com/untitaker/mysteryshack/issues/8).
 * Edit `config.example` and save it as `config`.
 * `mysteryshack user create foo` to create a new user. See also `mysteryshack
   --help` and `mysteryshack user --help`.
