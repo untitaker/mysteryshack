@@ -44,11 +44,12 @@ serve:
 	cargo build
 	$(MAKE) testserver-config testserver
 
-install-templates:
+install-codegen:
 	true
 
-templates:
+codegen:
 	scripts/make_templates.py
+	scripts/make_staticfiles.py
 
 install-clippy:
 	true

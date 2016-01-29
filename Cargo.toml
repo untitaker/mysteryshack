@@ -35,7 +35,6 @@ handlebars = "0.12"
 regex = "*"
 iron-login = "*"
 quick-error = "*"
-staticfile = {version = "*", features = ["cache"]}
 mount = "*"
 time = "*"
 filetime = "*"

@@ -21,7 +21,6 @@ extern crate iron_login;
 extern crate handlebars;
 extern crate handlebars_iron;
 extern crate mount;
-extern crate staticfile;
 extern crate regex;
 #[macro_use] extern crate quick_error;
 extern crate time;

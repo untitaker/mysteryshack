@@ -7,7 +7,7 @@ rust:
 env:
     - BUILD=test
     - BUILD=clippy
-    - BUILD=templates
+    - BUILD=codegen
 
 matrix:
     exclude:
