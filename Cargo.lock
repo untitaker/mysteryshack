@@ -4,14 +4,14 @@ version = "0.1.0"
 dependencies = [
  "atomicwrites 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 1.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.37 (git+https://github.com/Manishearth/rust-clippy)",
  "filetime 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars-iron 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "iron-login 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "iron-login 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "jsonwebtoken 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -72,6 +72,11 @@ version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "bitflags"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "bodyparser"
 version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -98,11 +103,11 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "1.5.5"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ansi_term 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "strsim 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "vec_map 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -110,7 +115,7 @@ dependencies = [
 [[package]]
 name = "clippy"
 version = "0.0.37"
-source = "git+https://github.com/Manishearth/rust-clippy#4c14d98c9f05ce9d655c0966a63ab617a8ea99e6"
+source = "git+https://github.com/Manishearth/rust-clippy#e6c99bd089e6f8f4d6118f2a00669f61f3002905"
 dependencies = [
  "semver 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicode-normalization 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -407,7 +412,7 @@ dependencies = [
 
 [[package]]
 name = "iron-login"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cookie 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
