@@ -14,7 +14,7 @@ pub fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .author("Markus Unterwaditzer & contributors")
         .about("A remoteStorage server.")
-        .args_from_usage("-c --config=[CONFIG] 'Use specified config file, defaults to ./config'")
+        .args_from_usage("-c, --config=[FILE] 'Use specified config file, defaults to ./config'")
         .subcommand(SubCommand::with_name("serve")
                     .about("Start server"))
         .subcommand(SubCommand::with_name("user")
@@ -30,12 +30,10 @@ pub fn main() {
                                 .arg(Arg::with_name("USERNAME")
                                      .help("The username")
                                      .required(true)
-                                     .index(1)))
-                    .subcommand_required(true))
-        .subcommand_required(true)
+                                     .index(1))))
         .get_matches();
 
-    let config_path = path::Path::new(matches.value_of("CONFIG").unwrap_or("./config"));
+    let config_path = path::Path::new(matches.value_of("config").unwrap_or("./config"));
 
     let config = match config::Config::read_file(config_path) {
         Ok(x) => x,
