@@ -19,7 +19,7 @@ use iron::typemap::Key;
 use persistent;
 use handlebars_iron::Template;
 use mount;
-use iron_login::{User,LoginManager,log_out};
+use iron_login::{User,LoginManager};
 use urlencoded;
 use router::Router;
 use staticfile;
@@ -61,7 +61,7 @@ macro_rules! require_login_as {
             iron::Url::from_generic_url(url).unwrap()
         }))));
 
-        match models::User::from_request($req) {
+        match models::User::get_login($req).get_user() {
             Some(x) => if $expect_user.len() == 0 || &x.userid[..] == $expect_user { x }
                        else { return login_redirect },
             _ => return login_redirect
@@ -215,7 +215,7 @@ fn user_login(request: &mut Request) -> IronResult<Response> {
 
     match request.method {
         Method::Get => {
-            if models::User::from_request(request).is_some() {
+            if models::User::get_login(request).get_user().is_some() {
                 Ok(Response::with((status::Found, Redirect(url))))
             } else {
                 user_login_get(request)
@@ -266,7 +266,7 @@ fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response
     }
 
     Ok(Response::with(status::Ok)
-       .set(user.log_in())
+       .set(models::User::get_login(request).log_in(user))
        .set(status::Found)
        .set(Redirect(url)))
 }
@@ -274,7 +274,7 @@ fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response
 fn user_logout(request: &mut Request) -> IronResult<Response> {
     check_csrf!(request);
     Ok(Response::with(status::Found)
-       .set(log_out())
+       .set(models::User::get_login(request).log_out())
        .set(Redirect({
            let mut rv = request.url.clone();
            rv.path = vec!["".to_owned()];
