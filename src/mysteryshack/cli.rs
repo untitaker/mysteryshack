@@ -8,6 +8,35 @@ use models;
 use web;
 use utils;
 
+macro_rules! clap_dispatch {
+    (
+        $matches:expr;
+        {
+            $( $name:ident ($matches_name:pat $(,$arg_name:ident as $varname:ident),*) => $callback:expr ),*
+        }
+    ) => {
+        match $matches.subcommand_name() {
+            $(
+                Some(stringify!($name)) => {
+                    let matches = $matches.subcommand_matches(stringify!($name)).unwrap();
+                    $(
+                        let $varname = matches.value_of(stringify!($arg_name)).unwrap();
+                    )*
+                    let $matches_name = matches;
+                    $callback;
+                }
+            )*
+            Some(x) => {
+                panic!("Internal error: Command not covered: {}", x);
+            },
+            None => {
+                println!("Subcommand required. See --help for help.");
+                process::exit(1);
+            }
+        }
+    }
+}
+
 pub fn main() {
     let matches =
         App::new("mysteryshack")
@@ -43,56 +72,55 @@ pub fn main() {
         }
     };
 
-    if let Some(_) = matches.subcommand_matches("serve") {
-        web::run_server(config);
-    } else if let Some(user_matches) = matches.subcommand_matches("user") {
-        if let Some(user_create_matches) = user_matches.subcommand_matches("create") {
-            let username = user_create_matches.value_of("USERNAME").unwrap();
+    clap_dispatch!(matches; {
+        serve(_) => web::run_server(config),
+        user(user_matches) => clap_dispatch!(user_matches; {
+            create(_, USERNAME as username) => {
+                let password_hash = match models::PasswordHash::from_password(
+                    utils::double_prompt("Password for new user: ")) {
+                    Ok(x) => x,
+                    Err(e) => {
+                        println!("Failed to hash password: {}", e);
+                        process::exit(1);
+                    }
+                };
 
-            let password_hash = match models::PasswordHash::from_password(
-                utils::double_prompt("Password for new user: ")) {
-                Ok(x) => x,
-                Err(e) => {
-                    println!("Failed to hash password: {}", e);
+                match models::User::create(&config.data_path, username).map(|user| {
+                    user.set_password_hash(password_hash)
+                }) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        println!("Failed to create user {}: {}", username, e);
+                        process::exit(1);
+                    }
+                };
+
+                println!("Successfully created user {}", username);
+            },
+            delete(_, USERNAME as username) => {
+                let user = match models::User::get(&config.data_path, username) {
+                    Some(x) => x,
+                    None => {
+                        println!("User does not exist: {}", username);
+                        process::exit(1);
+                    }
+                };
+
+                println!("You are about to delete the user {} and ALL the user's user data. This
+                         process is irreversible.", username);
+                if !utils::prompt_confirm(format!("Do you want to delete the user {}?", username), false) {
+                    println!("Aborted!");
                     process::exit(1);
                 }
-            };
 
-            match models::User::create(&config.data_path, username).map(|user| {
-                user.set_password_hash(password_hash)
-            }) {
-                Ok(_) => (),
-                Err(e) => {
-                    println!("Failed to create user {}: {}", username, e);
-                    process::exit(1);
-                }
-            };
-
-            println!("Successfully created user {}", username);
-        } else if let Some(user_delete_matches) = user_matches.subcommand_matches("delete") {
-            let username = user_delete_matches.value_of("USERNAME").unwrap();
-            let user = match models::User::get(&config.data_path, username) {
-                Some(x) => x,
-                None => {
-                    println!("User does not exist: {}", username);
-                    process::exit(1);
-                }
-            };
-
-            println!("You are about to delete the user {} and ALL the user's user data. This
-                     process is irreversible.", username);
-            if !utils::prompt_confirm(format!("Do you want to delete the user {}?", username), false) {
-                println!("Aborted!");
-                process::exit(1);
+                match user.delete() {
+                    Ok(_) => println!("Successfully deleted user {}.", username),
+                    Err(e) => {
+                        println!("Failed to delete user: {:?}", e);
+                        process::exit(1);
+                    }
+                };
             }
-
-            match user.delete() {
-                Ok(_) => println!("Successfully deleted user {}.", username),
-                Err(e) => {
-                    println!("Failed to delete user: {:?}", e);
-                    process::exit(1);
-                }
-            };
-        }
-    }
+        })
+    });
 }
