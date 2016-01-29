@@ -31,9 +31,10 @@ either build your own or set some symlinks.
 ## Usage
 
 * Edit `config.example` and save it as `config`.
-* `mysteryshack user create foo` to create a new user. See also `mysteryshack
-  --help` and `mysteryshack user --help`.
+* `mysteryshack user create foo` to create a new user. 
 * `mysteryshack serve` to run the server as configured in `./config`.
+
+For advanced usage, see `mysteryshack --help` and `mysteryshack user --help`.
 
 ## Troubleshooting
 
