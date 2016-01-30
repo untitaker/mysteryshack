@@ -1,4 +1,11 @@
 [main]
+# On which IP and port to listen.
 listen = "localhost:6767"
-data_path = "/tmp/mysteryshack"
+
+# Where to store all user data.
+data_path = "./data"
+
+# Use the headers X-Forwarded-{Host, Port, For, Proto} to determine host, port,
+# client IP and URL scheme.
+# This is needed if you want to run mysteryshack behind a reverse-proxy.
 use_proxy_headers = false
