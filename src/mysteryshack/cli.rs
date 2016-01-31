@@ -1,7 +1,7 @@
 use std::path;
 use std::process;
 
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg, SubCommand, AppSettings};
 
 use config;
 use models;
@@ -49,10 +49,12 @@ pub fn main() {
         .author("Markus Unterwaditzer & contributors")
         .about("A remoteStorage server.")
         .args_from_usage("-c, --config=[FILE] 'Use specified config file, defaults to ./config'")
+        .setting(AppSettings::SubcommandRequired)
         .subcommand(SubCommand::with_name("serve")
                     .about("Start server"))
         .subcommand(SubCommand::with_name("user")
                     .about("User management")
+                    .setting(AppSettings::SubcommandRequired)
                     .subcommand(SubCommand::with_name("create")
                                 .about("Create a new user")
                                 .arg(Arg::with_name("USERNAME")
