@@ -24,7 +24,7 @@ testserver-config:
 	# Insecure but useful for weird hacks to avoid SSL setup
 	echo "use_proxy_headers = true" >> $(TMP_DIR)/config
 	yes password123 | $(TEST_CMD) user create testuser
-	echo -n > $(TMP_DIR)/testuser/user.key # Zero-length key for JWT makes signature constant for all claims
+	echo -n > $(TMP_DIR)/testuser/user.key # Make key constant such that tokens can be hardcoded elsewhere.
 	mkdir -p $(TMP_DIR)/testuser/apps/https\:example.com
 	echo -n example > $(TMP_DIR)/testuser/apps/https\:example.com/app_id
 
