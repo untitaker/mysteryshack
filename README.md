@@ -52,8 +52,8 @@ As of OS X 10.11, OpenSSL isn't installed anymore. You'll need to install it man
   - it sends two kinds of webfinger responses to stay compatible with
     `remotestorage.js`.
 
-  - The app-provided `client_id` is ignored, instead the origin of
-    `redirect_uri` is used for validation.
+  - The app-provided `client_id` is ignored, Origin of `redirect_uri` is used
+    for app identification.
 
 * Mysteryshack is set up to be tested against the official [api test
   suite](https://github.com/remotestorage/api-test-suite/) automatically (in
