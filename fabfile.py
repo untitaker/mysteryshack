@@ -1,3 +1,5 @@
+# Just a script to update my personal server.
+
 from fabric.api import *
 
 env.hosts = ['unti@draco.uberspace.de']
