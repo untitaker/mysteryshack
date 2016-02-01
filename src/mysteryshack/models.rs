@@ -286,7 +286,7 @@ impl Token {
         Some((app, session))
     }
 
-    pub fn create<'a>(u: &'a User, sess: OauthSession) -> Result<(App<'a>, Self), ServerError> {
+    pub fn create(u: &User, sess: OauthSession) -> Result<(App, Self), ServerError> {
         let app = match App::get(u, &sess.client_id) {
             Some(x) => x,
             None => try!(App::create(u, &sess.client_id))
