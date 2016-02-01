@@ -9,7 +9,4 @@ def update():
         with prefix('source rust-setup.sh'):
             run('cargo build --release')
 
-        run('mkdir -p ~/virtual/unterwaditzer.net/bin/')
-        run('cp target/release/mysteryshack ~/virtual/unterwaditzer.net/bin/mysteryshack')
-
     run('svc -du ~/service/mysteryshack')
