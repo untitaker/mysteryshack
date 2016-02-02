@@ -44,7 +44,7 @@ itertools = "*"
 jsonwebtoken = "*"
 uuid = "*"
 clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
-webicon = {git = "https://github.com/untitaker/rust-webicon", version = "*"}
+webicon = "*"
 
 [dev-dependencies]
 tempdir = "*"
