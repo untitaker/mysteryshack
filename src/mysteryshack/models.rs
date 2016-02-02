@@ -126,8 +126,10 @@ impl User {
             can_write: false
         };
 
-        let token = match token { Some(x) => x, None => return anonymous };
-        let (_, session) = match Token::get(&self, token) { Some(x) => x, None => return anonymous };
+        let (_, session) = match token.and_then(|t| Token::get(&self, t)) {
+            Some(x) => x,
+            None => return anonymous
+        };
 
         let category = {
             let mut rv = path.splitn(2, '/').nth(0).unwrap();
@@ -137,8 +139,8 @@ impl User {
             rv
         };
 
-        permissions_for_category(&session.permissions, category)
-            .map_or(anonymous, |x| x.clone())
+        *permissions_for_category(&session.permissions, category)
+            .unwrap_or(&anonymous)
     }
 
     pub fn get_key(&self) -> Vec<u8> {
