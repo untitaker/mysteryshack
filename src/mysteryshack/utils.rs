@@ -38,13 +38,13 @@ quick_error! {
             cause(error)
             from()
         }
-        ConfigError(error: config::Error) {
+        Config(error: config::Error) {
             display("{}", error)
             description(error.description())
             cause(error)
             from()
         }
-        ModelError(error: models::Error) {
+        Model(error: models::Error) {
             display("{}", error)
             description(error.description())
             cause(error)

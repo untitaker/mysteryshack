@@ -11,8 +11,8 @@ macro_rules! pop_value {
     ($t:expr, $k:expr, $ty:path, $ty_repr:expr) => (
          try!(match $t.remove($k) {
              Some($ty(x)) => Ok(x),
-             Some(_) => Err(Error::ValueError(format!("The {} parameter must be {}", $k, $ty_repr))),
-             None => Err(Error::ValueError(format!("The {} parameter is missing", $k)))
+             Some(_) => Err(Error::Value(format!("The {} parameter must be {}", $k, $ty_repr))),
+             None => Err(Error::Value(format!("The {} parameter is missing", $k)))
          })
     )
 }
@@ -34,7 +34,7 @@ impl Config {
         let mut parser = toml::Parser::new(&s);
         let mut sections = match parser.parse() {
             Some(x) => x,
-            None => return Err(Error::ParserError(parser.errors).into())
+            None => return Err(Error::Parser(parser.errors).into())
         };
 
         let mut main_section = pop_value!(sections, "main", toml::Value::Table, "a section");
@@ -53,11 +53,11 @@ impl Config {
 quick_error! {
     #[derive(Debug)]
     pub enum Error {
-        ParserError(errors: Vec<toml::ParserError>) {
+        Parser(errors: Vec<toml::ParserError>) {
             display("Multiple errors while parsing configuration: {:?}", errors)
             from()
         }
-        ValueError(msg: String) {
+        Value(msg: String) {
             display("{}", msg)
         }
     }
