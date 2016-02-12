@@ -111,7 +111,7 @@ pub fn run_server(config: config::Config) {
     router.get("/.well-known/webfinger", webfinger_response);
     router.get("/dashboard/icon", icon_proxy);
     router.get("/dashboard/", user_dashboard);
-    router.post("/dashboard/", user_dashboard);
+    router.post("/dashboard/delete-app", user_dashboard_delete_app);
     router.get("/login/", user_login);
     router.post("/login/", user_login);
     router.post("/logout/", user_logout);
@@ -286,33 +286,39 @@ fn user_logout(request: &mut Request) -> IronResult<Response> {
 fn user_dashboard(request: &mut Request) -> IronResult<Response> {
     let user = require_login!(request);
 
-    match request.method {
-        Method::Get => Ok(Response::with(status::Ok)
-                          .set(Template::new("dashboard", {
-                              let mut rv = collections::BTreeMap::new();
-                              rv.insert("account_id".to_owned(), get_account_id(&user, &request).to_json());
-                              let sessions = user.walk_apps().unwrap_or_else(|_| vec![]);
-                              rv.insert("apps".to_owned(), sessions.to_json());
-                              rv
-                          }))),
-        Method::Post => {
-            check_csrf!(request);
-            let back_to = request.url.clone();
-            let (action, client_id) = iexpect!(
-                request.get_ref::<urlencoded::UrlEncodedBody>().ok()
-                    .map(|query| (query.get_only("action").clone(), query.get_only("client_id").clone())));
+    Ok(Response::with(status::Ok)
+       .set(Template::new("dashboard", {
+           let mut rv = collections::BTreeMap::new();
+           rv.insert("account_id".to_owned(), get_account_id(&user, &request).to_json());
+           let sessions = user.walk_apps().unwrap_or_else(|_| vec![]);
+           rv.insert("apps".to_owned(), sessions.to_json());
+           rv
+       })))
+}
 
-            match (action.map(Deref::deref), client_id) {
-                (Some("delete_app"), Some(client_id)) => {
-                    let app = iexpect!(models::App::get(&user, client_id), status::NotFound);
-                    itry!(app.delete());
-                    Ok(Response::with((status::Found, Redirect(back_to))))
-                },
-                _ => Ok(Response::with(status::BadRequest))
-            }
-        },
-        _ => Ok(Response::with(status::BadRequest))
-    }
+fn user_dashboard_delete_app(request: &mut Request) -> IronResult<Response> {
+    let user = require_login!(request);
+    check_csrf!(request);
+
+    let client_id = iexpect!(request.get_ref::<urlencoded::UrlEncodedBody>().ok()
+                             .and_then(|q| q.get_only("client_id"))).clone();
+    let app = iexpect!(models::App::get(&user, &client_id), status::NotFound);
+    itry!(app.delete());
+    Ok(Response::with(Template::new("alert", json::Json::Object({
+        let mut rv = collections::BTreeMap::new();
+        rv.insert("redirect_to".to_owned(), {
+            request.url
+                .clone()
+                .into_generic_url()
+                .join("/dashboard/").unwrap()
+                .serialize().to_json()
+        });
+        rv.insert("msg".to_owned(), "
+            Successfully disconnected app. 
+            The application's data is still stored in your account.
+            You may connect the app at any time again.".to_json());
+        rv
+    }))))
 }
 
 fn oauth_entry(request: &mut Request) -> IronResult<Response> {
