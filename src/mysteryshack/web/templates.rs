@@ -5,7 +5,6 @@ use handlebars_iron::HandlebarsEngine;
 
 pub fn get_template_engine() -> HandlebarsEngine {
     let mut registry = Handlebars::new();
-    registry.register_template_string("alert", include_str!("../../templates/alert.hbs").to_owned()).unwrap();
     registry.register_template_string("dashboard", include_str!("../../templates/dashboard.hbs").to_owned()).unwrap();
     registry.register_template_string("index", include_str!("../../templates/index.hbs").to_owned()).unwrap();
     registry.register_template_string("layout", include_str!("../../templates/layout.hbs").to_owned()).unwrap();

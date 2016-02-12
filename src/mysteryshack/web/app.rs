@@ -304,21 +304,14 @@ fn user_dashboard_delete_app(request: &mut Request) -> IronResult<Response> {
                              .and_then(|q| q.get_only("client_id"))).clone();
     let app = iexpect!(models::App::get(&user, &client_id), status::NotFound);
     itry!(app.delete());
-    Ok(Response::with(Template::new("alert", json::Json::Object({
-        let mut rv = collections::BTreeMap::new();
-        rv.insert("redirect_to".to_owned(), {
-            request.url
-                .clone()
-                .into_generic_url()
-                .join("/dashboard/").unwrap()
-                .serialize().to_json()
-        });
-        rv.insert("msg".to_owned(), "
-            Successfully disconnected app. 
-            The application's data is still stored in your account.
-            You may connect the app at any time again.".to_json());
-        rv
-    }))))
+    Ok(Response::with((
+        status::Found,
+        Redirect(request.url
+                 .clone()
+                 .into_generic_url()
+                 .join("/dashboard/").unwrap()
+                 .serialize().to_json())
+    )))
 }
 
 fn oauth_entry(request: &mut Request) -> IronResult<Response> {
