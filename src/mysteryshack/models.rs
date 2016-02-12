@@ -41,6 +41,9 @@ quick_error! {
             description("Invalid chars in username. Allowed are numbers (0-9), letters (a-zA-Z), \
                         `_` and `-`.")
         }
+        AlreadyExisting {
+            description("Resource already exists.")
+        }
     }
 }
 
@@ -73,6 +76,10 @@ impl User {
 
     pub fn create(basepath: &path::Path, userid: &str) -> Result<User, ServerError> {
         let user = try!(User::new_unchecked(basepath, userid));
+        if user.user_path.exists() {
+            return Err(Error::AlreadyExisting.into());
+        };
+
         try!(fs::create_dir_all(user.data_path()));
         try!(fs::create_dir_all(user.meta_path()));
         try!(fs::create_dir_all(user.tmp_path()));
@@ -565,6 +572,7 @@ impl<'a> UserNode<'a> for UserFolder<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use utils::ServerError;
     use web::oauth::Session as OauthSession;
     use web::oauth::CategoryPermissions;
     use tempdir::TempDir;
@@ -586,6 +594,17 @@ mod tests {
                 rv
             }
         }).unwrap()
+    }
+
+    #[test]
+    fn test_create_existing_user() {
+        let t = get_tmp();
+        User::create(t.path(), "foo").unwrap();
+
+        match User::create(t.path(), "foo") {
+            Err(ServerError::Model(Error::AlreadyExisting)) => (),
+            _ => panic!("User creation successful.")
+        };
     }
 
     #[test]
