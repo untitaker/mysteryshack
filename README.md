@@ -48,8 +48,11 @@ As of OS X 10.11, OpenSSL isn't installed anymore. You'll need to install it man
   suite](https://github.com/remotestorage/api-test-suite/) automatically (in
   Travis).
 
-* Mysteryshack's approach to concurrency is very simplistic, but is certainly
-  enough for smaller to medium-sized servers.
+* Mysteryshack's approach to concurrency is very simplistic. Only storage
+  operations are safe to perform concurrently. User creation and deletion, app
+  authorization and de-authorization are not, because it is assumed that the
+  user performing those operations is a single human with only two hands and
+  one keyboard.
 
 * Web admin sessions are stored inside signed cookies. The key is generated at
   server startup. To log everybody out, restart the server.
