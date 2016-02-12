@@ -166,6 +166,11 @@ impl User {
 
         let f = atomicwrites::AtomicFile::new(self.key_path(), atomicwrites::AllowOverwrite);
         try!(f.write(|f| f.write(&key)));
+
+        for app in try!(self.walk_apps()) {
+            try!(app.delete());
+        };
+
         Ok(())
     }
 }
