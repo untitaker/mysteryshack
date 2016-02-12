@@ -6,13 +6,7 @@ rust:
 
 env:
     - BUILD=test
-    - BUILD=clippy
     - BUILD=codegen
-
-matrix:
-    exclude:
-        - env: BUILD=clippy  # clippy requires nightly
-          rust: stable
 
 install:
     - rvm use 2
