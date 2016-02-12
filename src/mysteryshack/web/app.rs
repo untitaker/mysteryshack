@@ -306,11 +306,11 @@ fn user_dashboard_delete_app(request: &mut Request) -> IronResult<Response> {
     itry!(app.delete());
     Ok(Response::with((
         status::Found,
-        Redirect(request.url
-                 .clone()
-                 .into_generic_url()
-                 .join("/dashboard/").unwrap()
-                 .serialize().to_json())
+        Redirect({
+            let mut u = request.url.clone();
+            u.path = vec!["dashboard".to_owned(), "".to_owned()];
+            u
+        })
     )))
 }
 
