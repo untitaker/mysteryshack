@@ -8,8 +8,8 @@ Mysteryshack is a lightweight, yet self-contained
 ***This project is still in active development. Do not use with sensitive data, or without backup.***
 
 Use username `demo` and password `demo` on [my
-server](https://shack.unterwaditzer.net) to try it out. Don't use it for actual
-data though: It is reset daily.
+server](https://shack.unterwaditzer.net) to try it out. Don't use that account
+for actual data though: It is reset daily.
 
 ## Installation
 
