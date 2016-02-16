@@ -73,7 +73,7 @@ pub fn prompt<T: AsRef<str>>(text: T) -> String {
     let stdin = io::stdin();
     let mut response = String::new();
     stdin.read_line(&mut response).unwrap();
-    if response.ends_with("\n") { response.pop(); }
+    if response.ends_with('\n') { response.pop(); }
     response
 }
 

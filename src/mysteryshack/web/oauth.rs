@@ -143,8 +143,8 @@ impl OauthRequest {
             if rv.session.permissions.get(&key).is_some() { return scope_err(rv); }
 
             rv.session.permissions.insert(key, CategoryPermissions {
-                can_read: permission.contains("r"),
-                can_write: permission.contains("w")
+                can_read: permission.contains('r'),
+                can_write: permission.contains('w')
             });
         }
 

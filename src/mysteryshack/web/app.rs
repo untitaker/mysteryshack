@@ -186,7 +186,7 @@ fn user_node_response(req: &mut Request) -> IronResult<Response> {
         (Some(lock.read().unwrap()), None)
     };
 
-    if path_str.is_empty() || path_str.ends_with("/") {
+    if path_str.is_empty() || path_str.ends_with('/') {
         match models::UserFolder::from_path(&user, &path_str[..]) {
             Some(x) => x.respond(req),
             None => Ok(Response::with(status::BadRequest))

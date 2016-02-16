@@ -129,7 +129,7 @@ impl User {
 
     pub fn permissions(&self, path: &str, token: Option<&str>) -> CategoryPermissions {
         let anonymous = CategoryPermissions {
-            can_read: path.starts_with("public/") && !path.ends_with("/"),
+            can_read: path.starts_with("public/") && !path.ends_with('/'),
             can_write: false
         };
 
@@ -474,7 +474,7 @@ impl<'a> UserFile<'a> {
 
 impl<'a> UserNode<'a> for UserFile<'a> {
     fn from_path(user: &'a User, path: &str) -> Option<UserFile<'a>> {
-        if path.ends_with("/") { return None; };
+        if path.ends_with('/') { return None; };
 
         let data_path = match utils::safe_join(user.data_path(), path) {
             Some(x) => x,
@@ -546,7 +546,7 @@ impl<'a> UserFolder<'a> {
 impl<'a> UserNode<'a> for UserFolder<'a> {
     fn from_path(user: &'a User, path: &str) -> Option<UserFolder<'a>> {
         Some(UserFolder {
-            path: if path.ends_with("/") || path.len() == 0 {
+            path: if path.ends_with('/') || path.len() == 0 {
                 path.to_owned()
             } else {
                 return None
