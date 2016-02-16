@@ -25,6 +25,12 @@ server](https://shack.unterwaditzer.net) to try it out.
 
 For advanced usage, see `mysteryshack --help` and `mysteryshack user --help`.
 
+## Updating
+
+Just `git pull` and `cargo build --release` again.
+
+----
+
 ## Troubleshooting
 
 ### OS X and OpenSSL
