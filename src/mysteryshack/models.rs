@@ -95,11 +95,18 @@ impl User {
     }
 
     pub fn get_password_hash(&self) -> Result<PasswordHash, ServerError> {
-        utils::read_json_file(self.password_path())
+        let mut f = try!(fs::File::open(self.password_path()));
+        let mut x: Vec<u8> = vec![];
+        try!(f.read_to_end(&mut x));
+        Ok(PasswordHash {
+            content: pwhash::HashedPassword::from_slice(&x).unwrap()
+        })
     }
 
-    pub fn set_password_hash(&self, hash: PasswordHash) -> Result<(), ServerError> {
-        utils::write_json_file(hash, self.password_path())
+    pub fn set_password_hash(&self, hash: PasswordHash) -> io::Result<()> {
+        let f = atomicwrites::AtomicFile::new(self.password_path(), atomicwrites::AllowOverwrite);
+        try!(f.write(|f| f.write(&hash.content[..])));
+        Ok(())
     }
 
     fn user_info_path(&self) -> path::PathBuf { self.user_path.join("user.json") }
@@ -379,15 +386,7 @@ pub struct UserFile<'a> {
 
 impl<'a> UserFile<'a> { 
     pub fn read_meta(&self) -> Result<UserFileMeta, ServerError> {
-        let mut meta_f = try!(fs::File::open(&self.meta_path));
-        let meta_str = {
-            let mut rv = String::new();
-            try!(meta_f.read_to_string(&mut rv));
-            rv
-        };
-
-        let rv = try!(json::decode(&meta_str));
-        Ok(rv)
+        utils::read_json_file(&self.meta_path)
     }
 
     pub fn open(&self) -> io::Result<fs::File> {
