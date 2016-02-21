@@ -16,7 +16,7 @@ use uuid;
 use itertools::Itertools;
 use regex;
 
-use crypto::bcrypt;
+use sodiumoxide::crypto::pwhash;
 use rand::{Rng, StdRng};
 
 use atomicwrites;
@@ -94,11 +94,18 @@ impl User {
     }
 
     pub fn get_password_hash(&self) -> Result<PasswordHash, ServerError> {
-        utils::read_json_file(self.password_path())
+        let mut f = try!(fs::File::open(self.password_path()));
+        let mut x: Vec<u8> = vec![];
+        try!(f.read_to_end(&mut x));
+        Ok(PasswordHash {
+            content: pwhash::HashedPassword::from_slice(&x).unwrap()
+        })
     }
 
-    pub fn set_password_hash(&self, hash: PasswordHash) -> Result<(), ServerError> {
-        utils::write_json_file(hash, self.password_path())
+    pub fn set_password_hash(&self, hash: PasswordHash) -> io::Result<()> {
+        let f = atomicwrites::AtomicFile::new(self.password_path(), atomicwrites::AllowOverwrite);
+        try!(f.write(|f| f.write(&hash.content[..])));
+        Ok(())
     }
 
     fn user_info_path(&self) -> path::PathBuf { self.user_path.join("user.json") }
@@ -317,39 +324,20 @@ impl Token {
 
 #[derive(RustcDecodable, RustcEncodable, Debug)]
 pub struct PasswordHash {
-    cost: u32,
-    salt: Vec<u8>,
-    hash: Vec<u8>
+    content: pwhash::HashedPassword
 }
 
 impl PasswordHash {
-    pub fn from_password(pwd: String) -> io::Result<PasswordHash> {
-        const DEFAULT_COST: u32 = 10;
-        const MAX_SALT_SIZE: usize = 16;
-        const OUTPUT_SIZE: usize = 24;
-
-        let salt = {
-            let mut rv = [0u8; MAX_SALT_SIZE];
-            let mut rng = try!(StdRng::new());
-            rng.fill_bytes(&mut rv);
-            rv
-        };
-
-        let mut hash = [0u8; OUTPUT_SIZE];
-        bcrypt::bcrypt(DEFAULT_COST, &salt, pwd.as_bytes(), &mut hash);
-        Ok(PasswordHash {
-            cost: DEFAULT_COST,
-            salt: salt.to_vec(),
-            hash: hash.to_vec()
-        })
+    pub fn from_password(pwd: String) -> PasswordHash {
+        PasswordHash {
+            content: pwhash::pwhash(pwd.as_bytes(), 
+                pwhash::OPSLIMIT_INTERACTIVE,
+                pwhash::MEMLIMIT_INTERACTIVE).unwrap()
+        }
     }
 
-    pub fn equals_password<T: AsRef<str>>(&self, pwd: T) -> bool {
-        let mut hash = Vec::with_capacity(self.hash.len());
-        for _ in 0..self.hash.len() { hash.push(0u8); }
-
-        bcrypt::bcrypt(self.cost, &self.salt, pwd.as_ref().as_bytes(), &mut hash);
-        hash == self.hash
+    pub fn equals_password<T: AsRef<[u8]>>(&self, pwd: T) -> bool {
+        pwhash::pwhash_verify(&self.content, pwd.as_ref())
     }
 }
 

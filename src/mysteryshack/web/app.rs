@@ -355,7 +355,7 @@ fn user_dashboard_change_password(request: &mut Request) -> IronResult<Response>
         )));
     }
 
-    let new_hash = itry!(models::PasswordHash::from_password(new_pass1));
+    let new_hash = models::PasswordHash::from_password(new_pass1);
     itry!(user.set_password_hash(new_hash));
 
     if let Some(x) = regen_key {
