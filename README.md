@@ -13,6 +13,9 @@ for actual data though: It is reset daily.
 
 ## Installation
 
+You need [OpenSSL](https://openssl.org/) and
+[libsodium](https://github.com/jedisct1/libsodium) installed.
+
 * Install [Rust](https://www.rust-lang.org/) and [Cargo](https://crates.io/install).
 * Clone this repository.
 * Run `cargo build --release`.
