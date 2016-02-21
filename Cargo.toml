@@ -26,7 +26,6 @@ unicase = "*"
 atomicwrites = "*"
 url = "*"
 clap = "*"
-rust-crypto = "*"
 rand = "*"
 persistent = "*"
 urlencoded = "*"
@@ -44,6 +43,7 @@ itertools = "*"
 jsonwebtoken = "*"
 uuid = "*"
 clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
+sodiumoxide = "*"
 webicon = "*"
 
 [dev-dependencies]

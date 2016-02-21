@@ -66,6 +66,12 @@ pub fn main() {
                                 .arg(Arg::with_name("USERNAME")
                                      .help("The username")
                                      .required(true)
+                                     .index(1)))
+                    .subcommand(SubCommand::with_name("setpass")
+                                .about("Change the password for a user")
+                                .arg(Arg::with_name("USERNAME")
+                                     .help("The username")
+                                     .required(true)
                                      .index(1))))
         .get_matches();
 
@@ -83,14 +89,7 @@ pub fn main() {
         serve(_,) => web::run_server(config),
         user(user_matches,) => clap_dispatch!(user_matches; {
             create(_, USERNAME as username) => {
-                let password_hash = match models::PasswordHash::from_password(
-                    utils::double_prompt("Password for new user: ")) {
-                    Ok(x) => x,
-                    Err(e) => {
-                        println!("Failed to hash password: {}", e);
-                        process::exit(1);
-                    }
-                };
+                let password_hash = models::PasswordHash::from_password(utils::double_prompt("Password for new user: "));
 
                 match models::User::create(&config.data_path, username).map(|user| {
                     user.set_password_hash(password_hash)
@@ -103,6 +102,26 @@ pub fn main() {
                 };
 
                 println!("Successfully created user {}", username);
+            },
+            setpass(_, USERNAME as username) => {
+                let user = match models::User::get(&config.data_path, username) {
+                    Some(x) => x,
+                    None => {
+                        println!("User does not exist: {}", username);
+                        process::exit(1);
+                    }
+                };
+
+                let password_hash = models::PasswordHash::from_password(utils::double_prompt("New password: "));
+                match user.set_password_hash(password_hash) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        println!("Failed to set password for user {}: {}", username, e);
+                        process::exit(1);
+                    }
+                };
+
+                println!("Changed password for user {}", username);
             },
             delete(_, USERNAME as username) => {
                 let user = match models::User::get(&config.data_path, username) {
