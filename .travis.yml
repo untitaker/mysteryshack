@@ -10,6 +10,7 @@ env:
     - BUILD=codegen
 
 install:
+      # remotestorage testsuite only runs on rubby 2
     - rvm use 2
     - make install-$BUILD
 
