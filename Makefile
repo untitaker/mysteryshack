@@ -1,9 +1,23 @@
+current_dir = $(shell pwd)
 export RUST_BACKTRACE := 1
+export SODIUM_LIB_DIR := $(current_dir)/local/lib/
+export SODIUM_STATIC := yes
 
 SPEC_TEST_DIR=tests/spec
 TMP_DIR=/tmp/mysteryshack
 APP_BINARY=./target/debug/mysteryshack
 TEST_CMD=$(APP_BINARY) -c $(TMP_DIR)/config
+
+libsodium:
+	[ -d libsodium ] || git clone https://github.com/jedisct1/libsodium libsodium
+	set -ex && cd libsodium && \
+		git fetch && \
+		git checkout origin/stable && \
+		rm -rf lib && \
+		./autogen.sh && \
+		./configure --prefix=$$PWD/../local/ --disable-shared && \
+		make && \
+		make install
 
 install-test: install-spectest
 
@@ -64,10 +78,16 @@ install-clippy:
 clippy:
 	cargo build --features clippy
 
+release-build:
+	cargo build --release
+
+sh:
+	$$SHELL
+
 install-unittest:
 	true
 
 unittest:
 	cargo test
 
-.PHONY: test
+.PHONY: test libsodium

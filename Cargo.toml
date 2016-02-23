@@ -45,6 +45,7 @@ jsonwebtoken = "*"
 uuid = "*"
 clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
 webicon = "*"
+sodiumoxide = "*"
 
 [dev-dependencies]
 tempdir = "*"
