@@ -3,7 +3,7 @@ language: rust
 
 rust:
     - stable
-    - nightly
+    - beta
 
 env:
     - BUILD=test
