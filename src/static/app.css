@@ -53,8 +53,11 @@
     background: #efefef;
 }
 
-.delete-app {
+.danger-button {
     background-color: rgb(202, 60, 60);
+}
+
+.delete-app {
     color: white;
     float: right;
 }
