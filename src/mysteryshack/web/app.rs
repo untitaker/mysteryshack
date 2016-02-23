@@ -88,6 +88,17 @@ macro_rules! check_csrf {
     })
 }
 
+macro_rules! alert_tmpl {
+    ($msg:expr, $back_to:expr) => ({
+        Template::new("alert", {
+            let mut rv = collections::BTreeMap::new();
+            rv.insert("msg".to_owned(), $msg.to_json());
+            rv.insert("back_to".to_owned(), $back_to.to_json());
+            rv
+        })
+    })
+}
+
 struct ErrorPrinter;
 impl iron::middleware::AfterMiddleware for ErrorPrinter {
     fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
@@ -112,6 +123,7 @@ pub fn run_server(config: config::Config) {
     router.get("/dashboard/icon", icon_proxy);
     router.get("/dashboard/", user_dashboard);
     router.post("/dashboard/delete-app", user_dashboard_delete_app);
+    router.post("/dashboard/change-password", user_dashboard_change_password);
     router.get("/login/", user_login);
     router.post("/login/", user_login);
     router.post("/logout/", user_logout);
@@ -311,6 +323,51 @@ fn user_dashboard_delete_app(request: &mut Request) -> IronResult<Response> {
             u.path = vec!["dashboard".to_owned(), "".to_owned()];
             u
         })
+    )))
+}
+
+fn user_dashboard_change_password(request: &mut Request) -> IronResult<Response> {
+    static BACK_TO: &'static str = "/dashboard/#change-password";
+
+    let user = require_login!(request);
+    check_csrf!(request);
+    
+    let (current_pass, new_pass1, new_pass2, regen_key) = {
+        let formdata = iexpect!(request.get_ref::<urlencoded::UrlEncodedBody>().ok());
+        (
+            iexpect!(formdata.get_only("current_pass")).clone(),
+            iexpect!(formdata.get_only("new_pass1")).clone(),
+            iexpect!(formdata.get_only("new_pass2")).clone(),
+            formdata.get_only("regen_key").cloned()
+        )
+    };
+
+    if new_pass1 != new_pass2 {
+        return Ok(Response::with((
+            status::Ok,
+            alert_tmpl!("Typo in new password: Repeated new password doesn't match new password.
+                         Do you have a typo somewhere?", BACK_TO)
+        )));
+    }
+
+    if !itry!(user.get_password_hash()).equals_password(current_pass) {
+        return Ok(Response::with((
+            status::Ok,
+            alert_tmpl!("Wrong current password.", BACK_TO)
+        )));
+    }
+
+    let new_hash = itry!(models::PasswordHash::from_password(new_pass1));
+    itry!(user.set_password_hash(new_hash));
+
+    if let Some(x) = regen_key {
+        assert_eq!(x, "yes");
+        itry!(user.new_key());
+    }
+
+    Ok(Response::with((
+        status::Ok,
+        alert_tmpl!("Password successfully changed.", BACK_TO)
     )))
 }
 

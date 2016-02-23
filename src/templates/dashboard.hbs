@@ -15,7 +15,7 @@
     {{#block show-app}}{{/block}}
     <form method="post" action="delete-app">
         <input type="hidden" name="client_id" value="{{ client_id }}" />
-        <input type="submit" class="pure-button button-small delete-app" value="Disconnect" />
+        <input type="submit" class="pure-button button-small delete-app danger-button" value="Disconnect" />
     </form>
 </li>
 {{/each}}
@@ -39,6 +39,26 @@ storage, such as:</p>
     <li><a href="https://remotestorage-browser.5apps.com/">remoteStorage Browser</a></li>
     <li><a href="https://wiki.remotestorage.io/Apps"><i>More apps&hellip;</i></a></li>
 </ul>
+
+<h2 id="change-password">Changing password</h2>
+
+<form method=post action=change-password class="pure-form pure-form-stacked">
+    <label for=current_pass>Current password</label>
+    <input type=password name=current_pass />
+
+    <label for=new_pass1>New password</label>
+    <input type=password name=new_pass1 />
+
+    <label for=new_pass2>New password, repeated</label>
+    <input type=password name=new_pass2 />
+
+    <label for=regen_key class=pure-checkbox>
+        <input type="checkbox" name=regen_key value=yes />
+        Disconnect all apps
+    </label>
+
+    <input type=submit class="pure-button pure-button-primary danger-button" value="Change password" />
+</form>
 
 {{/partial}}
 
