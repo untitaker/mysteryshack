@@ -104,6 +104,34 @@ pub fn main() {
 
                 println!("Successfully created user {}", username);
             },
+            setpass(_, USERNAME as username) => {
+                let user = match models::User::get(&config.data_path, username) {
+                    Some(x) => x,
+                    None => {
+                        println!("User does not exist: {}", username);
+                        process::exit(1);
+                    }
+                };
+
+                let password_hash = match models::PasswordHash::from_password(
+                    utils::double_prompt("New password: ")) {
+                    Ok(x) => x,
+                    Err(e) => {
+                        println!("Failed to hash password: {}", e);
+                        process::exit(1);
+                    }
+                };
+
+                match user.set_password_hash(password_hash) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        println!("Failed to set password for user {}: {}", username, e);
+                        process::exit(1);
+                    }
+                };
+
+                println!("Changed password for user {}", username);
+            },
             delete(_, USERNAME as username) => {
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
