@@ -9,17 +9,11 @@ use web;
 use utils;
 
 macro_rules! clap_dispatch {
-    (
-        $matches:expr;
-        // FIXME: $matches_name absolutely requires a trailing comma, couldn't get it to work under
-        // stable rust:
-        //
-        // foo(_) => ()   // Errors
-        // foo(_,) => ()  // Works
-        {
-            $( $name:ident ($matches_name:pat, $($arg_name:ident as $varname:ident),*) => $callback:expr ),*
-        }
-    ) => {
+    // Transform `foo(_) => ()` into `foo(_,) => ()` such that it actually can be parsed.
+    // Using a single rule is only possible in nightly.
+    ($matches:expr; { $( $name:ident ( $matches_name:pat ) => $callback:expr ),* }) => (clap_dispatch!($matches; { $( $name($matches_name,) => $callback ),* }));
+
+    ($matches:expr; { $( $name:ident ($matches_name:pat, $($arg_name:ident as $varname:ident),*) => $callback:expr ),* }) => {
         match $matches.subcommand_name() {
             $(
                 Some(stringify!($name)) => {
@@ -39,7 +33,7 @@ macro_rules! clap_dispatch {
                 process::exit(1);
             }
         }
-    }
+    };
 }
 
 pub fn main() {
@@ -86,8 +80,8 @@ pub fn main() {
     };
 
     clap_dispatch!(matches; {
-        serve(_,) => web::run_server(config),
-        user(user_matches,) => clap_dispatch!(user_matches; {
+        serve(_) => web::run_server(config),
+        user(user_matches) => clap_dispatch!(user_matches; {
             create(_, USERNAME as username) => {
                 let password_hash = match models::PasswordHash::from_password(
                     utils::double_prompt("Password for new user: ")) {
