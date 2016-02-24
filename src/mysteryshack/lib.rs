@@ -34,8 +34,9 @@ extern crate webicon;
 #[cfg(test)]
 extern crate tempdir;
 
+#[macro_use] mod macros;
+mod utils;
 pub mod cli;
 mod web;
 mod models;
-mod utils;
 mod config;

@@ -42,12 +42,10 @@ pub fn permissions_for_category<'a>(p: &'a PermissionsMap, category: &str) -> Op
 
 impl ToJson for Session {
     fn to_json(&self) -> json::Json {
-        json::Json::Object({
-            let mut rv = collections::BTreeMap::new();
-            rv.insert("client_id".to_owned(), self.client_id.to_json());
-            rv.insert("permissions".to_owned(), self.permissions.to_json());
-            rv
-        })
+        json!{
+            "client_id" => self.client_id,
+            "permissions" => self.permissions
+        }
     }
 }
 
@@ -60,12 +58,10 @@ pub struct CategoryPermissions {
 impl ToJson for CategoryPermissions {
     // ToJson for passing to template
     fn to_json(&self) -> json::Json {
-        json::Json::Object({
-            let mut rv = collections::BTreeMap::new();
-            rv.insert("can_read".to_owned(), self.can_read.to_json());
-            rv.insert("can_write".to_owned(), self.can_write.to_json());
-            rv
-        })
+        json!{
+            "can_read" => self.can_read,
+            "can_write" => self.can_write
+        }
     }
 }
 

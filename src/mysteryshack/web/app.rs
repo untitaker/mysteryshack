@@ -90,11 +90,9 @@ macro_rules! check_csrf {
 
 macro_rules! alert_tmpl {
     ($msg:expr, $back_to:expr) => ({
-        Template::new("alert", {
-            let mut rv = collections::BTreeMap::new();
-            rv.insert("msg".to_owned(), $msg.to_json());
-            rv.insert("back_to".to_owned(), $back_to.to_json());
-            rv
+        Template::new("alert", json!{
+            "msg" => $msg,
+            "back_to" => $back_to
         })
     })
 }
@@ -298,14 +296,14 @@ fn user_logout(request: &mut Request) -> IronResult<Response> {
 fn user_dashboard(request: &mut Request) -> IronResult<Response> {
     let user = require_login!(request);
 
-    Ok(Response::with(status::Ok)
-       .set(Template::new("dashboard", {
-           let mut rv = collections::BTreeMap::new();
-           rv.insert("account_id".to_owned(), get_account_id(&user, &request).to_json());
-           let sessions = user.walk_apps().unwrap_or_else(|_| vec![]);
-           rv.insert("apps".to_owned(), sessions.to_json());
-           rv
-       })))
+    let apps = user.walk_apps().unwrap_or_else(|_| vec![]);
+    Ok(Response::with((
+        status::Ok,
+        Template::new("dashboard", json!{
+            "account_id" => get_account_id(&user, &request).to_json(),
+            "apps" => apps
+        })
+    )))
 }
 
 fn user_dashboard_delete_app(request: &mut Request) -> IronResult<Response> {
@@ -382,11 +380,9 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
         Err(e) => return Ok(
             e.get_response().unwrap_or_else(|| {
                 Response::with(status::BadRequest)
-                .set(Template::new("oauth_error", json::Json::Object({
-                    let mut rv = collections::BTreeMap::new();
-                    rv.insert("e_msg".to_owned(), e.description().to_json());
-                    rv
-                })))
+                .set(Template::new("oauth_error", json!(
+                    "e_msg" => (e.description())
+                )))
             })
         )
     };
@@ -453,9 +449,8 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
     let mut r = Response::with(status::Ok);
     r.headers.set(header::ContentType("application/jrd+json".parse().unwrap()));
 
-    r.set_mut(json::encode(&json::Json::Object({
-        let mut d = collections::BTreeMap::new();
-        d.insert("links".to_owned(), json::Json::Array({
+    r.set_mut(json::encode(&json!{
+        "links" => (&json::Json::Array({
             let mut rv = vec![];
             // We need to provide an older webfinger response because remoteStorage.js doesn't
             // support newer ones.
@@ -465,39 +460,33 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
                 ("http://tools.ietf.org/id/draft-dejong-remotestorage", "draft-dejong-remotestorage-05"),
                 ("remotestorage", "draft-dejong-remotestorage-02")
             ] {
-                rv.push(json::Json::Object({
-                    let mut d = collections::BTreeMap::new();
-                    d.insert("href".to_owned(), storage_url.serialize().to_json());
-                    d.insert("rel".to_owned(), rel.to_json());
-                    d.insert("properties".to_owned(), json::Json::Object({
-                        let mut d = collections::BTreeMap::new();
-
+                rv.push(json!{
+                    "href" => storage_url.serialize(),
+                    "rel" => rel,
+                    "properties" => json!{
                         // Spec version
-                        d.insert("http://remotestorage.io/spec/version".to_owned(), version.to_json());
+                        "http://remotestorage.io/spec/version" => version,
 
                         // OAuth
-                        d.insert("http://tools.ietf.org/html/rfc6749#section-4.2".to_owned(), oauth_url.serialize().to_json());
+                        "http://tools.ietf.org/html/rfc6749#section-4.2" => oauth_url.serialize(),
 
                         // Support for providing the access token via URL query param
-                        d.insert("http://tools.ietf.org/html/rfc6750#section-2.3".to_owned(), false.to_json());
+                        "http://tools.ietf.org/html/rfc6750#section-2.3" => false,
 
                         // Content-Range as in draft-02
-                        d.insert("http://tools.ietf.org/html/rfc2616#section-14.16".to_owned(), false.to_json());
+                        "http://tools.ietf.org/html/rfc2616#section-14.16" => false,
 
                         // Content-Range as in draft-05
-                        d.insert("http://tools.ietf.org/html/rfc7233".to_owned(), false.to_json());
+                        "http://tools.ietf.org/html/rfc7233" => false,
 
                         // Web authoring
-                        d.insert("http://remotestorage.io/spec/web-authoring".to_owned(), false.to_json());
-                        d
-                    }));
-                    d
-                }));
+                        "http://remotestorage.io/spec/web-authoring" => false
+                    }
+                });
             }
             rv
-        }));
-        d
-    })).unwrap());
+        }))
+    }).unwrap());
     Ok(r)
 }
 
@@ -547,11 +536,9 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
         r.headers.set_raw("Expires", vec!["0".as_bytes().to_owned()]);
         r.headers.set(header::ETag(header::EntityTag::new(false, shown_etag)));
 
-        r.set_mut(json::encode(&json::Json::Object({
-            let mut d = collections::BTreeMap::new();
-            d.insert("@context".to_owned(),
-            "http://remotestorage.io/spec/folder-description".to_json());
-            d.insert("items".to_owned(), json::Json::Object({
+        r.set_mut(json::encode(&json!{
+            "@context" => "http://remotestorage.io/spec/folder-description",
+            "items" => json::Json::Object({
                 let mut d = collections::BTreeMap::new();
                 if let Ok(children) = self.read_children() {
                     for child in &children {
@@ -567,9 +554,8 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
                     };
                 };
                 d
-            }));
-            d
-        })).unwrap());
+            })
+        }).unwrap());
         Ok(r)
     }
 }

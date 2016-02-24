@@ -3,7 +3,6 @@ use std::io;
 use std::io::Read;
 use std::io::Write;
 use std::fs;
-use std::collections;
 use std::os::unix::fs::MetadataExt;
 
 use chrono;
@@ -184,10 +183,10 @@ pub struct App<'a> {
 impl<'a> ToJson for App<'a> {
     // for passing to template
     fn to_json(&self) -> json::Json {
-        let mut rv = collections::BTreeMap::new();
-        rv.insert("client_id".to_owned(), self.client_id.to_json());
-        rv.insert("app_id".to_owned(), self.app_id.to_json());
-        json::Json::Object(rv)
+        json!{
+            "client_id" => self.client_id,
+            "app_id" => self.app_id
+        }
     }
 }
 
@@ -502,12 +501,11 @@ impl<'a> UserNode<'a> for UserFile<'a> {
     
     fn json_repr(&self) -> Result<json::Json, ServerError> {
         let meta = try!(self.read_meta());
-        let mut d = collections::BTreeMap::new();
-        d.insert("Content-Type".to_owned(), meta.content_type.to_json());
-        d.insert("Content-Length".to_owned(), meta.content_length.to_json());
-        d.insert("ETag".to_owned(), try!(self.read_etag()).to_json());
-
-        Ok(json::Json::Object(d))
+        Ok(json!{
+            "Content-Type" => meta.content_type,
+            "Content-Length" => meta.content_length,
+            "ETag" => try!(self.read_etag())
+        })
     }
 }
 
@@ -568,9 +566,9 @@ impl<'a> UserNode<'a> for UserFolder<'a> {
     fn get_fs_path(&self) -> &path::Path { self.data_path.as_path() }
 
     fn json_repr(&self) -> Result<json::Json, ServerError> {
-        let mut d = collections::BTreeMap::new();
-        d.insert("ETag".to_owned(), try!(self.read_etag()).to_json());
-        Ok(json::Json::Object(d))
+        Ok(json!{
+            "ETag" => try!(self.read_etag())
+        })
     }
 }
 
