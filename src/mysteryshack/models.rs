@@ -397,15 +397,7 @@ pub struct UserFile<'a> {
 
 impl<'a> UserFile<'a> { 
     pub fn read_meta(&self) -> Result<UserFileMeta, ServerError> {
-        let mut meta_f = try!(fs::File::open(&self.meta_path));
-        let meta_str = {
-            let mut rv = String::new();
-            try!(meta_f.read_to_string(&mut rv));
-            rv
-        };
-
-        let rv = try!(json::decode(&meta_str));
-        Ok(rv)
+        utils::read_json_file(&self.meta_path)
     }
 
     pub fn open(&self) -> io::Result<fs::File> {
