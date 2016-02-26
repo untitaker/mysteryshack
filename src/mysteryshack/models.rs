@@ -9,15 +9,15 @@ use chrono;
 
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
+use rustc_serialize::base64;
+use rustc_serialize::base64::{FromBase64,ToBase64};
 
-use jsonwebtoken as jwt;
 use uuid;
 
 use itertools::Itertools;
 use regex;
 
-use sodiumoxide::crypto::pwhash;
-use rand::{Rng, StdRng};
+use sodiumoxide::crypto::{auth,pwhash};
 
 use atomicwrites;
 use time;
@@ -155,22 +155,17 @@ impl User {
         *session.permissions.permissions_for_category(category).unwrap_or(&anonymous)
     }
 
-    pub fn get_key(&self) -> Vec<u8> {
+    pub fn get_key(&self) -> auth::Key {
         let mut f = fs::File::open(self.key_path()).unwrap();
         let mut s = vec![];
         f.read_to_end(&mut s).unwrap();
-        s
+        auth::Key::from_slice(&s).unwrap()
     }
 
     pub fn new_key(&self) -> io::Result<()> {
-        let mut key = [0u8; 4096];
-        {
-            let mut rng = try!(StdRng::new());
-            rng.fill_bytes(&mut key);
-        };
-
+        let key = auth::gen_key();
         let f = atomicwrites::AtomicFile::new(self.key_path(), atomicwrites::AllowOverwrite);
-        try!(f.write(|f| f.write(&key)));
+        try!(f.write(|f| f.write(&key.0)));
 
         for app in try!(self.walk_apps()) {
             try!(app.delete());
@@ -271,17 +266,36 @@ pub struct Token {
     pub permissions: PermissionsMap
 }
 
-const SESSION_HASH_ALGORITHM: jwt::Algorithm = jwt::Algorithm::HS256;
-
 impl Token {
     pub fn get<'a>(u: &'a User, token: &str) -> Option<(App<'a>, Self)> {
         let key = u.get_key();
 
-        let token_data = match jwt::decode::<Token>(&token, &key, SESSION_HASH_ALGORITHM) {
-            Ok(x) => x,
-            Err(_) => return None
+        let session = {
+            let mut token_parts = token.split('.').map(|x| x.from_base64());
+            let payload = match token_parts.next() { Some(Ok(x)) => x, _ => return None };
+
+            let tag = match token_parts.next() {
+                Some(Ok(x)) => match auth::Tag::from_slice(&x) {
+                    Some(x) => x,
+                    None => return None
+                },
+                _ => return None
+            };
+
+            if !auth::verify(&tag, &payload, &key) {
+                return None
+            };
+
+            let payload_string = match String::from_utf8(payload) {
+                Ok(x) => x,
+                Err(_) => return None
+            };
+
+            match json::decode::<Token>(&payload_string) {
+                Ok(x) => x,
+                Err(_) => return None
+            }
         };
-        let session = token_data.claims;
 
         let now = chrono::UTC::now().timestamp();
 
@@ -318,7 +332,17 @@ impl Token {
 
     pub fn token(&self, u: &User) -> String {
         let key = u.get_key();
-        jwt::encode(jwt::Header::new(SESSION_HASH_ALGORITHM), self, &key).unwrap()
+        let payload_string = json::encode(self).unwrap();
+        let payload = payload_string.as_bytes();
+        let tag = auth::authenticate(payload, &key);
+
+        {
+            let mut rv = String::new();
+            rv.push_str(&payload.to_base64(base64::STANDARD));
+            rv.push('.');
+            rv.push_str(&tag.0.to_base64(base64::STANDARD));
+            rv
+        }
     }
 }
 

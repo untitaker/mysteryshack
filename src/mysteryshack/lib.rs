@@ -28,7 +28,6 @@ extern crate chrono;
 extern crate nix;
 extern crate itertools;
 extern crate uuid;
-extern crate jsonwebtoken;
 extern crate webicon;
 
 #[cfg(test)]
