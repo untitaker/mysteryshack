@@ -1,6 +1,8 @@
 use std::path;
 use std::process;
 
+use sodiumoxide;
+
 use clap::{App, Arg, SubCommand, AppSettings};
 
 use config;
@@ -64,6 +66,8 @@ pub fn main() {
                                 .arg(Arg::with_name("CLIENT_ID").required(true).index(1))
                                 .arg(Arg::with_name("SCOPE").required(true).index(2))))
         .get_matches();
+
+    assert!(sodiumoxide::init());
 
     let config_path = path::Path::new(matches.value_of("config").unwrap_or("./config"));
 
