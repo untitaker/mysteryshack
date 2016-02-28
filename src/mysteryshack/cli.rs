@@ -50,7 +50,7 @@ pub fn main() {
                     .about("User management")
                     .setting(AppSettings::SubcommandRequired)
                     .arg(Arg::with_name("USERNAME")
-                         .help("The username")
+                         .help("The username to perform the operation with.")
                          .required(true)
                          .index(1))
                     .subcommand(SubCommand::with_name("create")
@@ -58,7 +58,11 @@ pub fn main() {
                     .subcommand(SubCommand::with_name("setpass")
                                 .about("Change password for user"))
                     .subcommand(SubCommand::with_name("delete")
-                                .about("Delete a user")))
+                                .about("Delete a user"))
+                    .subcommand(SubCommand::with_name("authorize")
+                                .about("Create a OAuth token. This is mostly useful for development.")
+                                .arg(Arg::with_name("CLIENT_ID").required(true).index(1))
+                                .arg(Arg::with_name("SCOPE").required(true).index(2))))
         .get_matches();
 
     let config_path = path::Path::new(matches.value_of("config").unwrap_or("./config"));
@@ -74,7 +78,7 @@ pub fn main() {
     clap_dispatch!(matches; {
         serve(_,) => web::run_server(config),  // FIXME: Bug in clap_dispatch: comma required
         user(user_matches, USERNAME as username) => clap_dispatch!(user_matches; {
-            create(_) => {
+            create(_,) => {
                 let password_hash = match models::PasswordHash::from_password(
                     utils::double_prompt("Password for new user: ")) {
                     Ok(x) => x,
@@ -96,7 +100,7 @@ pub fn main() {
 
                 println!("Successfully created user {}", username);
             },
-            setpass(_) => {
+            setpass(_,) => {
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
                     None => {
@@ -124,7 +128,7 @@ pub fn main() {
 
                 println!("Changed password for user {}", username);
             },
-            delete(_) => {
+            delete(_,) => {
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
                     None => {
@@ -147,6 +151,29 @@ pub fn main() {
                         process::exit(1);
                     }
                 };
+            },
+            authorize(_, SCOPE as scope, CLIENT_ID as client_id) => {
+                let user = match models::User::get(&config.data_path, username) {
+                    Some(x) => x,
+                    None => {
+                        println!("User does not exist: {}", username);
+                        process::exit(1);
+                    }
+                };
+
+                let oauth_session = web::oauth::Session {
+                    client_id: client_id.to_owned(),
+                    permissions: match web::oauth::PermissionsMap::from_scope_string(scope) {
+                        Some(x) => x,
+                        None => {
+                            println!("Invalid scope: {}", scope);
+                            process::exit(1);
+                        }
+                    }
+                };
+
+                let (_, token) = models::Token::create(&user, oauth_session).unwrap();
+                println!("{}", token.token(&user));
             }
         })
     });

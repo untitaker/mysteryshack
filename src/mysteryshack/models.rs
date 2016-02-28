@@ -247,12 +247,7 @@ impl<'a> App<'a> {
 
 #[derive(RustcEncodable, RustcDecodable, Debug)]
 pub struct Token {
-    // Expiration date as POSIX timestamp. -1 means infinite lifetime.
-    //
-    // This is analogue to the JWT specification, except for the special meaning of -1 as meaning
-    // "infinite expiration date". We need this kind of special value for simplified testing
-    // infrastructure, where it's annoying when tokens that are hardcoded everywhere suddenly
-    // expire.
+    // Expiration date as POSIX timestamp.
     pub exp: i64,
 
     // Each user has a server-stored mapping from client_id/Origin to app_id. The app_id is a
@@ -283,7 +278,7 @@ impl Token {
 
         let now = chrono::UTC::now().timestamp();
 
-        if session.exp < now && session.exp != -1 {
+        if session.exp < now {
             return None;
         }
 

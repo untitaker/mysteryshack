@@ -33,7 +33,17 @@ spectest:
 	$(MAKE) testserver-config
 	($(MAKE) testserver &);
 	wget -q --retry-connrefused --waitretry=1 http://localhost:6767/ -O /dev/null
-	cp $(SPEC_TEST_DIR)/suite-config.yml $(SPEC_TEST_DIR)/suite/config.yml
+	set e && ( \
+		echo 'storage_base_url: http://localhost:6767/storage/testuser'; \
+		echo 'storage_base_url_other: http://localhost:6767/storage/wronguser'; \
+		echo 'category: api-test'; \
+		echo -n 'token: '; \
+		$(TEST_CMD) user testuser authorize https://example.com api-test:rw; \
+		echo -n 'read_only_token: '; \
+		$(TEST_CMD) user testuser authorize https://example.com api-test:r; \
+		echo -n 'root_token: '; \
+		$(TEST_CMD) user testuser authorize https://example.com \*:rw; \
+	) > $(SPEC_TEST_DIR)/suite/config.yml
 	cd $(SPEC_TEST_DIR)/suite && rake test
 
 testserver:
