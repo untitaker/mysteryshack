@@ -79,6 +79,7 @@ clippy:
 	cargo build --features clippy
 
 release-build:
+	$(MAKE) libsodium
 	cargo build --release
 
 sh:
@@ -91,3 +92,4 @@ unittest:
 	cargo test
 
 .PHONY: test libsodium
+.DEFAULT_TARGET := release-build

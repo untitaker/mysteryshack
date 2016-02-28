@@ -15,10 +15,9 @@ for actual data though: It is reset daily.
 
 You need [OpenSSL](https://openssl.org/) installed.
 
-* Run `make libsodium`.
 * Install [Rust](https://www.rust-lang.org/) and [Cargo](https://crates.io/install).
 * Clone this repository.
-* Run `make release-build`.
+* Run `make`.
 * Stick `./target/release/mysteryshack` into your PATH.
 
 ## Usage
@@ -31,7 +30,7 @@ For advanced usage, see `mysteryshack --help` and `mysteryshack user --help`.
 
 ## Updating
 
-Just `git pull` and `cargo build --release` again.
+Just `git pull` and `make` again.
 
 ----
 
