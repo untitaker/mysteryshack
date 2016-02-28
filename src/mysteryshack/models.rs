@@ -27,7 +27,7 @@ use nix::errno;
 use url;
 use utils;
 use utils::ServerError;
-use web::oauth::{permissions_for_category, PermissionsMap, Session as OauthSession, CategoryPermissions};
+use web::oauth::{PermissionsMap, Session as OauthSession, CategoryPermissions};
 
 pub fn is_safe_identifier(string: &str) -> bool {
     regex::Regex::new(r"^[A-Za-z0-9_-]+$").unwrap().is_match(string)
@@ -145,8 +145,7 @@ impl User {
             rv
         };
 
-        *permissions_for_category(&session.permissions, category)
-            .unwrap_or(&anonymous)
+        *session.permissions.permissions_for_category(category).unwrap_or(&anonymous)
     }
 
     pub fn get_key(&self) -> Vec<u8> {
@@ -570,6 +569,7 @@ mod tests {
     use utils::ServerError;
     use web::oauth::Session as OauthSession;
     use web::oauth::CategoryPermissions;
+    use web::oauth::PermissionsMap;
     use tempdir::TempDir;
     use std::collections;
 
@@ -580,13 +580,15 @@ mod tests {
     fn get_root_token<'a>(u: &'a User) -> (App<'a>, Token) {
         Token::create(&u, OauthSession {
             client_id: "http://example.com".to_owned(),
-            permissions: {
-                let mut rv = collections::HashMap::new();
-                rv.insert("".to_owned(), CategoryPermissions {
-                    can_read: true,
-                    can_write: true
-                });
-                rv
+            permissions: PermissionsMap {
+                permissions: {
+                    let mut rv = collections::HashMap::new();
+                    rv.insert("".to_owned(), CategoryPermissions {
+                        can_read: true,
+                        can_write: true
+                    });
+                    rv
+                }
             }
         }).unwrap()
     }

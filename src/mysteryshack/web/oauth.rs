@@ -2,6 +2,7 @@ use std::collections;
 use std::fmt;
 use std::error::Error as ErrorTrait;
 
+use rustc_serialize;
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
 
@@ -17,12 +18,19 @@ use urlencoded;
 
 use super::super::utils;
 
-// FIXME: oauth module should not be concerned with serialization
+/// A OAuth request
 #[derive(RustcDecodable, RustcEncodable, Debug, Clone)]
 pub struct OauthRequest {
-    pub session: Session,
+    pub session: Option<Session>,  // May be none if malformed
     pub redirect_uri: url::Url,
     pub state: Option<String>,
+}
+
+impl ToJson for OauthRequest {
+    // ToJson for passing to template
+    fn to_json(&self) -> json::Json {
+        self.session.to_json()
+    }
 }
 
 #[derive(RustcDecodable, RustcEncodable, Debug, Clone)]
@@ -31,21 +39,70 @@ pub struct Session {
     pub permissions: PermissionsMap
 }
 
-pub type PermissionsMap = collections::HashMap<String, CategoryPermissions>;
-
-pub fn permissions_for_category<'a>(p: &'a PermissionsMap, category: &str) -> Option<&'a CategoryPermissions> {
-    match p.get(category) {
-        Some(x) => Some(x),
-        None => p.get("")
-    }
-}
-
 impl ToJson for Session {
     fn to_json(&self) -> json::Json {
         json!{
             "client_id" => self.client_id,
             "permissions" => self.permissions
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PermissionsMap {
+    pub permissions: collections::HashMap<String, CategoryPermissions>
+}
+
+impl PermissionsMap {
+    pub fn permissions_for_category<'a>(&'a self, category: &str) -> Option<&'a CategoryPermissions> {
+        match self.permissions.get(category) {
+            Some(x) => Some(x),
+            None => self.permissions.get("")
+        }
+    }
+
+    pub fn from_scope_string(scope: &str) -> Option<Self> {
+        let mut rv = PermissionsMap {
+            permissions: collections::HashMap::new()
+        };
+
+        for category_permission in scope.split(' ') {
+            let parts = category_permission.split(':').collect::<Vec<_>>();
+            if parts.len() != 2 { return None; }
+
+            let (category, permission) = (parts[0], parts[1]);
+            if category.len() == 0 || permission.len() == 0 { return None; }
+
+            let key = if category == "*" { "" } else { category }.to_owned();
+            if rv.permissions.get(&key).is_some() { return None; }
+
+            rv.permissions.insert(key, CategoryPermissions {
+                can_read: permission.contains('r'),
+                can_write: permission.contains('w')
+            });
+        }
+
+        Some(rv)
+    }
+}
+
+impl rustc_serialize::Decodable for PermissionsMap {
+    fn decode<D: rustc_serialize::Decoder>(d: &mut D) -> Result<Self, D::Error> {
+        collections::HashMap::<String, CategoryPermissions>::decode(d).map(|x| {
+            PermissionsMap { permissions: x }
+        })
+    }
+}
+
+impl rustc_serialize::Encodable for PermissionsMap {
+    fn encode<S: rustc_serialize::Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
+        self.permissions.encode(s)
+    }
+}
+
+impl ToJson for PermissionsMap {
+    fn to_json(&self) -> json::Json {
+        self.permissions.to_json()
     }
 }
 
@@ -62,13 +119,6 @@ impl ToJson for CategoryPermissions {
             "can_read" => self.can_read,
             "can_write" => self.can_write
         }
-    }
-}
-
-impl ToJson for OauthRequest {
-    // ToJson for passing to template
-    fn to_json(&self) -> json::Json {
-        self.session.to_json()
     }
 }
 
@@ -96,10 +146,7 @@ impl OauthRequest {
         };
 
         let mut rv = OauthRequest {
-            session: Session {
-                client_id: "".to_owned(),
-                permissions: collections::HashMap::new()
-            },
+            session: None,
             redirect_uri: match url::Url::parse(&try!(expect_param(query, "redirect_uri"))[..]) {
                 Ok(x) => x,
                 Err(e) => return Err({
@@ -111,38 +158,18 @@ impl OauthRequest {
             state: expect_param(query, "state").ok() 
         };
 
-        rv.session.client_id = utils::format_origin(&rv.redirect_uri);
-
-        let scope = match expect_param(query, "scope") {
-            Ok(x) => x,
-            Err(mut e) => {
-                e.request = Some(rv);
-                return Err(e);
+        rv.session = Some(Session {
+            client_id: utils::format_origin(&rv.redirect_uri),
+            permissions: match PermissionsMap::from_scope_string(&try!(expect_param(query, "scope"))[..]) {
+                Some(x) => x,
+                None => {
+                    let mut e = Error::new(ErrorKind::InvalidScope);
+                    e.msg = Some("Invalid scope.".to_owned());
+                    e.request = Some(rv);
+                    return Err(e);
+                }
             }
-        };
-
-        let scope_err = |x| { Err({
-            let mut e = Error::new(ErrorKind::InvalidScope);
-            e.msg = Some("Invalid scope.".to_owned());
-            e.request = Some(x);
-            e
-        }) };
-
-        for category_permission in scope.split(' ') {
-            let parts = category_permission.split(':').collect::<Vec<_>>();
-            if parts.len() != 2 { return scope_err(rv); }
-
-            let (category, permission) = (parts[0], parts[1]);
-            if category.len() == 0 || permission.len() == 0 { return scope_err(rv); }
-
-            let key = (if category == "*" { "" } else { category }).to_owned();
-            if rv.session.permissions.get(&key).is_some() { return scope_err(rv); }
-
-            rv.session.permissions.insert(key, CategoryPermissions {
-                can_read: permission.contains('r'),
-                can_write: permission.contains('w')
-            });
-        }
+        });
 
         Ok(rv)
     }
