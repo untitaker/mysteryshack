@@ -49,24 +49,16 @@ pub fn main() {
         .subcommand(SubCommand::with_name("user")
                     .about("User management")
                     .setting(AppSettings::SubcommandRequired)
+                    .arg(Arg::with_name("USERNAME")
+                         .help("The username")
+                         .required(true)
+                         .index(1))
                     .subcommand(SubCommand::with_name("create")
-                                .about("Create a new user")
-                                .arg(Arg::with_name("USERNAME")
-                                     .help("The username")
-                                     .required(true)
-                                     .index(1)))
+                                .about("Create a new user"))
                     .subcommand(SubCommand::with_name("setpass")
-                                .about("Change password for user")
-                                .arg(Arg::with_name("USERNAME")
-                                     .help("The username")
-                                     .required(true)
-                                     .index(1)))
+                                .about("Change password for user"))
                     .subcommand(SubCommand::with_name("delete")
-                                .about("Delete a user")
-                                .arg(Arg::with_name("USERNAME")
-                                     .help("The username")
-                                     .required(true)
-                                     .index(1))))
+                                .about("Delete a user")))
         .get_matches();
 
     let config_path = path::Path::new(matches.value_of("config").unwrap_or("./config"));
@@ -80,9 +72,9 @@ pub fn main() {
     };
 
     clap_dispatch!(matches; {
-        serve(_) => web::run_server(config),
-        user(user_matches) => clap_dispatch!(user_matches; {
-            create(_, USERNAME as username) => {
+        serve(_,) => web::run_server(config),  // FIXME: Bug in clap_dispatch: comma required
+        user(user_matches, USERNAME as username) => clap_dispatch!(user_matches; {
+            create(_) => {
                 let password_hash = match models::PasswordHash::from_password(
                     utils::double_prompt("Password for new user: ")) {
                     Ok(x) => x,
@@ -104,7 +96,7 @@ pub fn main() {
 
                 println!("Successfully created user {}", username);
             },
-            setpass(_, USERNAME as username) => {
+            setpass(_) => {
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
                     None => {
@@ -132,7 +124,7 @@ pub fn main() {
 
                 println!("Changed password for user {}", username);
             },
-            delete(_, USERNAME as username) => {
+            delete(_) => {
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
                     None => {
