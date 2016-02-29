@@ -11,9 +11,9 @@ dependencies = [
  "handlebars-iron 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "iron-login 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "iron-login 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "jsonwebtoken 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "jsonwebtoken 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -106,7 +106,7 @@ dependencies = [
 [[package]]
 name = "clippy"
 version = "0.0.44"
-source = "git+https://github.com/Manishearth/rust-clippy#105a14f5473158b5c74eb5d4de0a9655e66b7b1a"
+source = "git+https://github.com/Manishearth/rust-clippy#e4b3cbb09133ff4fbc1afb992565587035b78cb4"
 dependencies = [
  "regex-syntax 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "semver 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -399,7 +399,7 @@ dependencies = [
 
 [[package]]
 name = "iron-login"
-version = "0.1.9"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cookie 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -415,7 +415,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "jsonwebtoken"
-version = "1.0.0"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "rust-crypto 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -647,12 +647,12 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
 }
 
 impl User for models::User {
-    fn get_username(&self) -> &str { &self.userid[..] }
-    fn from_username(request: &mut Request, username: &str) -> Option<Self> {
+    fn get_user_id(&self) -> &str { &self.userid[..] }
+    fn from_user_id(request: &mut Request, user_id: &str) -> Option<Self> {
         let config = request.get::<persistent::Read<AppConfig>>().unwrap();
         let data_path = &config.data_path;
 
-        Self::get(data_path, username)
+        Self::get(data_path, user_id)
     }
 }
 
