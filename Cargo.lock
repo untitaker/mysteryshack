@@ -3,19 +3,19 @@ name = "mysteryshack"
 version = "0.1.0"
 dependencies = [
  "atomicwrites 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
- "chrono 0.2.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chrono 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy 0.0.44 (git+https://github.com/Manishearth/rust-clippy)",
+ "clippy 0.0.47 (git+https://github.com/Manishearth/rust-clippy)",
  "filetime 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "handlebars 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "handlebars-iron 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "handlebars 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "handlebars-iron 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-login 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "jsonwebtoken 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "nix 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nix 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "quick-error 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -68,14 +68,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "bodyparser"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.6.15 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_json 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -85,7 +85,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "chrono"
-version = "0.2.19"
+version = "0.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num 0.1.31 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -105,8 +105,8 @@ dependencies = [
 
 [[package]]
 name = "clippy"
-version = "0.0.44"
-source = "git+https://github.com/Manishearth/rust-clippy#e4b3cbb09133ff4fbc1afb992565587035b78cb4"
+version = "0.0.47"
+source = "git+https://github.com/Manishearth/rust-clippy#88ac226ac22a234b948fc78dceb953fceff8d6f7"
 dependencies = [
  "regex-syntax 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "semver 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -283,12 +283,12 @@ dependencies = [
 
 [[package]]
 name = "glob"
-version = "0.2.10"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "handlebars"
-version = "0.14.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "itertools 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -302,10 +302,10 @@ dependencies = [
 
 [[package]]
 name = "handlebars-iron"
-version = "0.11.1"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "handlebars 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "handlebars 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -370,7 +370,7 @@ dependencies = [
  "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "enum_primitive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "gif 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "glob 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glob 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.31 (registry+https://github.com/rust-lang/crates.io-index)",
  "png 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -537,11 +537,11 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.4.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -823,11 +823,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "serde_json"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num 0.1.31 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.6.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -993,7 +993,7 @@ name = "urlencoded"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "bodyparser 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bodyparser 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 0.2.38 (registry+https://github.com/rust-lang/crates.io-index)",
