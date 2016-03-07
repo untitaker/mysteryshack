@@ -13,7 +13,9 @@ for actual data though: It is reset daily.
 
 ## Installation
 
-You need [OpenSSL](https://openssl.org/) installed.
+You need [OpenSSL](https://openssl.org/),
+[Autoconf](https://www.gnu.org/software/autoconf/autoconf.html) and
+[libtool](https://www.gnu.org/software/libtool/) installed.
 
 * Install [Rust](https://www.rust-lang.org/) and [Cargo](https://crates.io/install).
 * Clone this repository.
