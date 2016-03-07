@@ -8,6 +8,9 @@ TMP_DIR=/tmp/mysteryshack
 APP_BINARY=./target/debug/mysteryshack
 TEST_CMD=$(APP_BINARY) -c $(TMP_DIR)/config
 
+release-build: libsodium
+	cargo build --release
+
 libsodium:
 	[ -d libsodium ] || git clone https://github.com/jedisct1/libsodium libsodium
 	set -ex && cd libsodium && \
@@ -16,8 +19,8 @@ libsodium:
 		rm -rf lib && \
 		./autogen.sh && \
 		./configure --prefix=$$PWD/../local/ --disable-shared && \
-		make && \
-		make install
+		$(MAKE) && \
+		$(MAKE) install
 
 install-test: install-spectest
 
@@ -78,9 +81,6 @@ install-clippy:
 clippy:
 	cargo build --features clippy
 
-release-build:
-	$(MAKE) libsodium
-	cargo build --release
 
 sh:
 	$$SHELL
@@ -92,4 +92,3 @@ unittest:
 	cargo test
 
 .PHONY: test libsodium
-.DEFAULT_TARGET := release-build
