@@ -9,6 +9,6 @@ def update():
     with cd('~/data/mysteryshack'):
         run('git pull')
         with prefix('source rust-setup.sh'):
-            run('cargo build --release')
+            run('make')
 
     run('svc -du ~/service/mysteryshack')
