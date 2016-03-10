@@ -13,9 +13,13 @@ for actual data though: It is reset daily.
 
 ## Installation
 
+You need [OpenSSL](https://openssl.org/),
+[Autoconf](https://www.gnu.org/software/autoconf/autoconf.html) and
+[libtool](https://www.gnu.org/software/libtool/) installed.
+
 * Install [Rust](https://www.rust-lang.org/) and [Cargo](https://crates.io/install).
 * Clone this repository.
-* Run `cargo build --release`.
+* Run `make`.
 * Stick `./target/release/mysteryshack` into your PATH.
 
 ## Usage
@@ -28,7 +32,7 @@ For advanced usage, see `mysteryshack --help` and `mysteryshack user --help`.
 
 ## Updating
 
-Just `git pull` and `cargo build --release` again.
+Just `git pull` and `make` again.
 
 ----
 

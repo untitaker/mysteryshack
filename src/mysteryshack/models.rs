@@ -9,15 +9,15 @@ use chrono;
 
 use rustc_serialize::json;
 use rustc_serialize::json::ToJson;
+use rustc_serialize::base64;
+use rustc_serialize::base64::{FromBase64,ToBase64};
 
-use jsonwebtoken as jwt;
 use uuid;
 
 use itertools::Itertools;
 use regex;
 
-use crypto::bcrypt;
-use rand::{Rng, StdRng};
+use sodiumoxide::crypto::{auth,pwhash};
 
 use atomicwrites;
 use time;
@@ -94,11 +94,18 @@ impl User {
     }
 
     pub fn get_password_hash(&self) -> Result<PasswordHash, ServerError> {
-        utils::read_json_file(self.password_path())
+        let mut f = try!(fs::File::open(self.password_path()));
+        let mut x: Vec<u8> = vec![];
+        try!(f.read_to_end(&mut x));
+        Ok(PasswordHash {
+            content: pwhash::HashedPassword::from_slice(&x).unwrap()
+        })
     }
 
-    pub fn set_password_hash(&self, hash: PasswordHash) -> Result<(), ServerError> {
-        utils::write_json_file(hash, self.password_path())
+    pub fn set_password_hash(&self, hash: PasswordHash) -> io::Result<()> {
+        let f = atomicwrites::AtomicFile::new(self.password_path(), atomicwrites::AllowOverwrite);
+        try!(f.write(|f| f.write(&hash.content[..])));
+        Ok(())
     }
 
     fn user_info_path(&self) -> path::PathBuf { self.user_path.join("user.json") }
@@ -148,22 +155,17 @@ impl User {
         *session.permissions.permissions_for_category(category).unwrap_or(&anonymous)
     }
 
-    pub fn get_key(&self) -> Vec<u8> {
+    pub fn get_key(&self) -> auth::Key {
         let mut f = fs::File::open(self.key_path()).unwrap();
         let mut s = vec![];
         f.read_to_end(&mut s).unwrap();
-        s
+        auth::Key::from_slice(&s).unwrap()
     }
 
     pub fn new_key(&self) -> io::Result<()> {
-        let mut key = [0u8; 4096];
-        {
-            let mut rng = try!(StdRng::new());
-            rng.fill_bytes(&mut key);
-        };
-
+        let key = auth::gen_key();
         let f = atomicwrites::AtomicFile::new(self.key_path(), atomicwrites::AllowOverwrite);
-        try!(f.write(|f| f.write(&key)));
+        try!(f.write(|f| f.write(&key.0)));
 
         for app in try!(self.walk_apps()) {
             try!(app.delete());
@@ -264,17 +266,36 @@ pub struct Token {
     pub permissions: PermissionsMap
 }
 
-const SESSION_HASH_ALGORITHM: jwt::Algorithm = jwt::Algorithm::HS256;
-
 impl Token {
     pub fn get<'a>(u: &'a User, token: &str) -> Option<(App<'a>, Self)> {
         let key = u.get_key();
 
-        let token_data = match jwt::decode::<Token>(&token, &key, SESSION_HASH_ALGORITHM) {
-            Ok(x) => x,
-            Err(_) => return None
+        let session = {
+            let mut token_parts = token.split('.').map(|x| x.from_base64());
+            let payload = match token_parts.next() { Some(Ok(x)) => x, _ => return None };
+
+            let tag = match token_parts.next() {
+                Some(Ok(x)) => match auth::Tag::from_slice(&x) {
+                    Some(x) => x,
+                    None => return None
+                },
+                _ => return None
+            };
+
+            if !auth::verify(&tag, &payload, &key) {
+                return None
+            };
+
+            let payload_string = match String::from_utf8(payload) {
+                Ok(x) => x,
+                Err(_) => return None
+            };
+
+            match json::decode::<Token>(&payload_string) {
+                Ok(x) => x,
+                Err(_) => return None
+            }
         };
-        let session = token_data.claims;
 
         let now = chrono::UTC::now().timestamp();
 
@@ -311,45 +332,36 @@ impl Token {
 
     pub fn token(&self, u: &User) -> String {
         let key = u.get_key();
-        jwt::encode(jwt::Header::new(SESSION_HASH_ALGORITHM), self, &key).unwrap()
+        let payload_string = json::encode(self).unwrap();
+        let payload = payload_string.as_bytes();
+        let tag = auth::authenticate(payload, &key);
+
+        {
+            let mut rv = String::new();
+            rv.push_str(&payload.to_base64(base64::STANDARD));
+            rv.push('.');
+            rv.push_str(&tag.0.to_base64(base64::STANDARD));
+            rv
+        }
     }
 }
 
 #[derive(RustcDecodable, RustcEncodable, Debug)]
 pub struct PasswordHash {
-    cost: u32,
-    salt: Vec<u8>,
-    hash: Vec<u8>
+    content: pwhash::HashedPassword
 }
 
 impl PasswordHash {
-    pub fn from_password(pwd: String) -> io::Result<PasswordHash> {
-        const DEFAULT_COST: u32 = 10;
-        const MAX_SALT_SIZE: usize = 16;
-        const OUTPUT_SIZE: usize = 24;
-
-        let salt = {
-            let mut rv = [0u8; MAX_SALT_SIZE];
-            let mut rng = try!(StdRng::new());
-            rng.fill_bytes(&mut rv);
-            rv
-        };
-
-        let mut hash = [0u8; OUTPUT_SIZE];
-        bcrypt::bcrypt(DEFAULT_COST, &salt, pwd.as_bytes(), &mut hash);
-        Ok(PasswordHash {
-            cost: DEFAULT_COST,
-            salt: salt.to_vec(),
-            hash: hash.to_vec()
-        })
+    pub fn from_password(pwd: String) -> PasswordHash {
+        PasswordHash {
+            content: pwhash::pwhash(pwd.as_bytes(), 
+                pwhash::OPSLIMIT_INTERACTIVE,
+                pwhash::MEMLIMIT_INTERACTIVE).unwrap()
+        }
     }
 
-    pub fn equals_password<T: AsRef<str>>(&self, pwd: T) -> bool {
-        let mut hash = Vec::with_capacity(self.hash.len());
-        for _ in 0..self.hash.len() { hash.push(0u8); }
-
-        bcrypt::bcrypt(self.cost, &self.salt, pwd.as_ref().as_bytes(), &mut hash);
-        hash == self.hash
+    pub fn equals_password<T: AsRef<[u8]>>(&self, pwd: T) -> bool {
+        pwhash::pwhash_verify(&self.content, pwd.as_ref())
     }
 }
 

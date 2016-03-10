@@ -13,7 +13,7 @@ extern crate atomicwrites;
 extern crate url;
 extern crate urlencoded;
 extern crate clap;
-extern crate crypto;
+extern crate sodiumoxide;
 extern crate rand;
 extern crate persistent;
 extern crate iron_login;
@@ -28,7 +28,6 @@ extern crate chrono;
 extern crate nix;
 extern crate itertools;
 extern crate uuid;
-extern crate jsonwebtoken;
 extern crate webicon;
 
 #[cfg(test)]

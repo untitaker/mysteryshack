@@ -1,6 +1,8 @@
 use std::path;
 use std::process;
 
+use sodiumoxide;
+
 use clap::{App, Arg, SubCommand, AppSettings};
 
 use config;
@@ -65,6 +67,8 @@ pub fn main() {
                                 .arg(Arg::with_name("SCOPE").required(true).index(2))))
         .get_matches();
 
+    assert!(sodiumoxide::init());
+
     let config_path = path::Path::new(matches.value_of("config").unwrap_or("./config"));
 
     let config = match config::Config::read_file(config_path) {
@@ -79,14 +83,7 @@ pub fn main() {
         serve(_,) => web::run_server(config),  // FIXME: Bug in clap_dispatch: comma required
         user(user_matches, USERNAME as username) => clap_dispatch!(user_matches; {
             create(_,) => {
-                let password_hash = match models::PasswordHash::from_password(
-                    utils::double_prompt("Password for new user: ")) {
-                    Ok(x) => x,
-                    Err(e) => {
-                        println!("Failed to hash password: {}", e);
-                        process::exit(1);
-                    }
-                };
+                let password_hash = models::PasswordHash::from_password(utils::double_prompt("Password for new user: "));
 
                 match models::User::create(&config.data_path, username).map(|user| {
                     user.set_password_hash(password_hash)
@@ -109,15 +106,7 @@ pub fn main() {
                     }
                 };
 
-                let password_hash = match models::PasswordHash::from_password(
-                    utils::double_prompt("New password: ")) {
-                    Ok(x) => x,
-                    Err(e) => {
-                        println!("Failed to hash password: {}", e);
-                        process::exit(1);
-                    }
-                };
-
+                let password_hash = models::PasswordHash::from_password(utils::double_prompt("New password: "));
                 match user.set_password_hash(password_hash) {
                     Ok(_) => (),
                     Err(e) => {
