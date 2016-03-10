@@ -8,8 +8,14 @@ TMP_DIR=/tmp/mysteryshack
 APP_BINARY=./target/debug/mysteryshack
 TEST_CMD=$(APP_BINARY) -c $(TMP_DIR)/config
 
-release-build: libsodium
+all: libsodium
+	$(MAKE) release-build
+
+release-build:
 	cargo build --release
+
+debug-build:
+	cargo build
 
 libsodium:
 	[ -d libsodium ] || git clone https://github.com/jedisct1/libsodium libsodium
@@ -30,9 +36,8 @@ install-spectest:
 	set -ex; \
 	[ -d $(SPEC_TEST_DIR)/suite ] || git clone https://github.com/remotestorage/api-test-suite $(SPEC_TEST_DIR)/suite
 	cd $(SPEC_TEST_DIR)/suite && bundle install --path vendor/bundle
-	cargo build
 
-testserver-config:
+testserver-config: debug-build
 	rm -r $(TMP_DIR) || true
 	mkdir -p $(TMP_DIR)
 	echo '[main]' > $(TMP_DIR)/config
@@ -42,9 +47,7 @@ testserver-config:
 	echo "use_proxy_headers = true" >> $(TMP_DIR)/config
 	yes password123 | $(TEST_CMD) user testuser create
 
-spectest:
-	cargo build
-	$(MAKE) testserver-config
+spectest: testserver-config
 	($(MAKE) testserver &);
 	wget -q --retry-connrefused --waitretry=1 http://localhost:6767/ -O /dev/null
 	set e && ( \
@@ -60,13 +63,12 @@ spectest:
 	) > $(SPEC_TEST_DIR)/suite/config.yml
 	cd $(SPEC_TEST_DIR)/suite && rake test
 
-testserver:
+testserver: debug-build
 	killall mysteryshack || true
 	$(TEST_CMD) serve
 
-serve:
-	cargo build
-	$(MAKE) testserver-config testserver
+serve: testserver-config
+	$(MAKE) testserver
 
 install-codegen:
 	true
