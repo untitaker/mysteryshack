@@ -130,7 +130,11 @@ pub fn run_server(config: config::Config) {
 
     router.get("/", |_: &mut Request| Ok(Response::with((status::Ok, Template::new("index", "".to_json())))));
 
-    let mut chain = Chain::new(router);
+    let mut mount = mount::Mount::new();
+    mount.mount("/", router);
+    mount.mount("/static/", get_static_handler());
+
+    let mut chain = Chain::new(mount);
     if config.use_proxy_headers { chain.link_before(XForwardedMiddleware); }
     chain.link(persistent::Read::<AppConfig>::both(config.clone()));
     chain.link(persistent::State::<AppLock>::both(()));
@@ -146,13 +150,9 @@ pub fn run_server(config: config::Config) {
     chain.link_after(SecurityHeaderMiddleware);
     chain.link_after(ErrorPrinter);
 
-    let mut mount = mount::Mount::new();
-    mount.mount("/", chain);
-    mount.mount("/static/", get_static_handler());
-
     let listen = &config.listen[..];
     println!("Listening on: http://{}", listen);
-    Iron::new(mount).http(listen).unwrap();
+    Iron::new(chain).http(listen).unwrap();
 }
 
 fn user_node_response(req: &mut Request) -> IronResult<Response> {
