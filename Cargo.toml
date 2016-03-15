@@ -46,6 +46,7 @@ webicon = "*"
 sodiumoxide = "*"
 iron-error-router = "*"
 please-clap = "*"
+termion = {git = "https://github.com/Ticki/termion", version = "*"}
 
 [dev-dependencies]
 tempdir = "*"

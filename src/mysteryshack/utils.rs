@@ -15,6 +15,9 @@ use rustc_serialize::json;
 use rustc_serialize::Decodable;
 use rustc_serialize::Encodable;
 
+use termion::TermRead;
+use termion::IntoRawMode;
+
 
 quick_error! {
     // FIXME: https://github.com/tailhook/quick-error/issues/3
@@ -77,22 +80,51 @@ pub fn prompt<T: AsRef<str>>(text: T) -> String {
     response
 }
 
-pub fn double_prompt<T: AsRef<str>>(text: T) -> String {
+pub fn double_password_prompt<T: AsRef<str>>(text: T) -> Option<String> {
+    let stdin = io::stdin();
+    let mut stdin = stdin.lock();
+    let stdout = io::stdout();
+    let mut stdout = stdout.lock();
+
     let again_text = {
-        let mut x = "(confirm) ".to_owned();
+        let mut x = "(repeat to confirm) ".to_owned();
         x.push_str(text.as_ref());
         x
     };
 
-    loop {
-        let first = prompt(text.as_ref());
-        let second = prompt(&again_text[..]);
-        if first == second {
-            return first;
-        } else {
-            println!("Inputs don't match. Try again.");
-        }
+    fn read_passwd<R: Read, W: Write>(reader: &mut R, writer: &mut W) -> io::Result<Option<String>> {
+        let _raw = writer.into_raw_mode();
+        reader.read_line()
+    };
+
+    macro_rules! p {
+        ($text:expr) => {{
+            stdout.write($text).unwrap();
+            stdout.flush().unwrap();
+            let result = read_passwd(&mut stdin, &mut stdout);
+            stdout.write(b"\n").unwrap();
+
+            match result {
+                Ok(Some(x)) => if x.len() == 0 {
+                    println!("Empty input.");
+                    return None;
+                } else {
+                    x
+                },
+                _ => return None
+            }
+        }}
     }
+
+    let first = p!(text.as_ref().as_bytes());
+    let second = p!(again_text.as_bytes());
+
+    if first != second {
+        println!("Inputs don't match.");
+        return None;
+    };
+
+    Some(first)
 }
 
 pub fn prompt_confirm<T: AsRef<str>>(question: T, default: bool) -> bool {

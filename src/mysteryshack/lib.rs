@@ -31,6 +31,7 @@ extern crate itertools;
 extern crate uuid;
 extern crate webicon;
 extern crate iron_error_router;
+extern crate termion;
 
 #[cfg(test)]
 extern crate tempdir;

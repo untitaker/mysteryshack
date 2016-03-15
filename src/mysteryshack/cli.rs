@@ -56,7 +56,8 @@ pub fn main() {
         serve() => web::run_server(config),
         user(user_matches, USERNAME as username) => clap_dispatch!(user_matches; {
             create(_) => {
-                let password_hash = models::PasswordHash::from_password(utils::double_prompt("Password for new user: "));
+                let password_hash = models::PasswordHash::from_password(
+                    utils::double_password_prompt("Password for new user: ").unwrap_or_else(|| process::exit(1)));
 
                 match models::User::create(&config.data_path, username).map(|user| {
                     user.set_password_hash(password_hash)
@@ -79,7 +80,8 @@ pub fn main() {
                     }
                 };
 
-                let password_hash = models::PasswordHash::from_password(utils::double_prompt("New password: "));
+                let password_hash = models::PasswordHash::from_password(
+                    utils::double_password_prompt("New password: ").unwrap_or_else(|| process::exit(1)));
                 match user.set_password_hash(password_hash) {
                     Ok(_) => (),
                     Err(e) => {
