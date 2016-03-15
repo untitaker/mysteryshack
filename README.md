@@ -68,9 +68,9 @@ As of OS X 10.11, OpenSSL isn't installed anymore. You'll need to install it man
 * Web admin sessions are stored inside signed cookies. The key is generated at
   server startup. To log everybody out, restart the server.
 
-* OAuth tokens are [JWT](https://jwt.io/)s that are signed with a per-user key.
-  The server stores a list of `client_id`s the user has authorized, and checks
-  if the token's `client_id` claim is found in that list.
+* OAuth tokens are JSON signed with a per-user key. The server stores a list
+  of `client_id`s the user has authorized, and checks if the token's
+  `client_id` claim is found in that list.
 
 
 ## License
