@@ -44,6 +44,7 @@ uuid = "*"
 clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
 webicon = "*"
 sodiumoxide = "*"
+iron-error-router = "*"
 
 [dev-dependencies]
 tempdir = "*"
