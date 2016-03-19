@@ -54,13 +54,13 @@ pub struct User {
 impl User {
     fn new_unchecked(basepath: &path::Path, userid: &str) -> Result<User, Error> {
         assert!(basepath.is_absolute());
-        if !is_safe_identifier(userid) {
-            Err(Error::InvalidUserName)
-        } else {
+        if is_safe_identifier(userid) {
             Ok(User {
                 user_path: basepath.join(userid.to_owned()),
                 userid: userid.to_owned()
             })
+        } else {
+            Err(Error::InvalidUserName)
         }
     }
 
@@ -542,7 +542,7 @@ impl<'a> UserFolder<'a> {
 impl<'a> UserNode<'a> for UserFolder<'a> {
     fn from_path(user: &'a User, path: &str) -> Option<UserFolder<'a>> {
         Some(UserFolder {
-            path: if path.ends_with('/') || path.len() == 0 {
+            path: if path.ends_with('/') || path.is_empty() {
                 path.to_owned()
             } else {
                 return None

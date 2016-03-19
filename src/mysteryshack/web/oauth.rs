@@ -71,7 +71,7 @@ impl PermissionsMap {
             if parts.len() != 2 { return None; }
 
             let (category, permission) = (parts[0], parts[1]);
-            if category.len() == 0 || permission.len() == 0 { return None; }
+            if category.is_empty() || permission.is_empty() { return None; }
 
             let key = if category == "*" { "" } else { category }.to_owned();
             if rv.permissions.get(&key).is_some() { return None; }

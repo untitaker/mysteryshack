@@ -5,7 +5,7 @@ dependencies = [
  "atomicwrites 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy 0.0.49 (git+https://github.com/Manishearth/rust-clippy)",
+ "clippy 0.0.54 (git+https://github.com/Manishearth/rust-clippy)",
  "filetime 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars-iron 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -105,11 +105,12 @@ dependencies = [
 
 [[package]]
 name = "clippy"
-version = "0.0.49"
-source = "git+https://github.com/Manishearth/rust-clippy#233000da3d0bf4b8887ef3031cade4eae7cc8498"
+version = "0.0.54"
+source = "git+https://github.com/Manishearth/rust-clippy#6ce7737d472efc54137f914b6dfea723ff474d26"
 dependencies = [
- "regex-syntax 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex-syntax 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "semver 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicode-normalization 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -738,6 +739,11 @@ dependencies = [
 [[package]]
 name = "regex-syntax"
 version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "regex-syntax"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]

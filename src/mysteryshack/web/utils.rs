@@ -48,7 +48,7 @@ impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
 
 fn parse_remote_addrs(s: String) -> Option<SocketAddr> {
     let split = s.split(',');
-    let mut iter_ips = split.map(|x| x.trim()).filter(|x| x.len() > 0);
+    let mut iter_ips = split.map(|x| x.trim()).filter(|x| !x.is_empty());
     iter_ips.next().and_then(|ip| SocketAddr::from_str(ip).ok())
 }
 
