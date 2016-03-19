@@ -21,6 +21,7 @@ use mount;
 use iron_login::{User,LoginManager};
 use urlencoded;
 use router::Router;
+use iron_error_router as error_router;
 
 use url;
 use rand::{Rng,StdRng};
@@ -146,6 +147,22 @@ pub fn run_server(config: config::Config) {
         rv.to_vec()
     }));
 
+
+    let mut error_router = error_router::ErrorRouter::new();
+    error_router.handle_status(status::NotFound, |_: &mut Request| {
+        Ok(Response::with((
+            status::NotFound,
+            alert_tmpl!("Error 404, content not found.", "/"),
+        )))
+    });
+    error_router.handle_status(status::InternalServerError, |_: &mut Request| {
+        Ok(Response::with((
+            status::InternalServerError,
+            alert_tmpl!("Error 500, internal server error.", "/"),
+        )))
+    });
+
+    chain.link_after(error_router);
     chain.link_after(get_template_engine());
     chain.link_after(SecurityHeaderMiddleware);
     chain.link_after(ErrorPrinter);
