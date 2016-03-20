@@ -664,7 +664,7 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
 }
 
 impl User for models::User {
-    fn get_user_id(&self) -> &str { &self.userid[..] }
+    fn get_user_id(&self) -> String { self.userid.to_owned() }
     fn from_user_id(request: &mut Request, user_id: &str) -> Option<Self> {
         let config = request.get::<persistent::Read<AppConfig>>().unwrap();
         let data_path = &config.data_path;
