@@ -12,5 +12,5 @@ pub fn get_template_engine() -> HandlebarsEngine {
     registry.register_template_string("login", include_str!("../../templates/login.hbs").to_owned()).unwrap();
     registry.register_template_string("oauth_entry", include_str!("../../templates/oauth_entry.hbs").to_owned()).unwrap();
     registry.register_template_string("oauth_error", include_str!("../../templates/oauth_error.hbs").to_owned()).unwrap();
-    HandlebarsEngine::from2(registry)
+    HandlebarsEngine::from(registry)
 }
