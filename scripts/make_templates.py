@@ -24,5 +24,5 @@ for fname in sorted(os.listdir("./src/templates/")):
       "include_str!(\"../../templates/{fname}\").to_owned()).unwrap();"
       .format(name=fname.replace(".hbs", ""), fname=fname))
 
-w("    HandlebarsEngine::from2(registry)")
+w("    HandlebarsEngine::from(registry)")
 w("}")
