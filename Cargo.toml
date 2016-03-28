@@ -45,6 +45,7 @@ clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", opt
 webicon = "*"
 sodiumoxide = "*"
 iron-error-router = "*"
+please-clap = "*"
 
 [dev-dependencies]
 tempdir = "*"

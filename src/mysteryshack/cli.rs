@@ -10,40 +10,6 @@ use models;
 use web;
 use utils;
 
-macro_rules! clap_dispatch {
-    ($matches:expr; { $( $name:ident $match_arm_args:tt => $callback:expr ),* }) => {
-        match $matches.subcommand_name() {
-            $(
-                Some(stringify!($name)) => {
-                    let matches = $matches.subcommand_matches(stringify!($name)).unwrap();
-                    clap_dispatch!(MATCH_ARM_ARGS, matches, $match_arm_args);
-                    $callback;
-                }
-            )*
-            Some(x) => {
-                panic!("Internal error: Command not covered: {}", x);
-            },
-            None => {
-                println!("Subcommand required. See --help for help.");
-                process::exit(1);
-            }
-        }
-    };
-
-    (MATCH_ARM_ARGS, $matches:ident, ( $matches_name:pat, $($arg_name:ident as $varname:ident),* )) => {
-        $(
-            let $varname = $matches.value_of(stringify!($arg_name)).unwrap();
-        )*
-        let $matches_name = $matches;
-    };
-
-    // Transform `foo(_) => ()` into `foo(_,) => ()`
-    (MATCH_ARM_ARGS, $matches:ident, ( $matches_name:pat )) => { clap_dispatch!(MATCH_ARM_ARGS, $matches, ($matches_name,)) };
-
-    // Transform `foo() => ()` into `foo(_,) => ()`
-    (MATCH_ARM_ARGS, $matches:ident, ()) => { clap_dispatch!(MATCH_ARM_ARGS, $matches, (_,)) };
-
-}
 
 pub fn main() {
     let matches =

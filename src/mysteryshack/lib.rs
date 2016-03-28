@@ -13,6 +13,7 @@ extern crate atomicwrites;
 extern crate url;
 extern crate urlencoded;
 extern crate clap;
+#[macro_use] extern crate please_clap;
 extern crate sodiumoxide;
 extern crate rand;
 extern crate persistent;
