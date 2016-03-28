@@ -11,19 +11,12 @@ use web;
 use utils;
 
 macro_rules! clap_dispatch {
-    // Transform `foo(_) => ()` into `foo(_,) => ()` such that it actually can be parsed.
-    // Using a single rule is only possible in nightly.
-    ($matches:expr; { $( $name:ident ( $matches_name:pat ) => $callback:expr ),* }) => (clap_dispatch!($matches; { $( $name($matches_name,) => $callback ),* }));
-
-    ($matches:expr; { $( $name:ident ($matches_name:pat, $($arg_name:ident as $varname:ident),*) => $callback:expr ),* }) => {
+    ($matches:expr; { $( $name:ident $match_arm_args:tt => $callback:expr ),* }) => {
         match $matches.subcommand_name() {
             $(
                 Some(stringify!($name)) => {
                     let matches = $matches.subcommand_matches(stringify!($name)).unwrap();
-                    $(
-                        let $varname = matches.value_of(stringify!($arg_name)).unwrap();
-                    )*
-                    let $matches_name = matches;
+                    clap_dispatch!(MATCH_ARM_ARGS, matches, $match_arm_args);
                     $callback;
                 }
             )*
@@ -36,6 +29,20 @@ macro_rules! clap_dispatch {
             }
         }
     };
+
+    (MATCH_ARM_ARGS, $matches:ident, ( $matches_name:pat, $($arg_name:ident as $varname:ident),* )) => {
+        $(
+            let $varname = $matches.value_of(stringify!($arg_name)).unwrap();
+        )*
+        let $matches_name = $matches;
+    };
+
+    // Transform `foo(_) => ()` into `foo(_,) => ()`
+    (MATCH_ARM_ARGS, $matches:ident, ( $matches_name:pat )) => { clap_dispatch!(MATCH_ARM_ARGS, $matches, ($matches_name,)) };
+
+    // Transform `foo() => ()` into foo(_,) => ()`
+    (MATCH_ARM_ARGS, $matches:ident, ()) => { clap_dispatch!(MATCH_ARM_ARGS, $matches, (_,)) };
+
 }
 
 pub fn main() {
@@ -80,9 +87,9 @@ pub fn main() {
     };
 
     clap_dispatch!(matches; {
-        serve(_,) => web::run_server(config),  // FIXME: Bug in clap_dispatch: comma required
+        serve() => web::run_server(config),
         user(user_matches, USERNAME as username) => clap_dispatch!(user_matches; {
-            create(_,) => {
+            create(_) => {
                 let password_hash = models::PasswordHash::from_password(utils::double_prompt("Password for new user: "));
 
                 match models::User::create(&config.data_path, username).map(|user| {
@@ -97,7 +104,7 @@ pub fn main() {
 
                 println!("Successfully created user {}", username);
             },
-            setpass(_,) => {
+            setpass() => {
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
                     None => {
@@ -117,7 +124,7 @@ pub fn main() {
 
                 println!("Changed password for user {}", username);
             },
-            delete(_,) => {
+            delete() => {
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
                     None => {
