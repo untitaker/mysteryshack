@@ -40,7 +40,7 @@ macro_rules! clap_dispatch {
     // Transform `foo(_) => ()` into `foo(_,) => ()`
     (MATCH_ARM_ARGS, $matches:ident, ( $matches_name:pat )) => { clap_dispatch!(MATCH_ARM_ARGS, $matches, ($matches_name,)) };
 
-    // Transform `foo() => ()` into foo(_,) => ()`
+    // Transform `foo() => ()` into `foo(_,) => ()`
     (MATCH_ARM_ARGS, $matches:ident, ()) => { clap_dispatch!(MATCH_ARM_ARGS, $matches, (_,)) };
 
 }
