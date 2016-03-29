@@ -153,7 +153,7 @@ pub fn run_server(config: config::Config) {
         status::NotFound,
         alert_tmpl!("Error 404, content not found.", "/"),
     ));
-    error_router.modifier_for_status(status::NotFound, (
+    error_router.modifier_for_status(status::InternalServerError, (
         status::InternalServerError,
         alert_tmpl!("Error 500, internal server error.", "/"),
     ));
