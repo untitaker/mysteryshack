@@ -149,18 +149,14 @@ pub fn run_server(config: config::Config) {
 
 
     let mut error_router = error_router::ErrorRouter::new();
-    error_router.handle_status(status::NotFound, |_: &mut Request| {
-        Ok(Response::with((
-            status::NotFound,
-            alert_tmpl!("Error 404, content not found.", "/"),
-        )))
-    });
-    error_router.handle_status(status::InternalServerError, |_: &mut Request| {
-        Ok(Response::with((
-            status::InternalServerError,
-            alert_tmpl!("Error 500, internal server error.", "/"),
-        )))
-    });
+    error_router.modifier_for_status(status::NotFound, (
+        status::NotFound,
+        alert_tmpl!("Error 404, content not found.", "/"),
+    ));
+    error_router.modifier_for_status(status::NotFound, (
+        status::InternalServerError,
+        alert_tmpl!("Error 500, internal server error.", "/"),
+    ));
 
     chain.link_after(error_router);
     chain.link_after(get_template_engine());
