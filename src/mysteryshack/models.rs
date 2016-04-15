@@ -226,7 +226,7 @@ impl<'a> App<'a> {
     }
 
     pub fn create(u: &'a User, client_id: &str) -> Result<App<'a>, io::Error> {
-        let app_id = uuid::Uuid::new_v4().to_simple_string();
+        let app_id = uuid::Uuid::new_v4().simple().to_string();
 
         let p = App::get_path(u, client_id);
         try!(fs::create_dir_all(&p));
