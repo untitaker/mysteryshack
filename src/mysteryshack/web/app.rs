@@ -483,20 +483,21 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
                         // Spec version
                         "http://remotestorage.io/spec/version" => version,
 
-                        // OAuth
+                        // OAuth as in draft-06
                         "http://tools.ietf.org/html/rfc6749#section-4.2" => oauth_url.serialize(),
 
-                        // Support for providing the access token via URL query param
-                        "http://tools.ietf.org/html/rfc6750#section-2.3" => false,
+                        // No support for providing the access token via URL query param as in
+                        // draft-06
+                        "http://tools.ietf.org/html/rfc6750#section-2.3" => (),
 
-                        // Content-Range as in draft-02
-                        "http://tools.ietf.org/html/rfc2616#section-14.16" => false,
+                        // No Content-Range as in draft-02
+                        "http://tools.ietf.org/html/rfc2616#section-14.16" => (),
 
-                        // Content-Range as in draft-05
-                        "http://tools.ietf.org/html/rfc7233" => false,
+                        // No Content-Range as in draft-06
+                        "http://tools.ietf.org/html/rfc7233" => (),
 
-                        // Web authoring
-                        "http://remotestorage.io/spec/web-authoring" => false
+                        // No web authoring as in draft-06
+                        "http://remotestorage.io/spec/web-authoring" => ()
                     }
                 });
             }
