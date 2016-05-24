@@ -548,8 +548,7 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
         let mut r = Response::with(status::Ok);
 
         r.headers.set(header::ContentType("application/ld+json".parse().unwrap()));
-        // FIXME: https://github.com/hyperium/hyper/issues/666
-        r.headers.set_raw("Expires", vec!["0".as_bytes().to_owned()]);
+        r.headers.set(header::CacheControl(vec![header::CacheDirective::NoCache]));
         r.headers.set(header::ETag(header::EntityTag::new(false, shown_etag)));
 
         r.set_mut(json::encode(&json!{
@@ -595,8 +594,7 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
 
         r.headers.set(header::ContentType(meta.content_type.parse().unwrap()));
         r.headers.set(header::ETag(header::EntityTag::new(false, itry!(self.read_etag()))));
-        // FIXME: https://github.com/hyperium/hyper/issues/666
-        r.headers.set_raw("Expires", vec!["0".as_bytes().to_owned()]);
+        r.headers.set(header::CacheControl(vec![header::CacheDirective::NoCache]));
         r.set_mut(itry!(self.open()));
         Ok(r)
     }
