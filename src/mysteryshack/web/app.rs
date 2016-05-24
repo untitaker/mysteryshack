@@ -483,20 +483,21 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
                         // Spec version
                         "http://remotestorage.io/spec/version" => version,
 
-                        // OAuth
+                        // OAuth as in draft-06
                         "http://tools.ietf.org/html/rfc6749#section-4.2" => oauth_url.serialize(),
 
-                        // Support for providing the access token via URL query param
-                        "http://tools.ietf.org/html/rfc6750#section-2.3" => false,
+                        // No support for providing the access token via URL query param as in
+                        // draft-06
+                        "http://tools.ietf.org/html/rfc6750#section-2.3" => (),
 
-                        // Content-Range as in draft-02
-                        "http://tools.ietf.org/html/rfc2616#section-14.16" => false,
+                        // No Content-Range as in draft-02
+                        "http://tools.ietf.org/html/rfc2616#section-14.16" => (),
 
-                        // Content-Range as in draft-05
-                        "http://tools.ietf.org/html/rfc7233" => false,
+                        // No Content-Range as in draft-06
+                        "http://tools.ietf.org/html/rfc7233" => (),
 
-                        // Web authoring
-                        "http://remotestorage.io/spec/web-authoring" => false
+                        // No web authoring as in draft-06
+                        "http://remotestorage.io/spec/web-authoring" => ()
                     }
                 });
             }
@@ -548,8 +549,8 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
         let mut r = Response::with(status::Ok);
 
         r.headers.set(header::ContentType("application/ld+json".parse().unwrap()));
-        // FIXME: https://github.com/hyperium/hyper/issues/666
-        r.headers.set_raw("Expires", vec!["0".as_bytes().to_owned()]);
+        r.headers.set(header::CacheControl(vec![header::CacheDirective::NoCache]));
+        r.headers.set(header::AcceptRanges(vec![header::RangeUnit::None]));
         r.headers.set(header::ETag(header::EntityTag::new(false, shown_etag)));
 
         r.set_mut(json::encode(&json!{
@@ -595,8 +596,8 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
 
         r.headers.set(header::ContentType(meta.content_type.parse().unwrap()));
         r.headers.set(header::ETag(header::EntityTag::new(false, itry!(self.read_etag()))));
-        // FIXME: https://github.com/hyperium/hyper/issues/666
-        r.headers.set_raw("Expires", vec!["0".as_bytes().to_owned()]);
+        r.headers.set(header::CacheControl(vec![header::CacheDirective::NoCache]));
+        r.headers.set(header::AcceptRanges(vec![header::RangeUnit::None]));
         r.set_mut(itry!(self.open()));
         Ok(r)
     }
