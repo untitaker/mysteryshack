@@ -550,6 +550,7 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
 
         r.headers.set(header::ContentType("application/ld+json".parse().unwrap()));
         r.headers.set(header::CacheControl(vec![header::CacheDirective::NoCache]));
+        r.headers.set(header::AcceptRanges(vec![header::RangeUnit::None]));
         r.headers.set(header::ETag(header::EntityTag::new(false, shown_etag)));
 
         r.set_mut(json::encode(&json!{
@@ -596,6 +597,7 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
         r.headers.set(header::ContentType(meta.content_type.parse().unwrap()));
         r.headers.set(header::ETag(header::EntityTag::new(false, itry!(self.read_etag()))));
         r.headers.set(header::CacheControl(vec![header::CacheDirective::NoCache]));
+        r.headers.set(header::AcceptRanges(vec![header::RangeUnit::None]));
         r.set_mut(itry!(self.open()));
         Ok(r)
     }
