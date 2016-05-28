@@ -72,6 +72,9 @@ As of OS X 10.11, OpenSSL isn't installed anymore. You'll need to install it man
   of `client_id`s the user has authorized, and checks if the token's
   `client_id` claim is found in that list.
 
+* Mysteryshack violates the WebFinger RFC by returning bogus information for
+  nonexistent accounts. This is done to prevent account enumeration.
+
 
 ## License
 
