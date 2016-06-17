@@ -51,7 +51,7 @@ macro_rules! require_login_as {
     ($req:expr, $expect_user:expr) => ({
         let login_redirect = Ok(Response::with((status::Found, Redirect({
             let mut url = $req.url.clone();
-            url.path = vec!["login".to_owned(), "".to_owned()];
+            url.path = vec!["dashboard".to_owned(), "login".to_owned(), "".to_owned()];
             url.fragment = None;
             let mut url = url.into_generic_url();
             let redirect_to = $req.url.clone().into_generic_url().serialize();
@@ -123,11 +123,11 @@ pub fn run_server(config: config::Config) {
     router.get("/dashboard/", user_dashboard);
     router.post("/dashboard/delete-app", user_dashboard_delete_app);
     router.post("/dashboard/change-password", user_dashboard_change_password);
-    router.get("/login/", user_login);
-    router.post("/login/", user_login);
-    router.post("/logout/", user_logout);
-    router.get("/oauth/:userid/", oauth_entry);
-    router.post("/oauth/:userid/", oauth_entry);
+    router.get("/dashboard/login/", user_login);
+    router.post("/dashboard/login/", user_login);
+    router.post("/dashboard/logout/", user_logout);
+    router.get("/dashboard/oauth/:userid/", oauth_entry);
+    router.post("/dashboard/oauth/:userid/", oauth_entry);
 
     router.get("/", |_: &mut Request| Ok(Response::with((status::Ok, Template::new("index", "".to_json())))));
 
@@ -139,13 +139,17 @@ pub fn run_server(config: config::Config) {
     if config.use_proxy_headers { chain.link_before(XForwardedMiddleware); }
     chain.link(persistent::Read::<AppConfig>::both(config.clone()));
     chain.link(persistent::State::<AppLock>::both(()));
-    chain.around(LoginManager::new({
-        println!("Generating session keys...");
-        let mut rv = [0u8; 24];
-        let mut rng = StdRng::new().unwrap();
-        rng.fill_bytes(&mut rv);
-        rv.to_vec()
-    }));
+    chain.around({
+        let mut rv = LoginManager::new({
+            println!("Generating session keys...");
+            let mut rv = [0u8; 24];
+            let mut rng = StdRng::new().unwrap();
+            rng.fill_bytes(&mut rv);
+            rv.to_vec()
+        });
+        rv.config.cookie_base.path = Some("/dashboard/".to_owned());
+        rv
+    });
 
 
     let mut error_router = error_router::ErrorRouter::new();
@@ -458,7 +462,7 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
         let mut url = request.url.clone();
         url.query = None;
         url.fragment = None;
-        url.path = vec!["oauth".to_owned(), userid.to_owned(), "".to_owned()];
+        url.path = vec!["dashboard".to_owned(), "oauth".to_owned(), userid.to_owned(), "".to_owned()];
         url.into_generic_url()
     };
 
