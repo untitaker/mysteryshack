@@ -15,8 +15,8 @@ use rustc_serialize::json;
 use rustc_serialize::Decodable;
 use rustc_serialize::Encodable;
 
-use termion::TermRead;
-use termion::IntoRawMode;
+use termion::raw::IntoRawMode;
+use termion::input::TermRead;
 
 
 quick_error! {
