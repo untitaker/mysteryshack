@@ -5,3 +5,4 @@ tests/spec/suite
 *.pyc
 libsodium
 local
+data
