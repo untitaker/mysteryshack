@@ -1,8 +1,7 @@
 macro_rules! json {
     {$($keys:expr => $values:expr),*} => ({
-        use ::rustc_serialize::json::Json;
         let kv_pairs = vec![ $(($keys.to_string(), json!($values))),* ];
-        Json::Object(kv_pairs.into_iter().collect())
+        ::rustc_serialize::json::Json::Object(kv_pairs.into_iter().collect())
     });
     ($value:expr) => ({
         use ::rustc_serialize::json::ToJson;
