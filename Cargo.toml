@@ -40,7 +40,6 @@ filetime = "*"
 chrono = "*"
 nix = "*"
 itertools = "*"
-uuid = "*"
 clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
 webicon = "*"
 rust_sodium = "0.1"

@@ -3,6 +3,7 @@ use std::io;
 use std::fs;
 use std::ops::Deref;
 use std::error::Error;
+use std::iter::FromIterator;
 
 use hyper::header;
 
@@ -24,7 +25,8 @@ use router::Router;
 use iron_error_router as error_router;
 
 use url;
-use rand::{Rng,StdRng};
+use rand;
+use rand::Rng;
 use webicon;
 
 use rustc_serialize::json;
@@ -142,10 +144,8 @@ pub fn run_server(config: config::Config) {
     chain.around({
         let mut rv = LoginManager::new({
             println!("Generating session keys...");
-            let mut rv = [0u8; 24];
-            let mut rng = StdRng::new().unwrap();
-            rng.fill_bytes(&mut rv);
-            rv.to_vec()
+            let mut rng = rand::OsRng::new().unwrap();
+            rng.gen_iter::<u8>().take(64).collect()
         });
         rv.config.cookie_base.path = Some("/dashboard/".to_owned());
         rv

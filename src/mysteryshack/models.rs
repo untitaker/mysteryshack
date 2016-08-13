@@ -4,6 +4,7 @@ use std::io::Read;
 use std::io::Write;
 use std::fs;
 use std::os::unix::fs::MetadataExt;
+use std::iter::FromIterator;
 
 use chrono;
 
@@ -12,7 +13,8 @@ use rustc_serialize::json::ToJson;
 use rustc_serialize::base64;
 use rustc_serialize::base64::{FromBase64,ToBase64};
 
-use uuid;
+use rand;
+use rand::Rng;
 
 use itertools::Itertools;
 use regex;
@@ -226,7 +228,10 @@ impl<'a> App<'a> {
     }
 
     pub fn create(u: &'a User, client_id: &str) -> Result<App<'a>, io::Error> {
-        let app_id = uuid::Uuid::new_v4().simple().to_string();
+        let app_id = {
+            let mut rng = try!(rand::OsRng::new());
+            String::from_iter(rng.gen_ascii_chars().take(64))
+        };
 
         let p = App::get_path(u, client_id);
         try!(fs::create_dir_all(&p));
@@ -236,13 +241,12 @@ impl<'a> App<'a> {
             atomicwrites::DisallowOverwrite
         );
 
-        let app_id_bytes = app_id.to_owned().into_bytes();
-        try!(f.write(|f| f.write(&app_id_bytes)));
+        try!(f.write(|f| f.write_all(app_id.as_bytes())));
 
         Ok(App {
             user: u,
             client_id: client_id.to_owned(),
-            app_id: app_id.to_owned()
+            app_id: app_id
         })
     }
 }
