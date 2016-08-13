@@ -13,7 +13,7 @@ dependencies = [
  "iron 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-error-router 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-login 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "itertools 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "itertools 0.4.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -308,7 +308,7 @@ name = "handlebars"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "itertools 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "itertools 0.4.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -435,7 +435,7 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.4.12"
+version = "0.4.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -1279,7 +1279,7 @@ dependencies = [
 "checksum iron 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c03b4a39e3e58030d7a6fade38ed05600e92aeaf7b3b7f6bbfbec33fba60d876"
 "checksum iron-error-router 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "df4ce67827c1dfd9f29b78445befb9f4a44c17d4ab6430ea1aab54d9ce6f171f"
 "checksum iron-login 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "ab48ae6e5836bf28a34a0cee751cb0c02da8b2d8ea03bf0b031fd5ca1435451f"
-"checksum itertools 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)" = "dfdddb32e1a791e530b80fb151d818b0454328febaa4bc29d5a948edfe0ca218"
+"checksum itertools 0.4.17 (registry+https://github.com/rust-lang/crates.io-index)" = "7ddb83e0e9730d830afba4e6839077948b4efa22075f7cd80a3867ec286c610f"
 "checksum kernel32-sys 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "b5b5e7edf375e6d26243bde172f1d5ed1446f4a766fc9b7006e1fd27258243f1"
 "checksum kuchiki 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "a0db46bb2bf1c00a21d7fc5c55fce0e40c8fdb8dc859d58f0c98c8da024e1898"
 "checksum language-tags 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "a91d884b6667cd606bb5a69aa0c99ba811a115fc68915e7056ec08a46e93199a"
