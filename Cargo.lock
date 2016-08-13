@@ -4,7 +4,7 @@ version = "0.1.0"
 dependencies = [
  "atomicwrites 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.9.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.63 (git+https://github.com/Manishearth/rust-clippy)",
  "filetime 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -45,7 +45,7 @@ dependencies = [
 
 [[package]]
 name = "ansi_term"
-version = "0.7.2"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -71,6 +71,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "bitflags"
 version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "bitflags"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -101,11 +106,11 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "2.9.3"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "ansi_term 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "bitflags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ansi_term 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "strsim 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "term_size 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1230,15 +1235,16 @@ dependencies = [
 
 [metadata]
 "checksum aho-corasick 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "67077478f0a03952bed2e6786338d400d40c25e9836e08ad50af96607317fd03"
-"checksum ansi_term 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)" = "1f46cd5b1d660c938e3f92dfe7a73d832b3281479363dd0cd9c1c2fbf60f7962"
+"checksum ansi_term 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c877397e09fec7a240af5fa74ad0124054b8066149d6544cd1ace93f8de3be68"
 "checksum atomicwrites 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)" = "cb0c17968587e21d3fec90bd67dc2b7c956189a9e81ce4f8910172a787b66556"
 "checksum bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "32866f4d103c4e438b1db1158aa1b1a80ee078e5d77a59a2f906fd62a577389c"
 "checksum bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8dead7461c1127cf637931a1e50934eb6eee8bff2f74433ac7909e9afcee04a3"
 "checksum bitflags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "4f67931368edf3a9a51d29886d245f1c3db2f1ef0dcc9e35ff70341b78c10d23"
+"checksum bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "aad18937a628ec6abcd26d1489012cc0e18c21798210f491af69ded9b881106d"
 "checksum bodyparser 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "61b8de7c9850ace6754449f7bed9869771a84f6f3089281aaea6d521a684f6d3"
 "checksum byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "96c8b41881888cc08af32d47ac4edd52bc7fa27fef774be47a92443756451304"
 "checksum chrono 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)" = "71355d5c81bc6c44258af19f0e51463c00a82a94c73f0465b3ebaf94e1872817"
-"checksum clap 2.9.3 (registry+https://github.com/rust-lang/crates.io-index)" = "0a95e68c82e42bca25eb3feb24f7bcea51b6d7c9e1b58d341b7b287f6d11db3c"
+"checksum clap 2.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6adb6a046b8155874daf331e6cb6f4a3edf3ea3cbc625809eb4077a384124761"
 "checksum clippy 0.0.63 (git+https://github.com/Manishearth/rust-clippy)" = "<none>"
 "checksum color_quant 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a475fc4af42d83d28adf72968d9bcfaf035a1a9381642d8e85d8a04957767b0d"
 "checksum conduit-mime-types 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)" = "95ca30253581af809925ef68c2641cc140d6183f43e12e0af4992d53768bd7b8"
