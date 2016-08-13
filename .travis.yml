@@ -16,7 +16,6 @@ install:
 
 script:
     - make TMP_DIR=$PWD/tmp $BUILD
-    - git diff --exit-code
 
 cache:
     directories:
