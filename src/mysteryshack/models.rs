@@ -106,7 +106,7 @@ impl User {
 
     pub fn set_password_hash(&self, hash: PasswordHash) -> io::Result<()> {
         let f = atomicwrites::AtomicFile::new(self.password_path(), atomicwrites::AllowOverwrite);
-        try!(f.write(|f| f.write(&hash.content[..])));
+        try!(f.write(|f| f.write_all(&hash.content[..])));
         Ok(())
     }
 
@@ -167,7 +167,7 @@ impl User {
     pub fn new_key(&self) -> io::Result<()> {
         let key = auth::gen_key();
         let f = atomicwrites::AtomicFile::new(self.key_path(), atomicwrites::AllowOverwrite);
-        try!(f.write(|f| f.write(&key.0)));
+        try!(f.write(|f| f.write_all(&key.0)));
 
         for app in try!(self.walk_apps()) {
             try!(app.delete());

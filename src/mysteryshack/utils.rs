@@ -70,7 +70,7 @@ pub fn safe_join<P: AsRef<path::Path>, Q: AsRef<path::Path>>(base: P, user_input
 
 pub fn prompt<T: AsRef<str>>(text: T) -> String {
     let mut stdout = io::stdout();
-    stdout.write(text.as_ref().as_bytes()).unwrap();
+    stdout.write_all(text.as_ref().as_bytes()).unwrap();
     stdout.flush().unwrap();
 
     let stdin = io::stdin();
@@ -99,10 +99,10 @@ pub fn double_password_prompt<T: AsRef<str>>(text: T) -> Option<String> {
 
     macro_rules! p {
         ($text:expr) => {{
-            stdout.write($text).unwrap();
+            stdout.write_all($text).unwrap();
             stdout.flush().unwrap();
             let result = read_passwd(&mut stdin, &mut stdout);
-            stdout.write(b"\n").unwrap();
+            stdout.write_all(b"\n").unwrap();
 
             match result {
                 Ok(Some(x)) => if x.len() == 0 {
@@ -157,7 +157,7 @@ pub fn read_json_file<T: Decodable, P: AsRef<path::Path>>(p: P) -> Result<T, Ser
 pub fn write_json_file<T: Encodable, P: AsRef<path::Path>>(t: T, p: P) -> Result<(), ServerError> {
     let data = try!(json::encode(&t)).into_bytes();
     let f = atomicwrites::AtomicFile::new(p, atomicwrites::AllowOverwrite);
-    try!(f.write(|f| f.write(&data)));
+    try!(f.write(|f| f.write_all(&data)));
     Ok(())
 }
 
