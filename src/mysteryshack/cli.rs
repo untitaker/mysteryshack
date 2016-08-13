@@ -1,7 +1,7 @@
 use std::path;
 use std::process;
 
-use sodiumoxide;
+use rust_sodium;
 
 use clap::{App, Arg, SubCommand, AppSettings};
 
@@ -40,7 +40,7 @@ pub fn main() {
                                 .arg(Arg::with_name("SCOPE").required(true).index(2))))
         .get_matches();
 
-    assert!(sodiumoxide::init());
+    assert!(rust_sodium::init());
 
     let config_path = path::Path::new(matches.value_of("config").unwrap_or("./config"));
 

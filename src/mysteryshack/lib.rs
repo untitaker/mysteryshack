@@ -14,7 +14,7 @@ extern crate url;
 extern crate urlencoded;
 extern crate clap;
 #[macro_use] extern crate please_clap;
-extern crate sodiumoxide;
+extern crate rust_sodium;
 extern crate rand;
 extern crate persistent;
 extern crate iron_login;

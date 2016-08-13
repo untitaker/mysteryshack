@@ -17,7 +17,7 @@ use uuid;
 use itertools::Itertools;
 use regex;
 
-use sodiumoxide::crypto::{auth,pwhash};
+use rust_sodium::crypto::{auth,pwhash};
 
 use atomicwrites;
 use time;

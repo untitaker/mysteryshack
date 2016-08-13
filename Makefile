@@ -8,7 +8,7 @@ TMP_DIR=/tmp/mysteryshack
 APP_BINARY=./target/debug/mysteryshack
 TEST_CMD=$(APP_BINARY) -c $(TMP_DIR)/config
 
-all: libsodium
+all:
 	$(MAKE) release-build
 
 release-build:
@@ -16,17 +16,6 @@ release-build:
 
 debug-build:
 	cargo build
-
-libsodium:
-	[ -d libsodium ] || git clone https://github.com/jedisct1/libsodium libsodium
-	set -ex && cd libsodium && \
-		git fetch && \
-		git checkout origin/stable && \
-		rm -rf lib && \
-		./autogen.sh && \
-		./configure --prefix=$$PWD/../local/ --disable-shared && \
-		$(MAKE) && \
-		$(MAKE) install
 
 install-test: install-spectest
 

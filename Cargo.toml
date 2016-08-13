@@ -43,7 +43,7 @@ itertools = "*"
 uuid = "*"
 clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
 webicon = "*"
-sodiumoxide = "*"
+rust_sodium = "0.1"
 iron-error-router = "*"
 please-clap = "*"
 termion = "*"

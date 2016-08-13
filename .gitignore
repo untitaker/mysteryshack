@@ -3,6 +3,5 @@ tests/spec/suite
 /config
 .cargo
 *.pyc
-libsodium
 local
 data
