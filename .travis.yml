@@ -16,7 +16,7 @@ install:
 
 script:
     - make TMP_DIR=$PWD/tmp $BUILD
-    - [ "$BUILD" != "codegen" ] || git diff --exit-code
+    - '[ "$BUILD" != "codegen" ] || git diff --exit-code'
 
 cache:
     directories:
