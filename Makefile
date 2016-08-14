@@ -34,7 +34,7 @@ testserver-config: debug-build
 	echo "data_path = \"$(TMP_DIR)\"" >> $(TMP_DIR)/config
 	# Insecure but useful for weird hacks to avoid SSL setup
 	echo "use_proxy_headers = true" >> $(TMP_DIR)/config
-	yes password123 | $(TEST_CMD) user testuser create
+	yes password123 | $(TEST_CMD) user create testuser
 
 spectest: testserver-config
 	($(MAKE) testserver &);
@@ -44,11 +44,11 @@ spectest: testserver-config
 		echo 'storage_base_url_other: http://localhost:6767/storage/wronguser'; \
 		echo 'category: api-test'; \
 		echo -n 'token: '; \
-		$(TEST_CMD) user testuser authorize https://example.com api-test:rw; \
+		$(TEST_CMD) user authorize testuser https://example.com api-test:rw; \
 		echo -n 'read_only_token: '; \
-		$(TEST_CMD) user testuser authorize https://example.com api-test:r; \
+		$(TEST_CMD) user authorize testuser https://example.com api-test:r; \
 		echo -n 'root_token: '; \
-		$(TEST_CMD) user testuser authorize https://example.com \*:rw; \
+		$(TEST_CMD) user authorize testuser https://example.com \*:rw; \
 	) > $(SPEC_TEST_DIR)/suite/config.yml
 	cd $(SPEC_TEST_DIR)/suite && rake test
 
