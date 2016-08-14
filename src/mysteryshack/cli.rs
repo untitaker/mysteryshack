@@ -12,6 +12,11 @@ use utils;
 
 
 pub fn main() {
+    let username_arg = Arg::with_name("USERNAME")
+        .help("The username to perform the operation with.")
+        .required(true)
+        .index(1);
+
     let matches =
         App::new("mysteryshack")
         .version(env!("CARGO_PKG_VERSION"))
@@ -24,20 +29,20 @@ pub fn main() {
         .subcommand(SubCommand::with_name("user")
                     .about("User management")
                     .setting(AppSettings::SubcommandRequired)
-                    .arg(Arg::with_name("USERNAME")
-                         .help("The username to perform the operation with.")
-                         .required(true)
-                         .index(1))
                     .subcommand(SubCommand::with_name("create")
-                                .about("Create a new user"))
+                                .about("Create a new user")
+                                .arg(username_arg.clone()))
                     .subcommand(SubCommand::with_name("setpass")
-                                .about("Change password for user"))
+                                .about("Change password for user")
+                                .arg(username_arg.clone()))
                     .subcommand(SubCommand::with_name("delete")
-                                .about("Delete a user"))
+                                .about("Delete a user")
+                                .arg(username_arg.clone()))
                     .subcommand(SubCommand::with_name("authorize")
                                 .about("Create a OAuth token. This is mostly useful for development.")
-                                .arg(Arg::with_name("CLIENT_ID").required(true).index(1))
-                                .arg(Arg::with_name("SCOPE").required(true).index(2))))
+                                .arg(username_arg.clone())
+                                .arg(Arg::with_name("CLIENT_ID").required(true).index(2))
+                                .arg(Arg::with_name("SCOPE").required(true).index(3))))
         .get_matches();
 
     assert!(rust_sodium::init());
@@ -54,8 +59,8 @@ pub fn main() {
 
     clap_dispatch!(matches; {
         serve() => web::run_server(config),
-        user(user_matches, USERNAME as username) => clap_dispatch!(user_matches; {
-            create(_) => {
+        user(user_matches) => clap_dispatch!(user_matches; {
+            create(_, USERNAME as username) => {
                 let password_hash = models::PasswordHash::from_password(
                     utils::double_password_prompt("Password for new user: ").unwrap_or_else(|| process::exit(1)));
 
@@ -71,7 +76,7 @@ pub fn main() {
 
                 println!("Successfully created user {}", username);
             },
-            setpass() => {
+            setpass(_, USERNAME as username) => {
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
                     None => {
@@ -92,7 +97,7 @@ pub fn main() {
 
                 println!("Changed password for user {}", username);
             },
-            delete() => {
+            delete(_, USERNAME as username) => {
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
                     None => {
@@ -116,7 +121,7 @@ pub fn main() {
                     }
                 };
             },
-            authorize(_, SCOPE as scope, CLIENT_ID as client_id) => {
+            authorize(_, USERNAME as username, SCOPE as scope, CLIENT_ID as client_id) => {
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
                     None => {
