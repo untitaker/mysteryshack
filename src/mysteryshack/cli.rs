@@ -61,6 +61,11 @@ pub fn main() {
         serve() => web::run_server(config),
         user(user_matches) => clap_dispatch!(user_matches; {
             create(_, USERNAME as username) => {
+                if models::User::get(&config.data_path, username).is_some() {
+                    println!("User already exists. Please delete the user first.");
+                    process::exit(1);
+                }
+
                 let password_hash = models::PasswordHash::from_password(
                     utils::double_password_prompt("Password for new user: ").unwrap_or_else(|| process::exit(1)));
 
