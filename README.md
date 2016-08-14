@@ -23,7 +23,7 @@ You need [OpenSSL](https://openssl.org/) installed.
 ## Usage
 
 * Edit `config.example` and save it as `config`.
-* `mysteryshack user foo create` to create a new user. 
+* `mysteryshack user create foo` to create a new user called `foo`.
 * `mysteryshack serve` to run the server as configured in `./config`.
 
 For advanced usage, see `mysteryshack --help` and `mysteryshack user --help`.
