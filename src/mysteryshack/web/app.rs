@@ -3,7 +3,6 @@ use std::io;
 use std::fs;
 use std::ops::Deref;
 use std::error::Error;
-use std::iter::FromIterator;
 
 use hyper::header;
 

@@ -16,7 +16,6 @@ use rustc_serialize::base64::{FromBase64,ToBase64};
 use rand;
 use rand::Rng;
 
-use itertools::Itertools;
 use regex;
 
 use rust_sodium::crypto::{auth,pwhash};

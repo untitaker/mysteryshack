@@ -27,7 +27,6 @@ extern crate time;
 extern crate filetime;
 extern crate chrono;
 extern crate nix;
-extern crate itertools;
 extern crate webicon;
 extern crate iron_error_router;
 extern crate termion;
