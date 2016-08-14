@@ -1,7 +1,4 @@
-current_dir = $(shell pwd)
 export RUST_BACKTRACE := 1
-export SODIUM_LIB_DIR := $(current_dir)/local/lib/
-export SODIUM_STATIC := yes
 
 SPEC_TEST_DIR=tests/spec
 TMP_DIR=/tmp/mysteryshack
