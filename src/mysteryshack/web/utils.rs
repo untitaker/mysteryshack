@@ -1,11 +1,9 @@
 use std::net::SocketAddr;
-use std::str::FromStr;
 
 use hyper::header;
 use hyper::method::Method;
 
-use url::Host;
-use url::SchemeData;
+use url::Position;
 
 use urlencoded;
 
@@ -16,42 +14,40 @@ use iron::prelude::*;
 
 use models;
 
+header! { (XForwardedHost, "X-Forwarded-Host") => [String] }
+header! { (XForwardedPort, "X-Forwarded-Port") => [u16] }
+header! { (XForwardedProto, "X-Forwarded-Proto") => [String] }
+header! { (XForwardedFor, "X-Forwarded-For") => [SocketAddr] }
+
 pub struct XForwardedMiddleware;
 
-fn get_one_raw(r: &mut Request, key: &str) -> Option<String> {
-    r.headers
-        .get_raw(key)
-        .and_then(|vals| if vals.len() > 0 { vals.to_owned().pop() } else { None })
-        .and_then(|x| String::from_utf8(x).ok())
-}
-
 impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
-    fn before(&self, r: &mut Request) -> IronResult<()> {
-        get_one_raw(r, "X-Forwarded-Host")
-            .and_then(|host| Host::parse(&host[..]).ok())
-            .map(|x| r.url.host = x);
+    fn before(&self, request: &mut Request) -> IronResult<()> {
+        macro_rules! h {
+            ($x:ty) => {{
+                // FIXME: https://github.com/hyperium/hyper/issues/891
+                let rv = request.headers.get::<$x>()
+                    .expect("Missing header. Turn off use_proxy_headers or set proxy headers.")
+                    .0.clone();
+                assert!(request.headers.remove::<$x>());
+                rv
+            }}
+        }
+        let host = h!(XForwardedHost);
+        let port = h!(XForwardedPort);
+        let scheme = h!(XForwardedProto);
+        let remote_addr = h!(XForwardedFor);
 
-        get_one_raw(r, "X-Forwarded-Port")
-            .and_then(|s| u16::from_str(&s[..]).ok())
-            .map(|port| r.url.port = port);
+        let mut url = request.url.clone().into_generic_url();
+        url.set_host(Some(&host)).unwrap();
+        url.set_port(Some(port)).unwrap();
+        url.set_scheme(&scheme).unwrap();
 
-        get_one_raw(r, "X-Forwarded-For")
-            .and_then(parse_remote_addrs)
-            .map(|ip| r.remote_addr = ip);
-
-        get_one_raw(r, "X-Forwarded-Proto")
-            .map(|scheme| r.url.scheme = scheme.to_lowercase());
-
+        request.url = iron::Url::from_generic_url(url).unwrap();
+        request.remote_addr = remote_addr;
         Ok(())
     }
 }
-
-fn parse_remote_addrs(s: String) -> Option<SocketAddr> {
-    let split = s.split(',');
-    let mut iter_ips = split.map(|x| x.trim()).filter(|x| !x.is_empty());
-    iter_ips.next().and_then(|ip| SocketAddr::from_str(ip).ok())
-}
-
 
 pub struct SecurityHeaderMiddleware;
 
@@ -75,7 +71,7 @@ impl SecurityHeaderMiddleware {
 
         let mut csp = vec!["default-src 'self'"];
 
-        if &rq.url.path[0] != "storage" {
+        if rq.url.path()[0] != "storage" {
             // It's probably fine to embed user storage data into other documents
 
             // Prevent clickjacking attacks like described in OAuth RFC
@@ -91,7 +87,7 @@ impl SecurityHeaderMiddleware {
 
     /// Required by remoteStorage spec
     fn set_cors_headers(rq: &Request, r: &mut Response) {
-        match &rq.url.path[0][..] {
+        match &rq.url.path()[0][..] {
             ".well-known" | "storage" => (),
             _ => return
         };
@@ -186,17 +182,6 @@ impl FormDataHelper<str, String> for urlencoded::QueryMap {
 
 pub fn get_account_id(user: &models::User, request: &Request) -> String {
     let url = request.url.clone().into_generic_url();
-    let scheme_data = match url.scheme_data {
-        SchemeData::Relative(ref x) => x,
-        _ => panic!("Expected relative scheme data.")
-    };
-
-    let mut rv = format!("{}@{}", user.userid, scheme_data.host);
-    if let Some(port) = scheme_data.port {
-        if Some(port) != scheme_data.default_port {
-            rv.push_str(&format!(":{}", port)[..]);
-        }
-    };
-
-    rv
+    let netloc = &url[Position::BeforeHost..Position::AfterPort];
+    format!("{}@{}", user.userid, netloc)
 }

@@ -269,10 +269,13 @@ pub trait HttpResponder {
     fn get_response(&self) -> Option<Response> {
         self.get_redirect_uri()
             .map(|mut uri| {
-                uri.fragment = Some(url::form_urlencoded::serialize(self.get_redirect_uri_params()));
+                uri.set_fragment(
+                    Some(&url::form_urlencoded::Serializer::new(String::new())
+                    .extend_pairs(self.get_redirect_uri_params())
+                    .finish()));
                 Response::with(status::Found)
                  // Do not use Redirect modifier here, we need to handle custom URI schemes as well
-                 .set(Header(header::Location(uri.serialize())))
+                 .set(Header(header::Location(uri.to_string())))
             })
     }
 }
