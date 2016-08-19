@@ -56,6 +56,7 @@ macro_rules! require_login_as {
                 .clear().push("dashboard").push("login").push("");
             url.set_fragment(None);
             // FIXME: Converting from iron::Url to &str should be possible without clone
+            // https://github.com/iron/iron/pull/475
             let redirect_to = $req.url.clone().into_generic_url();
             url.query_pairs_mut()
                 .clear()
@@ -305,6 +306,7 @@ fn user_logout(request: &mut Request) -> IronResult<Response> {
     Ok(Response::with(status::Found)
        .set(models::User::get_login(request).log_out())
        .set(Redirect({
+           // FIXME: https://github.com/iron/iron/pull/475
            let mut rv = request.url.clone().into_generic_url();
            rv.set_path("/");
            rv.set_query(None);
@@ -337,6 +339,7 @@ fn user_dashboard_delete_app(request: &mut Request) -> IronResult<Response> {
     Ok(Response::with((
         status::Found,
         Redirect({
+            // FIXME: https://github.com/iron/iron/pull/475
             let mut u = request.url.clone().into_generic_url();
             u.set_path("/dashboard/");
             iron::Url::from_generic_url(u).unwrap()
@@ -436,6 +439,7 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
 
 
 fn webfinger_response(request: &mut Request) -> IronResult<Response> {
+    // FIXME: https://github.com/iron/iron/pull/475
     let url = request.url.clone().into_generic_url();
     let query = url.query_pairs().collect::<collections::BTreeMap<_, _>>();
 
