@@ -603,7 +603,7 @@ mod tests {
                     rv
                 }
             }
-        }).unwrap()
+        }, Some(30)).unwrap()
     }
 
     #[test]
@@ -641,7 +641,7 @@ mod tests {
         let (_, mut token) = get_root_token(&u);
         assert!(Token::get(&u, &token.token(&u)).is_some());
 
-        token.exp = token.exp - 2700000 * 60;
+        token.exp = Some(token.exp.unwrap() - 2700000 * 60);
         assert!(Token::get(&u, &token.token(&u)).is_none());
     }
 }
