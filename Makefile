@@ -4,6 +4,7 @@ SPEC_TEST_DIR=tests/spec
 TMP_DIR=/tmp/mysteryshack
 APP_BINARY=./target/debug/mysteryshack
 TEST_CMD=$(APP_BINARY) -c $(TMP_DIR)/config
+PROXY_SERVERS=false
 
 all:
 	$(MAKE) release-build
@@ -29,7 +30,7 @@ testserver-config: debug-build
 	echo '[main]' > $(TMP_DIR)/config
 	echo 'listen = "localhost:6767"' >> $(TMP_DIR)/config
 	echo "data_path = \"$(TMP_DIR)\"" >> $(TMP_DIR)/config
-	echo "use_proxy_headers = false" >> $(TMP_DIR)/config
+	echo "use_proxy_headers = $(PROXY_SERVERS)" >> $(TMP_DIR)/config
 	yes password123 | $(TEST_CMD) user create testuser
 
 spectest: testserver-config
