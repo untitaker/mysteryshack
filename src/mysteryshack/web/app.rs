@@ -3,6 +3,7 @@ use std::io;
 use std::fs;
 use std::ops::Deref;
 use std::error::Error;
+use std::str::FromStr;
 
 use hyper::header;
 
@@ -414,19 +415,28 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
         Method::Get => Ok(Response::with(status::Ok).set(Template::new("oauth_entry", oauth_request.to_json()))),
         Method::Post => {
             check_csrf!(request);
+            let formdata = itry!(request.get_ref::<urlencoded::UrlEncodedBody>());
             let allow = iexpect!({
-                let formdata = itry!(request.get_ref::<urlencoded::UrlEncodedBody>());
                 match &iexpect!(formdata.get("decision"))[0][..] {
                     "allow" => Some(true),
                     "deny" => Some(false),
                     _ => None
                 }
             });
+            let days = {
+                let string = &iexpect!(formdata.get("days"))[0];
+                if string == "-1" {
+                    None
+                } else {
+                    Some(iexpect!(u64::from_str(string).ok()))
+                }
+            };
 
             if allow {
                 let (_, session) = itry!(models::Token::create(
                     &user,
-                    oauth_request.session.clone().unwrap()
+                    oauth_request.session.clone().unwrap(),
+                    days
                 ));
                 Ok(oauth_request.grant(session.token(&user)).get_response().unwrap())
             } else {
@@ -456,7 +466,10 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
         let mut url = request.url.clone().into_generic_url();
         url.set_query(None);
         url.set_fragment(None);
-        url.path_segments_mut().unwrap().clear().push("storage").push(userid).push("");
+
+        // No slash here! Otherwise apps will generate paths like:
+        // /user/storage//foo/bar
+        url.path_segments_mut().unwrap().clear().push("storage").push(userid);
         url
     };
 

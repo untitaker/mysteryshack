@@ -252,8 +252,8 @@ impl<'a> App<'a> {
 
 #[derive(RustcEncodable, RustcDecodable, Debug)]
 pub struct Token {
-    // Expiration date as POSIX timestamp.
-    pub exp: i64,
+    // Expiration date as POSIX timestamp. Never expires if None.
+    pub exp: Option<i64>,
 
     // Each user has a server-stored mapping from client_id/Origin to app_id. The app_id is a
     // UUIDv4 that is generated when a client is approved the first time.
@@ -300,10 +300,11 @@ impl Token {
             }
         };
 
-        let now = chrono::UTC::now().timestamp();
-
-        if session.exp < now {
-            return None;
+        if let Some(exp) = session.exp {
+            let now = chrono::UTC::now().timestamp();
+            if exp < now {
+                return None;
+            }
         }
 
         let app = match App::get(u, &session.client_id[..]) {
@@ -317,7 +318,7 @@ impl Token {
         Some((app, session))
     }
 
-    pub fn create(u: &User, sess: OauthSession) -> Result<(App, Self), ServerError> {
+    pub fn create(u: &User, sess: OauthSession, days: Option<u64>) -> Result<(App, Self), ServerError> {
         let app = match App::get(u, &sess.client_id) {
             Some(x) => x,
             None => try!(App::create(u, &sess.client_id))
@@ -329,7 +330,9 @@ impl Token {
             app_id: app_id_cp,
             client_id: sess.client_id,
             permissions: sess.permissions,
-            exp: (chrono::UTC::now() + chrono::Duration::days(6 * 30)).timestamp()
+            exp: days.map(|d| {
+                (chrono::UTC::now() + chrono::Duration::days(d as i64)).timestamp()
+            })
         }))
     }
 

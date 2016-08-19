@@ -1,5 +1,6 @@
 use std::path;
 use std::process;
+use std::str::FromStr;
 
 use rust_sodium;
 
@@ -41,6 +42,10 @@ pub fn main() {
                     .subcommand(SubCommand::with_name("authorize")
                                 .about("Create a OAuth token. This is mostly useful for development.")
                                 .arg(username_arg.clone())
+                                .arg(Arg::with_name("days")
+                                     .long("days")
+                                     .help("How long the token should last. Use -1 for infinite. \
+                                           Defaults to 180 days (~6 months)."))
                                 .arg(Arg::with_name("CLIENT_ID").required(true).index(2))
                                 .arg(Arg::with_name("SCOPE").required(true).index(3))))
         .get_matches();
@@ -126,7 +131,22 @@ pub fn main() {
                     }
                 };
             },
-            authorize(_, USERNAME as username, SCOPE as scope, CLIENT_ID as client_id) => {
+            authorize(options, USERNAME as username, SCOPE as scope, CLIENT_ID as client_id) => {
+                let days = {
+                    let string = options.value_of("days").unwrap_or("180");
+                    if string == "-1" {
+                        None
+                    } else {
+                        match u64::from_str(string) {
+                            Ok(x) => Some(x),
+                            Err(e) => {
+                                println!("Invalid parameter for --days: {}", e);
+                                process::exit(1);
+                            }
+                        }
+                    }
+                };
+
                 let user = match models::User::get(&config.data_path, username) {
                     Some(x) => x,
                     None => {
@@ -146,7 +166,7 @@ pub fn main() {
                     }
                 };
 
-                let (_, token) = models::Token::create(&user, oauth_session).unwrap();
+                let (_, token) = models::Token::create(&user, oauth_session, days).unwrap();
                 println!("{}", token.token(&user));
             }
         })
