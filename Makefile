@@ -29,8 +29,7 @@ testserver-config: debug-build
 	echo '[main]' > $(TMP_DIR)/config
 	echo 'listen = "localhost:6767"' >> $(TMP_DIR)/config
 	echo "data_path = \"$(TMP_DIR)\"" >> $(TMP_DIR)/config
-	# Insecure but useful for weird hacks to avoid SSL setup
-	echo "use_proxy_headers = true" >> $(TMP_DIR)/config
+	echo "use_proxy_headers = false" >> $(TMP_DIR)/config
 	yes password123 | $(TEST_CMD) user create testuser
 
 spectest: testserver-config
