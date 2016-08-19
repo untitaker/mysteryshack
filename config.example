@@ -8,4 +8,6 @@ data_path = "./data"
 # Use the headers X-Forwarded-{Host, Port, For, Proto} to determine host, port,
 # client IP and URL scheme.
 # This is needed if you want to run mysteryshack behind a reverse-proxy.
+# Note that all of the above headers have to be set exactly once, otherwise the
+# request will be rejected.
 use_proxy_headers = false

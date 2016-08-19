@@ -51,14 +51,17 @@ impl Key for AppLock { type Value = (); }
 macro_rules! require_login_as {
     ($req:expr, $expect_user:expr) => ({
         let login_redirect = Ok(Response::with((status::Found, Redirect({
-            let mut url = $req.url.clone();
-            url.path = vec!["dashboard".to_owned(), "login".to_owned(), "".to_owned()];
-            url.fragment = None;
-            let mut url = url.into_generic_url();
-            let redirect_to = $req.url.clone().into_generic_url().serialize();
-            let mut query = vec![("redirect_to", &redirect_to[..])];
-            if $expect_user.len() > 0 { query.push(("prefill_user", $expect_user)); }
-            url.set_query_from_pairs(query.into_iter());
+            let mut url = $req.url.clone().into_generic_url();
+            url.path_segments_mut().unwrap()
+                .clear().push("dashboard").push("login").push("");
+            url.set_fragment(None);
+            // FIXME: Converting from iron::Url to &str should be possible without clone
+            // https://github.com/iron/iron/pull/475
+            let redirect_to = $req.url.clone().into_generic_url();
+            url.query_pairs_mut()
+                .clear()
+                .append_pair("redirect_to", redirect_to.as_str())
+                .append_pair("prefill_user", $expect_user);
             iron::Url::from_generic_url(url).unwrap()
         }))));
 
@@ -183,9 +186,9 @@ fn user_node_response(req: &mut Request) -> IronResult<Response> {
     let (userid, path_str) = {
         let parts = req.extensions.get::<Router>().unwrap();
         let userid = parts.find("userid").unwrap().to_owned();
-        let path_str = String::from_utf8(
-            url::percent_encoding::percent_decode(
-                parts.find("path").unwrap_or("").as_bytes())).unwrap();
+        let path_str = url::percent_encoding::percent_decode(
+            parts.find("path").unwrap_or("").as_bytes()
+        ).decode_utf8().unwrap().into_owned();
         (userid, path_str)
     };
 
@@ -231,11 +234,11 @@ fn user_login(request: &mut Request) -> IronResult<Response> {
         .and_then(|params| params.get(0))
         .and_then(|x| iron::Url::parse(x).ok())
         .unwrap_or_else(|| {
-            let mut rv = request.url.clone();
-            rv.path = vec!["dashboard".to_owned(), "".to_owned()];
-            rv.query = None;
-            rv.fragment = None;
-            rv
+            let mut rv = request.url.clone().into_generic_url();
+            rv.set_path("/dashboard/");
+            rv.set_query(None);
+            rv.set_fragment(None);
+            iron::Url::from_generic_url(rv).unwrap()
         });
 
     match request.method {
@@ -286,7 +289,9 @@ fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response
     );
 
 
-    if &url.scheme != &request.url.scheme || &url.host != &request.url.host || &url.port != &request.url.port {
+    if &url.scheme() != &request.url.scheme() ||
+            &url.host() != &request.url.host() ||
+            &url.port() != &request.url.port() {
         return Ok(Response::with(status::BadRequest));
     }
 
@@ -301,11 +306,12 @@ fn user_logout(request: &mut Request) -> IronResult<Response> {
     Ok(Response::with(status::Found)
        .set(models::User::get_login(request).log_out())
        .set(Redirect({
-           let mut rv = request.url.clone();
-           rv.path = vec!["".to_owned()];
-           rv.query = None;
-           rv.fragment = None;
-           rv
+           // FIXME: https://github.com/iron/iron/pull/475
+           let mut rv = request.url.clone().into_generic_url();
+           rv.set_path("/");
+           rv.set_query(None);
+           rv.set_fragment(None);
+           iron::Url::from_generic_url(rv).unwrap()
        })))
 }
 
@@ -333,9 +339,10 @@ fn user_dashboard_delete_app(request: &mut Request) -> IronResult<Response> {
     Ok(Response::with((
         status::Found,
         Redirect({
-            let mut u = request.url.clone();
-            u.path = vec!["dashboard".to_owned(), "".to_owned()];
-            u
+            // FIXME: https://github.com/iron/iron/pull/475
+            let mut u = request.url.clone().into_generic_url();
+            u.set_path("/dashboard/");
+            iron::Url::from_generic_url(u).unwrap()
         })
     )))
 }
@@ -432,13 +439,9 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
 
 
 fn webfinger_response(request: &mut Request) -> IronResult<Response> {
-    let query = request.url
-        .clone()
-        .into_generic_url()
-        .query_pairs()
-        .unwrap()
-        .into_iter()
-        .collect::<collections::BTreeMap<_, _>>();
+    // FIXME: https://github.com/iron/iron/pull/475
+    let url = request.url.clone().into_generic_url();
+    let query = url.query_pairs().collect::<collections::BTreeMap<_, _>>();
 
     let userid = iexpect!(
         query.get("resource")
@@ -450,19 +453,19 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
     );
 
     let storage_url = {
-        let mut url = request.url.clone();
-        url.query = None;
-        url.fragment = None;
-        url.path = vec!["storage".to_owned(), userid.to_owned()];
-        url.into_generic_url()
+        let mut url = request.url.clone().into_generic_url();
+        url.set_query(None);
+        url.set_fragment(None);
+        url.path_segments_mut().unwrap().clear().push("storage").push(userid).push("");
+        url
     };
 
     let oauth_url = {
-        let mut url = request.url.clone();
-        url.query = None;
-        url.fragment = None;
-        url.path = vec!["dashboard".to_owned(), "oauth".to_owned(), userid.to_owned(), "".to_owned()];
-        url.into_generic_url()
+        let mut url = request.url.clone().into_generic_url();
+        url.set_query(None);
+        url.set_fragment(None);
+        url.path_segments_mut().unwrap().clear().push("dashboard").push("oauth").push(userid).push("");
+        url
     };
 
     let mut r = Response::with(status::Ok);
@@ -480,14 +483,14 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
                 ("remotestorage", "draft-dejong-remotestorage-02")
             ] {
                 rv.push(json!{
-                    "href" => storage_url.serialize(),
+                    "href" => storage_url.as_str(),
                     "rel" => rel,
                     "properties" => json!{
                         // Spec version
                         "http://remotestorage.io/spec/version" => version,
 
                         // OAuth as in draft-06
-                        "http://tools.ietf.org/html/rfc6749#section-4.2" => oauth_url.serialize(),
+                        "http://tools.ietf.org/html/rfc6749#section-4.2" => oauth_url.as_str(),
 
                         // No support for providing the access token via URL query param as in
                         // draft-06
