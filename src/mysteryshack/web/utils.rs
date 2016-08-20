@@ -24,19 +24,22 @@ pub struct XForwardedMiddleware;
 impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
     fn before(&self, request: &mut Request) -> IronResult<()> {
         macro_rules! h {
-            ($x:ty) => {{
+            ($x:path, $n:expr) => {{
                 // FIXME: https://github.com/hyperium/hyper/issues/891
-                let rv = request.headers.get::<$x>()
-                    .expect("Missing header. Turn off use_proxy_headers or set proxy headers.")
-                    .0.clone();
+                let rv = match request.headers.get::<$x>() {
+                    Some(x) => x.0.clone(),
+                    None => {
+                        panic!("Missing header: {:?}. Turn off use_proxy_headers or set proxy headers.", $n);
+                    }
+                };
                 assert!(request.headers.remove::<$x>());
                 rv
             }}
         }
-        let host = h!(XForwardedHost);
-        let port = h!(XForwardedPort);
-        let scheme = h!(XForwardedProto);
-        let remote_addr = h!(XForwardedFor);
+        let host = h!(XForwardedHost, "X-Forwarded-Host");
+        let port = h!(XForwardedPort, "X-Forwarded-Port");
+        let scheme = h!(XForwardedProto, "X-Forwarded-Proto");
+        let remote_addr = h!(XForwardedFor, "X-Forwarded-For");
 
         // FIXME: https://github.com/iron/iron/pull/475
         let mut url = request.url.clone().into_generic_url();
