@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::net::IpAddr;
 
 use hyper::header;
 use hyper::method::Method;
@@ -17,7 +17,7 @@ use models;
 header! { (XForwardedHost, "X-Forwarded-Host") => [String] }
 header! { (XForwardedPort, "X-Forwarded-Port") => [u16] }
 header! { (XForwardedProto, "X-Forwarded-Proto") => [String] }
-header! { (XForwardedFor, "X-Forwarded-For") => [SocketAddr] }
+header! { (XForwardedFor, "X-Forwarded-For") => [IpAddr] }
 
 pub struct XForwardedMiddleware;
 
@@ -48,7 +48,7 @@ impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
         url.set_scheme(&scheme).unwrap();
 
         request.url = iron::Url::from_generic_url(url).unwrap();
-        request.remote_addr = remote_addr;
+        request.remote_addr.set_ip(remote_addr);
         Ok(())
     }
 }
