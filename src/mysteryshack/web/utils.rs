@@ -17,7 +17,7 @@ use models;
 header! { (XForwardedHost, "X-Forwarded-Host") => [String] }
 header! { (XForwardedPort, "X-Forwarded-Port") => [u16] }
 header! { (XForwardedProto, "X-Forwarded-Proto") => [String] }
-header! { (XForwardedFor, "X-Forwarded-For") => [IpAddr] }
+header! { (XForwardedFor, "X-Forwarded-For") => (IpAddr)+ }
 
 pub struct XForwardedMiddleware;
 
@@ -39,7 +39,7 @@ impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
         let host = h!(XForwardedHost, "X-Forwarded-Host");
         let port = h!(XForwardedPort, "X-Forwarded-Port");
         let scheme = h!(XForwardedProto, "X-Forwarded-Proto");
-        let remote_addr = h!(XForwardedFor, "X-Forwarded-For");
+        let remote_addr = h!(XForwardedFor, "X-Forwarded-For")[0];
 
         // FIXME: https://github.com/iron/iron/pull/475
         let mut url = request.url.clone().into_generic_url();
