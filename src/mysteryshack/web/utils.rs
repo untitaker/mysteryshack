@@ -57,12 +57,12 @@ pub struct SecurityHeaderMiddleware;
 
 impl iron::middleware::AfterMiddleware for SecurityHeaderMiddleware {
     fn after(&self, request: &mut Request, mut response: Response) -> IronResult<Response> {
-        Self::set_security_headers(&request, &mut response);
+        Self::set_security_headers(request, &mut response);
         Ok(response)
     }
 
     fn catch(&self, request: &mut Request, mut error: IronError) -> IronResult<Response> {
-        Self::set_security_headers(&request, &mut error.response);
+        Self::set_security_headers(request, &mut error.response);
         Err(error)
     }
 }

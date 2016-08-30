@@ -125,8 +125,8 @@ impl User {
             if try!(entry.metadata()).is_dir() {
                 rv.push(
                     App::get(
-                        &self,
-                        &entry.file_name().into_string().unwrap()[..]
+                        self,
+                        &entry.file_name().into_string().unwrap()
                     ).unwrap()
                 );
             };
@@ -140,7 +140,7 @@ impl User {
             can_write: false
         };
 
-        let (_, session) = match token.and_then(|t| Token::get(&self, t)) {
+        let (_, session) = match token.and_then(|t| Token::get(self, t)) {
             Some(x) => x,
             None => return anonymous
         };
@@ -223,7 +223,7 @@ impl<'a> App<'a> {
     }
 
     pub fn delete(&self) -> io::Result<()> {
-        fs::remove_dir_all(App::get_path(&self.user, &self.client_id))
+        fs::remove_dir_all(App::get_path(self.user, &self.client_id))
     }
 
     pub fn create(u: &'a User, client_id: &str) -> Result<App<'a>, io::Error> {
@@ -531,12 +531,12 @@ impl<'a> UserFolder<'a> {
 
             if meta.is_dir() {
                 rv.push(Box::new(UserFolder::from_path(
-                    &self.user,
+                    self.user,
                     &(self.path.clone() + fname_str + "/")
                 ).unwrap()));
             } else if !fname_str.starts_with(".~") {
                 rv.push(Box::new(UserFile::from_path(
-                    &self.user,
+                    self.user,
                     &(self.path.clone() + fname_str)
                 ).unwrap()));
             }

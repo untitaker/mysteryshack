@@ -287,7 +287,7 @@ fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response
     let config = request.get::<persistent::Read<AppConfig>>().unwrap();
     let data_path = &config.data_path;
 
-    let (ref username, ref password) = {
+    let (username, password) = {
         let formdata = itry!(request.get_ref::<urlencoded::UrlEncodedBody>());
         (
             &iexpect!(formdata.get("user"))[0].clone(),
@@ -611,7 +611,7 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
     fn respond_delete(self, request: &Request) -> IronResult<Response> {
         let etag = self.read_etag().ok();
         
-        if !preconditions_ok(&request, etag.as_ref().map(Deref::deref)) {
+        if !preconditions_ok(request, etag.as_ref().map(Deref::deref)) {
             return Ok(Response::with(status::PreconditionFailed));
         };
 
@@ -626,7 +626,7 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
     fn respond_put(self, request: &mut Request) -> IronResult<Response> {
         let etag = self.read_etag().ok();
 
-        if !preconditions_ok(&request, etag.as_ref().map(Deref::deref)) {
+        if !preconditions_ok(request, etag.as_ref().map(Deref::deref)) {
             return Ok(Response::with(status::PreconditionFailed));
         };
 
