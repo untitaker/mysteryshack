@@ -111,30 +111,35 @@ impl iron::middleware::AfterMiddleware for ErrorPrinter {
     }
 }
 
+macro_rules! myrouter {
+    ($($method:ident $glob:expr => $handler:ident),* $(,)*) => (
+        router!(
+            $($handler: $method $glob => $handler,)*
+        )
+    )
+}
+
 pub fn run_server(config: config::Config) {
-    let mut router = Router::new();
-
-
-    router.options("*", |_: &mut Request| Ok(Response::with(status::Ok)));
-
-    for route in &["/storage/:userid/*path", "/storage/:userid/"] {
-        for method in [Method::Get, Method::Put, Method::Delete].into_iter() {
-            router.route(method.clone(), route, user_node_response);
-        }
+    fn cors(_: &mut Request) -> IronResult<Response> { Ok(Response::with(status::Ok)) };
+    fn index(_: &mut Request) -> IronResult<Response> { 
+        Ok(Response::with((status::Ok, Template::new("index", "".to_json()))))
     }
+    fn storage_root(r: &mut Request) -> IronResult<Response> { user_node_response(r) }
 
-    router.get("/.well-known/webfinger", webfinger_response);
-    router.get("/dashboard/icon", icon_proxy);
-    router.get("/dashboard/", user_dashboard);
-    router.post("/dashboard/delete-app", user_dashboard_delete_app);
-    router.post("/dashboard/change-password", user_dashboard_change_password);
-    router.get("/dashboard/login/", user_login);
-    router.post("/dashboard/login/", user_login);
-    router.post("/dashboard/logout/", user_logout);
-    router.get("/dashboard/oauth/:userid/", oauth_entry);
-    router.post("/dashboard/oauth/:userid/", oauth_entry);
-
-    router.get("/", |_: &mut Request| Ok(Response::with((status::Ok, Template::new("index", "".to_json())))));
+    let router = myrouter! {
+        options "*" => cors,
+        any "/storage/:userid/" => storage_root,
+        any "/storage/:userid/*path" => user_node_response,
+        get "/.well-known/webfinger" => webfinger_response,
+        get "/dashboard/icon" => icon_proxy,
+        get "/dashboard/" => user_dashboard,
+        post "/dasboard/delete-app" => user_dashboard_delete_app,
+        post "/dashboard/change-password" => user_dashboard_change_password,
+        any "/dashboard/login/" => user_login,
+        any "/dashboard/logout/" => user_logout,
+        any "/dashboard/oauth/:userid/" => oauth_entry,
+        get "/" => index
+    };
 
     let mut mount = mount::Mount::new();
     mount.mount("/", router);

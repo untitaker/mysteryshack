@@ -35,15 +35,16 @@ for abs_filepath in sorted(recurse_files(static_path)):
     if encoding:
         contenttype += ' charset=' + encoding
 
-    w('    r.get("/{route}", |_: &mut Request|\n'
+    w('    r.get("/{route}", (|_: &mut Request|\n'
       '        Ok(Response::with((\n'
       '            status::Ok,\n'
       '            Header(header::ContentType("{contenttype}".parse().unwrap())),\n'
       '            &include_bytes!("{filepath}")[..]\n'
-      '        )))\n'
+      '        )))), "{fname}"\n'
       '    );'
       .format(
           route=os.path.relpath(abs_filepath, static_path),
+          fname=os.path.basename(abs_filepath),
           contenttype=contenttype,
           filepath=os.path.relpath(abs_filepath, os.path.dirname(output_file))
       ))

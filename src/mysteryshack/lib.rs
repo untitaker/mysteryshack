@@ -5,7 +5,7 @@
 
 extern crate rustc_serialize;
 #[macro_use] extern crate iron;
-extern crate router;
+#[macro_use] extern crate router;
 #[macro_use] extern crate hyper;
 extern crate toml;
 extern crate unicase;
