@@ -128,9 +128,18 @@ pub fn run_server(config: config::Config) {
 
     let router = myrouter! {
         options "*" => cors,
-        any "/storage/:userid/" => storage_root,
-        any "/storage/:userid/*path" => user_node_response,
         get "/.well-known/webfinger" => webfinger_response,
+
+        // No slash here! Otherwise apps will generate paths like:
+        // /user/storage//foo/bar
+        get "/storage/:userid" => storage_root,
+        put "/storage/:userid" => storage_root,
+        delete "/storage/:userid" => storage_root,
+
+        get "/storage/:userid/*path" => user_node_response,
+        put "/storage/:userid/*path" => user_node_response,
+        delete "/storage/:userid/*path" => user_node_response,
+
         get "/dashboard/icon" => icon_proxy,
         get "/dashboard/" => user_dashboard,
         post "/dasboard/delete-app" => user_dashboard_delete_app,
@@ -138,6 +147,7 @@ pub fn run_server(config: config::Config) {
         any "/dashboard/login/" => user_login,
         any "/dashboard/logout/" => user_logout,
         any "/dashboard/oauth/:userid/" => oauth_entry,
+
         get "/" => index
     };
 
@@ -239,13 +249,11 @@ fn user_login(request: &mut Request) -> IronResult<Response> {
         .and_then(|query| query.get("redirect_to"))
         .and_then(|params| params.get(0))
         .and_then(|x| iron::Url::parse(x).ok())
-        .unwrap_or_else(|| {
-            let mut rv = request.url.clone().into_generic_url();
-            rv.set_path("/dashboard/");
-            rv.set_query(None);
-            rv.set_fragment(None);
-            iron::Url::from_generic_url(rv).unwrap()
-        });
+        .unwrap_or_else(||
+            iron::Url::from_generic_url(
+                url_for!(request, "user_dashboard")
+            ).unwrap()
+        );
 
     match request.method {
         Method::Get => {
@@ -311,14 +319,8 @@ fn user_logout(request: &mut Request) -> IronResult<Response> {
     check_csrf!(request);
     Ok(Response::with(status::Found)
        .set(models::User::get_login(request).log_out())
-       .set(Redirect({
-           // FIXME: https://github.com/iron/iron/pull/475
-           let mut rv = request.url.clone().into_generic_url();
-           rv.set_path("/");
-           rv.set_query(None);
-           rv.set_fragment(None);
-           iron::Url::from_generic_url(rv).unwrap()
-       })))
+       // FIXME: https://github.com/iron/iron/pull/475
+       .set(Redirect(iron::Url::from_generic_url(url_for!(request, "index")).unwrap())))
 }
 
 fn user_dashboard(request: &mut Request) -> IronResult<Response> {
@@ -344,12 +346,8 @@ fn user_dashboard_delete_app(request: &mut Request) -> IronResult<Response> {
     itry!(app.delete());
     Ok(Response::with((
         status::Found,
-        Redirect({
-            // FIXME: https://github.com/iron/iron/pull/475
-            let mut u = request.url.clone().into_generic_url();
-            u.set_path("/dashboard/");
-            iron::Url::from_generic_url(u).unwrap()
-        })
+        // FIXME: https://github.com/iron/iron/pull/475
+        Redirect(iron::Url::from_generic_url(url_for!(request, "user_dashboard")).unwrap())
     )))
 }
 
@@ -467,24 +465,8 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
         })
     );
 
-    let storage_url = {
-        let mut url = request.url.clone().into_generic_url();
-        url.set_query(None);
-        url.set_fragment(None);
-
-        // No slash here! Otherwise apps will generate paths like:
-        // /user/storage//foo/bar
-        url.path_segments_mut().unwrap().clear().push("storage").push(userid);
-        url
-    };
-
-    let oauth_url = {
-        let mut url = request.url.clone().into_generic_url();
-        url.set_query(None);
-        url.set_fragment(None);
-        url.path_segments_mut().unwrap().clear().push("dashboard").push("oauth").push(userid).push("");
-        url
-    };
+    let storage_url = url_for!(request, "storage_root");
+    let oauth_url = url_for!(request, "oauth_entry", userid => userid);
 
     let mut r = Response::with(status::Ok);
     r.headers.set(header::ContentType("application/jrd+json".parse().unwrap()));
