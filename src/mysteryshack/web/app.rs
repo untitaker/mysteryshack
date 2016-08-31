@@ -465,8 +465,8 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
         })
     );
 
-    let storage_url = url_for!(request, "storage_root");
-    let oauth_url = url_for!(request, "oauth_entry", userid => userid);
+    let storage_url = url_for!(request, "storage_root", "userid" => userid);
+    let oauth_url = url_for!(request, "oauth_entry", "userid" => userid);
 
     let mut r = Response::with(status::Ok);
     r.headers.set(header::ContentType("application/jrd+json".parse().unwrap()));
