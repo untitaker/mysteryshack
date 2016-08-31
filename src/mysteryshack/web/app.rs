@@ -52,17 +52,12 @@ impl Key for AppLock { type Value = (); }
 macro_rules! require_login_as {
     ($req:expr, $expect_user:expr) => ({
         let login_redirect = Ok(Response::with((status::Found, Redirect({
-            let mut url = $req.url.clone().into_generic_url();
-            url.path_segments_mut().unwrap()
-                .clear().push("dashboard").push("login").push("");
-            url.set_fragment(None);
             // FIXME: Converting from iron::Url to &str should be possible without clone
             // https://github.com/iron/iron/pull/475
             let redirect_to = $req.url.clone().into_generic_url();
-            url.query_pairs_mut()
-                .clear()
-                .append_pair("redirect_to", redirect_to.as_str())
-                .append_pair("prefill_user", $expect_user);
+            let url = url_for!($req, "user_login",
+                               "redirect_to" => redirect_to.as_str(),
+                               "prefill_user" => $expect_user);
             iron::Url::from_generic_url(url).unwrap()
         }))));
 
