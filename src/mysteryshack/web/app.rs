@@ -55,10 +55,9 @@ macro_rules! require_login_as {
             // FIXME: Converting from iron::Url to &str should be possible without clone
             // https://github.com/iron/iron/pull/475
             let redirect_to = $req.url.clone().into_generic_url();
-            let url = url_for!($req, "user_login",
-                               "redirect_to" => redirect_to.as_str(),
-                               "prefill_user" => $expect_user);
-            iron::Url::from_generic_url(url).unwrap()
+            url_for!($req, "user_login",
+                     "redirect_to" => redirect_to.as_str(),
+                     "prefill_user" => $expect_user)
         }))));
 
         match models::User::get_login($req).get_user() {
@@ -244,11 +243,7 @@ fn user_login(request: &mut Request) -> IronResult<Response> {
         .and_then(|query| query.get("redirect_to"))
         .and_then(|params| params.get(0))
         .and_then(|x| iron::Url::parse(x).ok())
-        .unwrap_or_else(||
-            iron::Url::from_generic_url(
-                url_for!(request, "user_dashboard")
-            ).unwrap()
-        );
+        .unwrap_or_else(|| url_for!(request, "user_dashboard"));
 
     match request.method {
         Method::Get => {
@@ -314,8 +309,7 @@ fn user_logout(request: &mut Request) -> IronResult<Response> {
     check_csrf!(request);
     Ok(Response::with(status::Found)
        .set(models::User::get_login(request).log_out())
-       // FIXME: https://github.com/iron/iron/pull/475
-       .set(Redirect(iron::Url::from_generic_url(url_for!(request, "index")).unwrap())))
+       .set(Redirect(url_for!(request, "index"))))
 }
 
 fn user_dashboard(request: &mut Request) -> IronResult<Response> {
@@ -341,8 +335,7 @@ fn user_dashboard_delete_app(request: &mut Request) -> IronResult<Response> {
     itry!(app.delete());
     Ok(Response::with((
         status::Found,
-        // FIXME: https://github.com/iron/iron/pull/475
-        Redirect(iron::Url::from_generic_url(url_for!(request, "user_dashboard")).unwrap())
+        Redirect(url_for!(request, "user_dashboard"))
     )))
 }
 
@@ -460,8 +453,8 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
         })
     );
 
-    let storage_url = url_for!(request, "storage_root", "userid" => userid);
-    let oauth_url = url_for!(request, "oauth_entry", "userid" => userid);
+    let storage_url = url_for!(request, "storage_root", "userid" => userid).into_generic_url();
+    let oauth_url = url_for!(request, "oauth_entry", "userid" => userid).into_generic_url();
 
     let mut r = Response::with(status::Ok);
     r.headers.set(header::ContentType("application/jrd+json".parse().unwrap()));

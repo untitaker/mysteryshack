@@ -19,7 +19,7 @@ doc = false
 [dependencies]
 rustc-serialize = "0.3"
 iron = "0.4"
-router = "0.3"
+router = "0.4"
 hyper = "0.9"
 toml = "0.2"
 unicase = "1"
