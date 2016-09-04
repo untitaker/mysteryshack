@@ -5,7 +5,7 @@ dependencies = [
  "atomicwrites 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.2.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy 0.0.86 (git+https://github.com/Manishearth/rust-clippy)",
+ "clippy 0.0.87 (git+https://github.com/Manishearth/rust-clippy)",
  "filetime 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars 0.20.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars-iron 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -97,7 +97,7 @@ dependencies = [
  "iron 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.8.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -139,16 +139,16 @@ dependencies = [
 
 [[package]]
 name = "clippy"
-version = "0.0.86"
-source = "git+https://github.com/Manishearth/rust-clippy#b38a86a145b510663e8b57f0a6df64f3c969cf1f"
+version = "0.0.87"
+source = "git+https://github.com/Manishearth/rust-clippy#322c1a07ef992f6a28456038286205c9e583e1e3"
 dependencies = [
- "clippy_lints 0.0.86 (git+https://github.com/Manishearth/rust-clippy)",
+ "clippy_lints 0.0.87 (git+https://github.com/Manishearth/rust-clippy)",
 ]
 
 [[package]]
 name = "clippy_lints"
-version = "0.0.86"
-source = "git+https://github.com/Manishearth/rust-clippy#b38a86a145b510663e8b57f0a6df64f3c969cf1f"
+version = "0.0.87"
+source = "git+https://github.com/Manishearth/rust-clippy#322c1a07ef992f6a28456038286205c9e583e1e3"
 dependencies = [
  "matches 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "quine-mc_cluskey 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -407,7 +407,7 @@ dependencies = [
  "phf 0.7.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "phf_codegen 0.7.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
- "string_cache 0.2.26 (registry+https://github.com/rust-lang/crates.io-index)",
+ "string_cache 0.2.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "tendril 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -541,7 +541,7 @@ dependencies = [
  "matches 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rc 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "selectors 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "string_cache 0.2.26 (registry+https://github.com/rust-lang/crates.io-index)",
+ "string_cache 0.2.27 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -969,7 +969,7 @@ dependencies = [
  "cssparser 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fnv 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "matches 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "string_cache 0.2.26 (registry+https://github.com/rust-lang/crates.io-index)",
+ "string_cache 0.2.27 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -992,7 +992,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "serde"
-version = "0.8.4"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -1003,7 +1003,7 @@ dependencies = [
  "dtoa 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "itoa 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.8.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1017,14 +1017,14 @@ dependencies = [
 
 [[package]]
 name = "string_cache"
-version = "0.2.26"
+version = "0.2.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "debug_unreachable 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "phf_generator 0.7.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "phf_shared 0.7.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.8.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1267,7 +1267,7 @@ dependencies = [
  "image 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "kuchiki 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "mime 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "string_cache 0.2.26 (registry+https://github.com/rust-lang/crates.io-index)",
+ "string_cache 0.2.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
