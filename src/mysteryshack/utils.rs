@@ -194,9 +194,9 @@ pub fn map_parent_dirs<F, A, B>(f_path: A, until: B, f: F)
 
 pub fn format_origin(u: &url::Url) -> String {
     // FIXME: Ugly
-    match u.origin() {
-        url::Origin::Tuple(..) => (),
-        _ => panic!("Invalid URL: {:?}", u)
-    };
-    u.origin().ascii_serialization()
+    let origin = u.origin();
+    if !origin.is_tuple() {
+        panic!("Invalid URL: {:?}", u);
+    }
+    origin.ascii_serialization()
 }
