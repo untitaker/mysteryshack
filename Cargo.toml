@@ -38,7 +38,7 @@ mount = "0.2"
 time = "0.1"
 filetime = "0.1"
 chrono = "0.2"
-nix = "0.6"
+nix = "0.7"
 clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
 webicon = "0.3"
 rust_sodium = "0.1"
