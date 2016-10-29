@@ -8,7 +8,6 @@ env.hosts = ['unti@draco.uberspace.de']
 def update():
     with cd('~/data/mysteryshack'):
         run('git pull')
-        with prefix('source rust-setup.sh'):
-            run('make')
+        run('make')
 
     run('svc -du ~/service/mysteryshack')
