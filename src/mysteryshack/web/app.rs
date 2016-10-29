@@ -19,7 +19,10 @@ use iron::typemap::Key;
 use persistent;
 use handlebars_iron::Template;
 use mount;
-use iron_login::{User,LoginManager};
+use iron_sessionstorage::{Value,SessionStorage};
+use iron_sessionstorage::backends::SignedCookieBackend;
+use iron_sessionstorage::traits::*;
+
 use urlencoded;
 use router::Router;
 use iron_error_router as error_router;
@@ -60,9 +63,13 @@ macro_rules! require_login_as {
                      "prefill_user" => $expect_user)
         }))));
 
-        match models::User::get_login($req).get_user() {
-            Some(x) => if $expect_user.len() == 0 || &x.userid[..] == $expect_user { x }
-                       else { return login_redirect },
+        match $req.session().get::<Login>().map(|l| l.verify($req)) {
+            Some(Login::Verified(user)) => {
+                if $expect_user.len() == 0 || &user.userid[..] == $expect_user {
+                    user
+                }
+                else { return login_redirect }
+            },
             _ => return login_redirect
         }
     })
@@ -153,16 +160,18 @@ pub fn run_server(config: config::Config) {
     if config.use_proxy_headers { chain.link_before(XForwardedMiddleware); }
     chain.link(persistent::Read::<AppConfig>::both(config.clone()));
     chain.link(persistent::State::<AppLock>::both(()));
-    chain.around({
-        let mut rv = LoginManager::new({
+    chain.around(SessionStorage::new({
+        let mut rv = SignedCookieBackend::new({
             println!("Generating session keys...");
             let mut rng = rand::OsRng::new().unwrap();
             rng.gen_iter::<u8>().take(64).collect()
         });
-        rv.config.cookie_base.path = Some("/dashboard/".to_owned());
+        rv.set_cookie_modifier(|mut cookie| {
+            cookie.path = Some("/dashboard/".to_owned());
+            cookie
+        });
         rv
-    });
-
+    }));
 
     let mut error_router = error_router::ErrorRouter::new();
     error_router.modifier_for_status(status::NotFound, (
@@ -247,10 +256,11 @@ fn user_login(request: &mut Request) -> IronResult<Response> {
 
     match request.method {
         Method::Get => {
-            if models::User::get_login(request).get_user().is_some() {
-                Ok(Response::with((status::Found, Redirect(url))))
-            } else {
-                user_login_get(request)
+            match request.session().get::<Login>().map(|l| l.verify(request)) {
+                Some(Login::Verified(_)) => {
+                    Ok(Response::with((status::Found, Redirect(url))))
+                },
+                _ => user_login_get(request)
             }
         },
         Method::Post => user_login_post(request, url),
@@ -299,16 +309,17 @@ fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response
         return Ok(Response::with(status::BadRequest));
     }
 
+    request.session().set(Login::Verified(user));
+
     Ok(Response::with(status::Ok)
-       .set(models::User::get_login(request).log_in(user))
        .set(status::Found)
        .set(Redirect(url)))
 }
 
 fn user_logout(request: &mut Request) -> IronResult<Response> {
     check_csrf!(request);
+    request.session().set(Login::Null);
     Ok(Response::with(status::Found)
-       .set(models::User::get_login(request).log_out())
        .set(Redirect(url_for!(request, "index"))))
 }
 
@@ -654,13 +665,42 @@ impl<'a> UserNodeResponder for models::UserFile<'a> {
     }
 }
 
-impl User for models::User {
-    fn get_user_id(&self) -> String { self.userid.to_owned() }
-    fn from_user_id(request: &mut Request, user_id: &str) -> Option<Self> {
-        let config = request.get::<persistent::Read<AppConfig>>().unwrap();
-        let data_path = &config.data_path;
+enum Login {
+    Verified(models::User),
+    Unverified(String),
+    Null,
+}
 
-        Self::get(data_path, user_id)
+impl Value for Login {
+    fn get_key() -> &'static str { "logged_in_user" }
+    fn into_raw(self) -> String {
+        match self {
+            Login::Verified(user) => user.userid,
+            Login::Unverified(userid) => userid,
+            Login::Null => "".to_owned()
+        }
+    }
+    fn from_raw(value: &str) -> Option<Self> {
+        if value.is_empty() {
+            None
+        } else {
+            Some(Login::Unverified(value.to_owned()))
+        }
+    }
+}
+
+impl Login {
+    pub fn verify(self, request: &mut Request) -> Login {
+        match self {
+            Login::Unverified(ref userid) if !userid.is_empty() => {
+                let config = request.get::<persistent::Read<AppConfig>>().unwrap();
+                if let Some(x) = models::User::get(&config.data_path, userid) {
+                    return Login::Verified(x);
+                }
+            },
+            _ => ()
+        };
+        return self
     }
 }
 

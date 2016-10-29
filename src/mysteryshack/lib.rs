@@ -17,7 +17,6 @@ extern crate clap;
 extern crate rust_sodium;
 extern crate rand;
 extern crate persistent;
-extern crate iron_login;
 extern crate handlebars;
 extern crate handlebars_iron;
 extern crate mount;
@@ -30,6 +29,7 @@ extern crate nix;
 extern crate webicon;
 extern crate iron_error_router;
 extern crate termion;
+extern crate iron_sessionstorage;
 
 #[cfg(test)]
 extern crate tempdir;
