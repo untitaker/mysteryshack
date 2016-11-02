@@ -63,7 +63,7 @@ macro_rules! require_login_as {
                      "prefill_user" => $expect_user)
         }))));
 
-        match $req.session().get::<Login>().map(|l| l.verify($req)) {
+        match try!($req.session().get::<Login>()).map(|l| l.verify($req)) {
             Some(Login::Verified(user)) => {
                 if $expect_user.len() == 0 || &user.userid[..] == $expect_user {
                     user
@@ -256,7 +256,7 @@ fn user_login(request: &mut Request) -> IronResult<Response> {
 
     match request.method {
         Method::Get => {
-            match request.session().get::<Login>().map(|l| l.verify(request)) {
+            match try!(request.session().get::<Login>()).map(|l| l.verify(request)) {
                 Some(Login::Verified(_)) => {
                     Ok(Response::with((status::Found, Redirect(url))))
                 },
@@ -309,7 +309,7 @@ fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response
         return Ok(Response::with(status::BadRequest));
     }
 
-    request.session().set(Login::Verified(user));
+    try!(request.session().set(Login::Verified(user)));
 
     Ok(Response::with(status::Ok)
        .set(status::Found)
@@ -318,7 +318,7 @@ fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response
 
 fn user_logout(request: &mut Request) -> IronResult<Response> {
     check_csrf!(request);
-    request.session().set(Login::Null);
+    try!(request.session().set(Login::Null));
     Ok(Response::with(status::Found)
        .set(Redirect(url_for!(request, "index"))))
 }
@@ -680,11 +680,11 @@ impl Value for Login {
             Login::Null => "".to_owned()
         }
     }
-    fn from_raw(value: &str) -> Option<Self> {
+    fn from_raw(value: String) -> Option<Self> {
         if value.is_empty() {
             None
         } else {
-            Some(Login::Unverified(value.to_owned()))
+            Some(Login::Unverified(value))
         }
     }
 }
