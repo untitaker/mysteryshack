@@ -5,20 +5,20 @@ dependencies = [
  "atomicwrites 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.2.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy 0.0.101 (git+https://github.com/Manishearth/rust-clippy)",
+ "clippy 0.0.103 (git+https://github.com/Manishearth/rust-clippy)",
  "filetime 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars 0.20.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars-iron 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.9.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-error-router 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "iron-sessionstorage 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "iron-sessionstorage 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "please-clap 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "quick-error 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.80 (registry+https://github.com/rust-lang/crates.io-index)",
  "router 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust_sodium 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -137,16 +137,16 @@ dependencies = [
 
 [[package]]
 name = "clippy"
-version = "0.0.101"
-source = "git+https://github.com/Manishearth/rust-clippy#9717b9585d69861e69144e97d51c05e4daad5ea3"
+version = "0.0.103"
+source = "git+https://github.com/Manishearth/rust-clippy#aac4c3f65494668234f1026e6fa3e8e40d0bacca"
 dependencies = [
- "clippy_lints 0.0.101 (git+https://github.com/Manishearth/rust-clippy)",
+ "clippy_lints 0.0.103 (git+https://github.com/Manishearth/rust-clippy)",
 ]
 
 [[package]]
 name = "clippy_lints"
-version = "0.0.101"
-source = "git+https://github.com/Manishearth/rust-clippy#9717b9585d69861e69144e97d51c05e4daad5ea3"
+version = "0.0.103"
+source = "git+https://github.com/Manishearth/rust-clippy#aac4c3f65494668234f1026e6fa3e8e40d0bacca"
 dependencies = [
  "matches 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "quine-mc_cluskey 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -212,7 +212,7 @@ name = "deque"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -449,7 +449,7 @@ dependencies = [
 
 [[package]]
 name = "image"
-version = "0.10.3"
+version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -496,13 +496,13 @@ dependencies = [
 
 [[package]]
 name = "iron-sessionstorage"
-version = "0.3.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cookie 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -664,7 +664,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num-integer 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.21 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -797,7 +797,7 @@ version = "0.7.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "phf_shared 0.7.20 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -854,7 +854,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "rand"
-version = "0.3.14"
+version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -868,7 +868,7 @@ dependencies = [
  "deque 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "num_cpus 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -914,7 +914,7 @@ version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust_sodium-sys 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "unwrap 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -930,7 +930,7 @@ dependencies = [
  "lazy_static 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "tar 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "unwrap 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -1045,7 +1045,7 @@ name = "tempdir"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1264,7 +1264,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.9.12 (registry+https://github.com/rust-lang/crates.io-index)",
- "image 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image 0.10.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "kuchiki 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "mime 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "string_cache 0.2.29 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1302,8 +1302,8 @@ dependencies = [
 "checksum cfg-if 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de1e760d7b6535af4241fca8bd8adf68e2e7edacc6b29f5d399050c5e48cf88c"
 "checksum chrono 0.2.25 (registry+https://github.com/rust-lang/crates.io-index)" = "9213f7cd7c27e95c2b57c49f0e69b1ea65b27138da84a170133fd21b07659c00"
 "checksum clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ef87e92396a3d29bf7e611c8a595be35ae90d9cb844a3571425900eaca4f51c8"
-"checksum clippy 0.0.101 (git+https://github.com/Manishearth/rust-clippy)" = "<none>"
-"checksum clippy_lints 0.0.101 (git+https://github.com/Manishearth/rust-clippy)" = "<none>"
+"checksum clippy 0.0.103 (git+https://github.com/Manishearth/rust-clippy)" = "<none>"
+"checksum clippy_lints 0.0.103 (git+https://github.com/Manishearth/rust-clippy)" = "<none>"
 "checksum color_quant 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a475fc4af42d83d28adf72968d9bcfaf035a1a9381642d8e85d8a04957767b0d"
 "checksum conduit-mime-types 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)" = "95ca30253581af809925ef68c2641cc140d6183f43e12e0af4992d53768bd7b8"
 "checksum cookie 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "0e3d6405328b6edb412158b3b7710e2634e23f3614b9bb1c412df7952489a626"
@@ -1337,11 +1337,11 @@ dependencies = [
 "checksum httparse 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6a8abece705b1d32c478f49447b3a575cd07f6e362ff12518f2ee2c9b9ced64e"
 "checksum hyper 0.9.12 (registry+https://github.com/rust-lang/crates.io-index)" = "d7da01615e9402761faab442396821b57ecb5adb12ac51958561411a82cfdf66"
 "checksum idna 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1053236e00ce4f668aeca4a769a09b3bf5a682d802abd6f3cb39374f6b162c11"
-"checksum image 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)" = "559d5ebbe9ec73111799e49c07717944b244f8accf5de33a8a8128bc3ecd2e00"
+"checksum image 0.10.4 (registry+https://github.com/rust-lang/crates.io-index)" = "76df2dce95fef56fd35dbc41c36e37b19aede703c6be7739e8b65d5788ffc728"
 "checksum inflate 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "e7e0062d2dc2f17d2f13750d95316ae8a2ff909af0fda957084f5defd87c43bb"
 "checksum iron 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9fb1b2d809f84bf347e472d5758762b5c804e0c622970235f156d82673e4d334"
 "checksum iron-error-router 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1c125cec734f60df380102ba539b8255b00188d76fb690bf514585eccc33011f"
-"checksum iron-sessionstorage 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5cccfdb3e234a2eb80bd53c11507c162445f9239d4cbe88daf87fc170563f6a0"
+"checksum iron-sessionstorage 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "82a44b0939b0b98af59d5d917d001fe3545027903293dee8c82ed9e3bfae40d1"
 "checksum itoa 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "ae3088ea4baeceb0284ee9eea42f591226e6beaecf65373e41b38d95a1b8e7a1"
 "checksum jpeg-decoder 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "4be50b418a1fc5d198588d9a4f682ef808a55db4084dce39d09bb0562525bb8c"
 "checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
@@ -1387,7 +1387,7 @@ dependencies = [
 "checksum png 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)" = "06208e2ee243e3118a55dda9318f821f206d8563fb8d4df258767f8e62bb0997"
 "checksum quick-error 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0aad603e8d7fb67da22dbdf1f4b826ce8829e406124109e73cf1b2454b93a71c"
 "checksum quine-mc_cluskey 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)" = "07589615d719a60c8dd8a4622e7946465dfef20d1a428f969e3443e7386d5f45"
-"checksum rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)" = "2791d88c6defac799c3f20d74f094ca33b9332612d9aef9078519c82e4fe04a5"
+"checksum rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)" = "022e0636ec2519ddae48154b028864bdce4eaf7d35226ab8e65c611be97b189d"
 "checksum rayon 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3b6a6e05e0e6b703e9f2ad266eb63f3712e693a17a2702b95a23de14ce8defa9"
 "checksum rc 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "ea7a573cb939eb63f37bc0228511f9780b7cdd2599df547706f8ffc58fa693bb"
 "checksum regex 0.1.80 (registry+https://github.com/rust-lang/crates.io-index)" = "4fd4ace6a8cf7860714a2c2280d6c1f7e6a413486c13298bbc86fd3da019402f"

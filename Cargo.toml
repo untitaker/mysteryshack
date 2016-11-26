@@ -44,7 +44,7 @@ rust_sodium = "0.1"
 iron-error-router = "0.2"
 please-clap = "0.1"
 termion = "1"
-iron-sessionstorage = "0.3"
+iron-sessionstorage = "0.5"
 
 [dev-dependencies]
 tempdir = "*"
