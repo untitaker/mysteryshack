@@ -28,7 +28,7 @@ testserver-config: debug-build
 	rm -r $(TMP_DIR) || true
 	mkdir -p $(TMP_DIR)
 	echo '[main]' > $(TMP_DIR)/config
-	echo 'listen = "localhost:6767"' >> $(TMP_DIR)/config
+	echo 'listen = "127.0.0.1:6767"' >> $(TMP_DIR)/config
 	echo "data_path = \"$(TMP_DIR)\"" >> $(TMP_DIR)/config
 	echo "use_proxy_headers = $(PROXY_SERVERS)" >> $(TMP_DIR)/config
 	yes password123 | $(TEST_CMD) user create testuser
@@ -37,8 +37,8 @@ spectest: testserver-config
 	($(MAKE) testserver &);
 	wget -q --retry-connrefused --waitretry=1 http://localhost:6767/ -O /dev/null
 	set e && ( \
-		echo 'storage_base_url: http://localhost:6767/storage/testuser'; \
-		echo 'storage_base_url_other: http://localhost:6767/storage/wronguser'; \
+		echo 'storage_base_url: http://127.0.0.1:6767/storage/testuser'; \
+		echo 'storage_base_url_other: http://127.0.0.1:6767/storage/wronguser'; \
 		echo 'category: api-test'; \
 		echo -n 'token: '; \
 		$(TEST_CMD) user authorize testuser https://example.com api-test:rw; \
