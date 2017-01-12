@@ -156,7 +156,7 @@ pub fn read_json_file<T: Decodable, P: AsRef<path::Path>>(p: P) -> Result<T, Ser
 pub fn write_json_file<T: Encodable, P: AsRef<path::Path>>(t: T, p: P) -> Result<(), ServerError> {
     let data = try!(json::encode(&t)).into_bytes();
     let f = atomicwrites::AtomicFile::new(p, atomicwrites::AllowOverwrite);
-    try!(f.write(|f| f.write_all(&data)));
+    try!(f.write(|f| f.write_all(&data)).map_err(Into::<io::Error>::into));
     Ok(())
 }
 

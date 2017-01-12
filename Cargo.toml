@@ -23,7 +23,7 @@ router = "0.4"
 hyper = "0.9"
 toml = "0.2"
 unicase = "1"
-atomicwrites = "0.0"
+atomicwrites = "0.1"
 url = { features = ["rustc-serialize"], version = "1" }
 clap = "2"
 rand = "0.3"
