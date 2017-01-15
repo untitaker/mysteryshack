@@ -28,8 +28,9 @@ impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
                 // FIXME: https://github.com/hyperium/hyper/issues/891
                 let rv = match request.headers.get::<$x>() {
                     Some(x) => x.0.clone(),
-                    None => {
-                        panic!("Missing header: {:?}. Turn off use_proxy_headers or set proxy headers.", $n);
+                    None => match request.headers.get_raw($n) {
+                        Some(raw_val) => panic!("Malformed header: {}: {:?}", $n, raw_val),
+                        None => panic!("Missing header: {:?}. Turn off use_proxy_headers or set proxy headers.", $n)
                     }
                 };
                 assert!(request.headers.remove::<$x>());
