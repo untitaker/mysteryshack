@@ -42,13 +42,11 @@ impl iron::middleware::BeforeMiddleware for XForwardedMiddleware {
         let scheme = h!(XForwardedProto, "X-Forwarded-Proto");
         let remote_addr = h!(XForwardedFor, "X-Forwarded-For")[0];
 
-        // FIXME: https://github.com/iron/iron/pull/475
-        let mut url = request.url.clone().into_generic_url();
+        let mut url = request.url.as_mut();
         url.set_host(Some(&host)).unwrap();
         url.set_port(Some(port)).unwrap();
         url.set_scheme(&scheme).unwrap();
 
-        request.url = iron::Url::from_generic_url(url).unwrap();
         request.remote_addr.set_ip(remote_addr);
         Ok(())
     }
@@ -186,8 +184,6 @@ impl FormDataHelper<str, String> for urlencoded::QueryMap {
 }
 
 pub fn get_account_id(user: &models::User, request: &Request) -> String {
-    // FIXME: https://github.com/iron/iron/pull/475
-    let url = request.url.clone().into_generic_url();
-    let netloc = &url[Position::BeforeHost..Position::AfterPort];
+    let netloc = &request.url.as_ref()[Position::BeforeHost..Position::AfterPort];
     format!("{}@{}", user.userid, netloc)
 }

@@ -55,11 +55,8 @@ impl Key for AppLock { type Value = (); }
 macro_rules! require_login_as {
     ($req:expr, $expect_user:expr) => ({
         let login_redirect = Ok(Response::with((status::Found, Redirect({
-            // FIXME: Converting from iron::Url to &str should be possible without clone
-            // https://github.com/iron/iron/pull/475
-            let redirect_to = $req.url.clone().into_generic_url();
             url_for!($req, "user_login",
-                     "redirect_to" => redirect_to.as_str(),
+                     "redirect_to" => $req.url.as_ref().as_str(),
                      "prefill_user" => $expect_user)
         }))));
 
@@ -85,9 +82,7 @@ macro_rules! check_csrf {
             req.headers.get::<header::Referer>()
                 .and_then(|s| url::Url::parse(s).ok())
                 .and_then(|referer_u| {
-                    let req_u = req.url.clone().into_generic_url();
-
-                    if referer_u.origin() == req_u.origin() { Some(()) }
+                    if referer_u.origin() == req.url.as_ref().origin() { Some(()) }
                     else { None }
                 }),
             (status::BadRequest, "CSRF detected.")
@@ -451,9 +446,7 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
 
 
 fn webfinger_response(request: &mut Request) -> IronResult<Response> {
-    // FIXME: https://github.com/iron/iron/pull/475
-    let url = request.url.clone().into_generic_url();
-    let query = url.query_pairs().collect::<collections::BTreeMap<_, _>>();
+    let query = request.url.as_ref().query_pairs().collect::<collections::BTreeMap<_, _>>();
 
     let userid = iexpect!(
         query.get("resource")
@@ -464,8 +457,8 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
         })
     );
 
-    let storage_url = url_for!(request, "storage_root", "userid" => userid).into_generic_url();
-    let oauth_url = url_for!(request, "oauth_entry", "userid" => userid).into_generic_url();
+    let storage_url: url::Url = url_for!(request, "storage_root", "userid" => userid).into();
+    let oauth_url: url::Url = url_for!(request, "oauth_entry", "userid" => userid).into();
 
     let mut r = Response::with(status::Ok);
     r.headers.set(header::ContentType("application/jrd+json".parse().unwrap()));
