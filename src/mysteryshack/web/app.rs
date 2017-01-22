@@ -55,11 +55,8 @@ impl Key for AppLock { type Value = (); }
 macro_rules! require_login_as {
     ($req:expr, $expect_user:expr) => ({
         let login_redirect = Ok(Response::with((status::Found, Redirect({
-            // FIXME: Converting from iron::Url to &str should be possible without clone
-            // https://github.com/iron/iron/pull/475
-            let redirect_to = $req.url.clone().into_generic_url();
             url_for!($req, "user_login",
-                     "redirect_to" => redirect_to.as_str(),
+                     "redirect_to" => $req.url.as_ref().as_str(),
                      "prefill_user" => $expect_user)
         }))));
 
@@ -85,8 +82,7 @@ macro_rules! check_csrf {
             req.headers.get::<header::Referer>()
                 .and_then(|s| url::Url::parse(s).ok())
                 .and_then(|referer_u| {
-                    let req_u = req.url.clone().into_generic_url();
-
+                    let req_u: &url::Url = req.url.as_ref();
                     if referer_u.origin() == req_u.origin() { Some(()) }
                     else { None }
                 }),
@@ -451,8 +447,7 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
 
 
 fn webfinger_response(request: &mut Request) -> IronResult<Response> {
-    // FIXME: https://github.com/iron/iron/pull/475
-    let url = request.url.clone().into_generic_url();
+    let url: &url::Url = request.url.as_ref();
     let query = url.query_pairs().collect::<collections::BTreeMap<_, _>>();
 
     let userid = iexpect!(
@@ -464,8 +459,8 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
         })
     );
 
-    let storage_url = url_for!(request, "storage_root", "userid" => userid).into_generic_url();
-    let oauth_url = url_for!(request, "oauth_entry", "userid" => userid).into_generic_url();
+    let storage_url = url_for!(request, "storage_root", "userid" => userid);
+    let oauth_url = url_for!(request, "oauth_entry", "userid" => userid);
 
     let mut r = Response::with(status::Ok);
     r.headers.set(header::ContentType("application/jrd+json".parse().unwrap()));
@@ -482,14 +477,14 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
                 ("remotestorage", "draft-dejong-remotestorage-02")
             ] {
                 rv.push(json!{
-                    "href" => storage_url.as_str(),
+                    "href" => storage_url.as_ref().as_str(),
                     "rel" => rel,
                     "properties" => json!{
                         // Spec version
                         "http://remotestorage.io/spec/version" => version,
 
                         // OAuth as in draft-06
-                        "http://tools.ietf.org/html/rfc6749#section-4.2" => oauth_url.as_str(),
+                        "http://tools.ietf.org/html/rfc6749#section-4.2" => oauth_url.as_ref().as_str(),
 
                         // No support for providing the access token via URL query param as in
                         // draft-06
