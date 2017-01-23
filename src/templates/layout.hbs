@@ -1,4 +1,4 @@
-{{#partial show-app }}
+{{#*inline "show-app" }}
 <img class="app-icon" src="/dashboard/icon?url={{client_id}}" width=72 height=72 />
 <div class="app-text">
     <a class="app-name" href="{{client_id}}">{{client_id}}</a>
@@ -14,19 +14,19 @@
     </ul>
     {{/if}}
 </div>
-{{/partial}}
+{{/inline}}
 <!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>{{#block title}}Mysteryshack{{/block}}</title>
+        <title>{{#> title}}Mysteryshack{{/title}}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
         <link rel="icon" href="/static/logo.svg" />
         <link rel="stylesheet" href="/static/pure-min.css" />
         <link rel="stylesheet" href="/static/app.css" />
 
-        {{#block head}}{{/block}}
+        {{#> head}}{{/head}}
 
         <!-- Security stuff -->
 
@@ -46,22 +46,21 @@
     </head>
     <body>
         <header id="header">
-            {{#block header }}
+            {{#>header}}
             <h1><a id=logo href="/">Mysteryshack</a></h1>
-            {{/block}}
+            {{/header}}
         </header>
 
-        <div id="banner"><div>{{#block banner}}{{/block}}</div></div>
+        <div id="banner"><div>{{#> banner}}{{/banner}}</div></div>
 
         <div id="content">
-            {{#block content }}
-            {{/block}}
+            {{> content}}
         </div>
 
         <footer id="footer">
-            {{#block footer }}
+            {{#> footer}}
             <p><small>Powered by <a href="https://github.com/untitaker/mysteryshack">mysteryshack</a></small></p>
-            {{/block}}
+            {{/footer}}
         </footer>
     </body>
 </html>

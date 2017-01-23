@@ -1,9 +1,8 @@
-
-{{#partial banner }}
-    <p>{{ msg }}</p>
-{{/partial}}
-{{# partial content }}
-    <p><a href="{{ back_to }}">Go back</a></p>
-{{/partial}}
-
-{{> layout}}
+{{#> layout}}
+    {{#*inline "banner"}}
+        <p>{{ msg }}</p>
+    {{/inline}}
+    {{#*inline "content"}}
+        <p><a href="{{ back_to }}">Go back</a></p>
+    {{/inline}}
+{{/layout}}

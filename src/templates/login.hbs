@@ -1,16 +1,16 @@
-{{# partial content }}
-<div id="login">
-<form method=post class="pure-form pure-form-stacked">
+{{#> layout}}
+    {{#*inline "content"}}
+        <div id="login">
+            <form method=post class="pure-form pure-form-stacked">
 
-    <label for="user">Username</label>
-    <input autofocus type=text name=user id=user {{#if prefill_user }}value="{{prefill_user}}"{{/if}} />
+                <label for="user">Username</label>
+                <input autofocus type=text name=user id=user {{#if prefill_user }}value="{{prefill_user}}"{{/if}} />
 
-    <label for=pass>Password</label>
-    <input type=password name=pass id=pass />
+                <label for=pass>Password</label>
+                <input type=password name=pass id=pass />
 
-    <input type=submit class="pure-button pure-button-primary" value="Log in" />
-</form>
-</div>
-{{/partial}}
-
-{{> layout}}
+                <input type=submit class="pure-button pure-button-primary" value="Log in" />
+            </form>
+        </div>
+    {{/inline}}
+{{/layout}}

@@ -1,32 +1,31 @@
-{{# partial content }}
-<h2>OAuth request</h2>
+{{#> layout}}
+    {{#*inline "content"}}
+        <h2>OAuth request</h2>
 
-<p>The following application wants to access your data:</p>
+        <p>The following application wants to access your data:</p>
 
-<div class="app-info">
-    {{#block show-app }}{{/block}}
-</div>
+        <div class="app-info">
+            {{#block show-app }}{{/block}}
+        </div>
 
-<form method=post>
-    <p>
-        <label for=days>Token valid for</label>
-        <select name="days" size="1">
-            <option value=7>7 Days</option>
-            <option value=30>30 Days</option>
-            <option value=180>180 Days</option>
-            <option value=365>365 Days</option>
-            <option value=-1>Infinite</option>
-        </select>
-    </p>
-    <p>
-        You will be able to reject this app later from your <a href="/dashboard/">dashboard</a>.
-    </p>
-    <p>
-        <input type=submit name=decision class="pure-button oauth-allow" value=allow />
-        <input type=submit name=decision class="pure-button oauth-deny" value=deny />
-    </p>
-</form>
-
-{{/partial}}
-
-{{> layout}}
+        <form method=post>
+            <p>
+                <label for=days>Token valid for</label>
+                <select name="days" size="1">
+                    <option value=7>7 Days</option>
+                    <option value=30>30 Days</option>
+                    <option value=180>180 Days</option>
+                    <option value=365>365 Days</option>
+                    <option value=-1>Infinite</option>
+                </select>
+            </p>
+            <p>
+                You will be able to reject this app later from your <a href="/dashboard/">dashboard</a>.
+            </p>
+            <p>
+                <input type=submit name=decision class="pure-button oauth-allow" value=allow />
+                <input type=submit name=decision class="pure-button oauth-deny" value=deny />
+            </p>
+        </form>
+    {{/inline}}
+{{/layout}}
