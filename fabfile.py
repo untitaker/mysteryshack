@@ -8,6 +8,6 @@ env.hosts = ['unti@draco.uberspace.de']
 def update():
     with cd('~/data/mysteryshack'):
         run('git pull')
-        run('make')
+        run('nice -n9 make')
 
     run('svc -du ~/service/mysteryshack')
