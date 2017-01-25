@@ -47,7 +47,7 @@ spectest: testserver-config
 		echo -n 'root_token: '; \
 		$(TEST_CMD) user authorize testuser https://example.com \*:rw; \
 	) > $(SPEC_TEST_DIR)/suite/config.yml
-	cd $(SPEC_TEST_DIR)/suite && rake test
+	cd $(SPEC_TEST_DIR)/suite && bundle exec rake test
 
 testserver: debug-build
 	killall mysteryshack || true
