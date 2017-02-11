@@ -13,7 +13,7 @@
             <ul id="applist">
             {{#each apps}}
                 <li class=clearfix>
-                    {{#block show-app}}{{/block}}
+                    {{> show-app}}
                     <form method="post" action="delete-app">
                         <input type="hidden" name="client_id" value="{{ client_id }}" />
                         <input type="submit" class="pure-button button-small delete-app danger-button" value="Disconnect" />
