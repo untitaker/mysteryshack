@@ -16,7 +16,6 @@ extern crate toml;
 extern crate unicase;
 extern crate atomicwrites;
 extern crate url;
-extern crate url_serde;
 extern crate urlencoded;
 extern crate clap;
 #[macro_use] extern crate please_clap;

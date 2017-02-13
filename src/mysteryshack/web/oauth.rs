@@ -7,7 +7,6 @@ use serde::{Serialize,Deserialize,Serializer,Deserializer};
 use hyper::header;
 
 use url;
-use url_serde;
 
 use iron::prelude::*;
 use iron::modifiers::Header;
@@ -18,15 +17,19 @@ use urlencoded;
 use super::super::utils;
 
 /// A OAuth request
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct OauthRequest {
     pub session: Option<Session>,  // May be none if malformed
-    #[serde(
-        deserialize_with = "url_serde::deserialize",
-        serialize_with = "url_serde::serialize"
-    )]
     pub redirect_uri: url::Url,
     pub state: Option<String>,
+}
+
+
+impl Serialize for OauthRequest {
+     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+         where S: Serializer {
+         self.session.serialize(serializer)
+    }
 }
 
 
