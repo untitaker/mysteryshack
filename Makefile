@@ -1,3 +1,7 @@
+current_dir = $(shell pwd)
+export SODIUM_LIB_DIR := $(current_dir)/local/lib/
+export SODIUM_STATIC := yes
+
 export RUST_BACKTRACE := 1
 
 SPEC_TEST_DIR=tests/spec
@@ -6,7 +10,7 @@ APP_BINARY=./target/debug/mysteryshack
 TEST_CMD=$(APP_BINARY) -c $(TMP_DIR)/config
 PROXY_SERVERS=false
 
-all:
+all: libsodium
 	$(MAKE) release-build
 
 release-build:
@@ -79,4 +83,15 @@ install-unittest:
 unittest:
 	cargo test
 
-.PHONY: test
+libsodium:
+	[ -d libsodium ] || git clone https://github.com/jedisct1/libsodium libsodium
+	set -ex && cd libsodium && \
+		git fetch && \
+		git checkout origin/stable && \
+		rm -rf lib && \
+		./autogen.sh && \
+		./configure --prefix=$$PWD/../local/ --disable-shared && \
+		$(MAKE) && \
+		$(MAKE) install
+
+.PHONY: test libsodium
