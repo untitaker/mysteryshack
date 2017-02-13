@@ -32,8 +32,7 @@ use rand;
 use rand::Rng;
 use webicon;
 
-use rustc_serialize::json;
-use rustc_serialize::json::ToJson;
+use serde_json;
 
 use models;
 use models::UserNode;
@@ -93,10 +92,10 @@ macro_rules! check_csrf {
 
 macro_rules! alert_tmpl {
     ($msg:expr, $back_to:expr) => ({
-        Template::new("alert", json!{
-            "msg" => $msg,
-            "back_to" => $back_to
-        })
+        Template::new("alert", json!({
+            "msg": $msg,
+            "back_to": $back_to
+        }))
     })
 }
 
@@ -119,7 +118,7 @@ macro_rules! myrouter {
 pub fn run_server(config: config::Config) {
     fn cors(_: &mut Request) -> IronResult<Response> { Ok(Response::with(status::Ok)) };
     fn index(_: &mut Request) -> IronResult<Response> { 
-        Ok(Response::with((status::Ok, Template::new("index", "".to_json()))))
+        Ok(Response::with((status::Ok, Template::new("index", json!({})))))
     }
     fn storage_root(r: &mut Request) -> IronResult<Response> { user_node_response(r) }
 
@@ -268,12 +267,12 @@ fn user_login_get(request: &mut Request) -> IronResult<Response> {
     let mut r = Response::with(status::Ok);
     r.headers.set(header::ContentType("text/html".parse().unwrap()));
     r.set_mut(Template::new("login", {
-        let mut rv = collections::BTreeMap::new();
+        let mut rv = serde_json::Map::new();
         request.get_ref::<urlencoded::UrlEncodedQuery>().ok()
             .and_then(|query| query.get("prefill_user"))
             .and_then(|params| params.get(0))
-            .and_then(|x| rv.insert("prefill_user".to_owned(), x.to_json()));
-        rv
+            .and_then(|x| rv.insert("prefill_user".to_owned(), serde_json::Value::String(x.to_owned())));
+        serde_json::Value::Object(rv)
     }));
     Ok(r)
 }
@@ -325,10 +324,10 @@ fn user_dashboard(request: &mut Request) -> IronResult<Response> {
     let apps = user.walk_apps().unwrap_or_else(|_| vec![]);
     Ok(Response::with((
         status::Ok,
-        Template::new("dashboard", json!{
-            "account_id" => get_account_id(&user, &request).to_json(),
-            "apps" => apps
-        })
+        Template::new("dashboard", json!({
+            "account_id": get_account_id(&user, &request),
+            "apps": apps.iter().map(|app| app.to_json()).collect::<Vec<_>>()
+        }))
     )))
 }
 
@@ -402,15 +401,15 @@ fn oauth_entry(request: &mut Request) -> IronResult<Response> {
         Err(e) => return Ok(
             e.get_response().unwrap_or_else(|| {
                 Response::with(status::BadRequest)
-                .set(Template::new("oauth_error", json!(
-                    "e_msg" => (e.description())
-                )))
+                .set(Template::new("oauth_error", json!({
+                    "e_msg": (e.description())
+                })))
             })
         )
     };
 
     match request.method {
-        Method::Get => Ok(Response::with(status::Ok).set(Template::new("oauth_entry", oauth_request.to_json()))),
+        Method::Get => Ok(Response::with(status::Ok).set(Template::new("oauth_entry", oauth_request))),
         Method::Post => {
             check_csrf!(request);
             let formdata = itry!(request.get_ref::<urlencoded::UrlEncodedBody>());
@@ -462,64 +461,64 @@ fn webfinger_response(request: &mut Request) -> IronResult<Response> {
     let storage_url = url_for!(request, "storage_root", "userid" => userid);
     let oauth_url = url_for!(request, "oauth_entry", "userid" => userid);
 
-    let mut r = Response::with(status::Ok);
-    r.headers.set(header::ContentType("application/jrd+json".parse().unwrap()));
+    let mut json = serde_json::Map::new();
+    json.insert("links".to_owned(), {
+        let mut rv = vec![];
+        // We need to provide an older webfinger response because remoteStorage.js doesn't
+        // support newer ones.
+        // https://github.com/remotestorage/remotestorage.js/pull/899
+        // https://github.com/silverbucket/webfinger.js/pull/11
+        for &(rel, version) in &[
+            ("http://tools.ietf.org/id/draft-dejong-remotestorage", "draft-dejong-remotestorage-05"),
+            ("remotestorage", "draft-dejong-remotestorage-02")
+        ] {
+            rv.push(json!({
+                "href": storage_url.as_ref().as_str(),
+                "rel": rel,
+                "properties": {
+                    // Spec version
+                    "http://remotestorage.io/spec/version": version,
 
-    r.set_mut(json::encode(&json!{
-        "links" => (&json::Json::Array({
-            let mut rv = vec![];
-            // We need to provide an older webfinger response because remoteStorage.js doesn't
-            // support newer ones.
-            // https://github.com/remotestorage/remotestorage.js/pull/899
-            // https://github.com/silverbucket/webfinger.js/pull/11
-            for &(rel, version) in &[
-                ("http://tools.ietf.org/id/draft-dejong-remotestorage", "draft-dejong-remotestorage-05"),
-                ("remotestorage", "draft-dejong-remotestorage-02")
-            ] {
-                rv.push(json!{
-                    "href" => storage_url.as_ref().as_str(),
-                    "rel" => rel,
-                    "properties" => json!{
-                        // Spec version
-                        "http://remotestorage.io/spec/version" => version,
+                    // OAuth as in draft-06
+                    "http://tools.ietf.org/html/rfc6749#section-4.2": oauth_url.as_ref().as_str(),
 
-                        // OAuth as in draft-06
-                        "http://tools.ietf.org/html/rfc6749#section-4.2" => oauth_url.as_ref().as_str(),
+                    // No support for providing the access token via URL query param as in
+                    // draft-06
+                    "http://tools.ietf.org/html/rfc6750#section-2.3": (),
 
-                        // No support for providing the access token via URL query param as in
-                        // draft-06
-                        "http://tools.ietf.org/html/rfc6750#section-2.3" => (),
+                    // No Content-Range as in draft-02
+                    "http://tools.ietf.org/html/rfc2616#section-14.16": (),
 
-                        // No Content-Range as in draft-02
-                        "http://tools.ietf.org/html/rfc2616#section-14.16" => (),
+                    // No Content-Range as in draft-06
+                    "http://tools.ietf.org/html/rfc7233": (),
 
-                        // No Content-Range as in draft-06
-                        "http://tools.ietf.org/html/rfc7233" => (),
+                    // No web authoring as in draft-06
+                    "http://remotestorage.io/spec/web-authoring": ()
+                }
+            }));
+        };
+        serde_json::Value::Array(rv)
+    });
 
-                        // No web authoring as in draft-06
-                        "http://remotestorage.io/spec/web-authoring" => ()
-                    }
-                });
-            }
-            rv
-        }))
-    }).unwrap());
-    Ok(r)
+
+    Ok(Response::with((
+        status::Ok,
+        Header(header::ContentType("application/jrd+json".parse().unwrap())),
+        serde_json::to_string(&json).unwrap()
+    )))
 }
 
 trait UserNodeResponder where Self: Sized {
     fn respond(self, request: &mut Request) -> IronResult<Response> {
         match request.method {
             Method::Get => self.respond_get(request),
-            Method::Put => {
-                if request.headers.get::<header::ContentRange>().is_some() {
-                    Ok(Response::with((
-                        status::BadRequest,
-                        "Content-Range is invalid on PUT, as per RFC 7231. See https://github.com/remotestorage/spec/issues/124"
-                    )))
-                } else {
-                    self.respond_put(request)
-                }
+            Method::Put => if request.headers.get::<header::ContentRange>().is_some() {
+                Ok(Response::with((
+                    status::BadRequest,
+                    "Content-Range is invalid on PUT, as per RFC 7231. See https://github.com/remotestorage/spec/issues/124"
+                )))
+            } else {
+                self.respond_put(request)
             },
             Method::Delete => self.respond_delete(request),
             _ => Ok(Response::with(status::BadRequest))
@@ -553,9 +552,9 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
         r.headers.set(header::AcceptRanges(vec![header::RangeUnit::None]));
         r.headers.set(header::ETag(header::EntityTag::new(false, shown_etag)));
 
-        r.set_mut(json::encode(&json!{
-            "@context" => "http://remotestorage.io/spec/folder-description",
-            "items" => json::Json::Object({
+        r.set_mut(json!({
+            "@context": "http://remotestorage.io/spec/folder-description",
+            "items": ({
                 let mut d = collections::BTreeMap::new();
                 if let Ok(children) = self.read_children() {
                     for child in &children {
@@ -572,7 +571,7 @@ impl<'a> UserNodeResponder for models::UserFolder<'a> {
                 };
                 d
             })
-        }).unwrap());
+        }).to_string());
         Ok(r)
     }
 }

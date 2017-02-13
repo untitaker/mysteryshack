@@ -17,20 +17,25 @@ test = false
 doc = false
 
 [dependencies]
-rustc-serialize = "0.3"
+serde = "0.9"
+serde_derive = "0.9"
+serde_json = "0.9"
+base64 = "0.4"
+
 iron = "0.5"
 router = "0.5"
 hyper = "0.10"
 toml = "0.2"
 unicase = "1"
 atomicwrites = "0.1"
-url = { features = ["rustc-serialize"], version = "1" }
+url = "1"
+url_serde = "0.1"
 clap = "2"
 rand = "0.3"
 persistent = "0.3"
 urlencoded = "0.5"
-handlebars-iron = "0.23"
-handlebars = "0.25"
+handlebars-iron = { features = ["serde_type"], version = "0.23" }
+handlebars = { features = ["serde_type"], version = "0.25" }
 regex = "0.2"
 quick-error = "1"
 mount = "0.3"
@@ -40,7 +45,7 @@ chrono = "0.2"
 nix = "0.7"
 clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
 webicon = "0.3"
-rust_sodium = "0.1"
+sodiumoxide = { features = ["serde"], version = "0.0" }
 iron-error-router = "0.3"
 please-clap = "0.1"
 termion = "1"

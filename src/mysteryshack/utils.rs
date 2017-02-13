@@ -10,9 +10,8 @@ use models;
 
 use url;
 
-use rustc_serialize::json;
-use rustc_serialize::Decodable;
-use rustc_serialize::Encodable;
+use serde::{Serialize,Deserialize};
+use serde_json;
 
 use termion::raw::IntoRawMode;
 use termion::input::TermRead;
@@ -28,13 +27,7 @@ quick_error! {
             cause(error)
             from()
         }
-        JsonDecode(error: json::DecoderError) {
-            display("{}", error)
-            description(error.description())
-            cause(error)
-            from()
-        }
-        JsonEncode(error: json::EncoderError) {
+        Json(error: serde_json::Error) {
             display("{}", error)
             description(error.description())
             cause(error)
@@ -145,19 +138,20 @@ pub fn prompt_confirm<T: AsRef<str>>(question: T, default: bool) -> bool {
     };
 }
 
-pub fn read_json_file<T: Decodable, P: AsRef<path::Path>>(p: P) -> Result<T, ServerError> {
+pub fn read_json_file<T: Deserialize, P: AsRef<path::Path>>(p: P) -> Result<T, ServerError> {
     let mut f = try!(fs::File::open(p.as_ref()));
-    let mut s = String::new();
-    try!(f.read_to_string(&mut s));
-    let rv = try!(json::decode(&s));
-    Ok(rv)
+    Ok(try!(serde_json::from_reader(&mut f)))
 }
 
-pub fn write_json_file<T: Encodable, P: AsRef<path::Path>>(t: T, p: P) -> Result<(), ServerError> {
-    let data = try!(json::encode(&t)).into_bytes();
+pub fn write_json_file<T: Serialize, P: AsRef<path::Path>>(t: T, p: P) -> Result<(), ServerError> {
     let f = atomicwrites::AtomicFile::new(p, atomicwrites::AllowOverwrite);
-    try!(f.write(|f| f.write_all(&data)).map_err(Into::<io::Error>::into));
-    Ok(())
+    match f.write(|f| {
+        serde_json::to_writer(f, &t)
+    }) {
+        Ok(_) => Ok(()),
+        Err(atomicwrites::Error::User(e)) => Err(ServerError::Json(e)),
+        Err(atomicwrites::Error::Internal(e)) => Err(ServerError::Io(e))
+    }
 }
 
 

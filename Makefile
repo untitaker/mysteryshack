@@ -79,4 +79,4 @@ install-unittest:
 unittest:
 	cargo test
 
-.PHONY: test libsodium
+.PHONY: test

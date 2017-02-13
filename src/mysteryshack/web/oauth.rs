@@ -2,13 +2,12 @@ use std::collections;
 use std::fmt;
 use std::error::Error as ErrorTrait;
 
-use rustc_serialize;
-use rustc_serialize::json;
-use rustc_serialize::json::ToJson;
+use serde::{Serialize,Deserialize,Serializer,Deserializer};
 
 use hyper::header;
 
 use url;
+use url_serde;
 
 use iron::prelude::*;
 use iron::modifiers::Header;
@@ -19,34 +18,24 @@ use urlencoded;
 use super::super::utils;
 
 /// A OAuth request
-#[derive(RustcDecodable, RustcEncodable, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct OauthRequest {
     pub session: Option<Session>,  // May be none if malformed
+    #[serde(
+        deserialize_with = "url_serde::deserialize",
+        serialize_with = "url_serde::serialize"
+    )]
     pub redirect_uri: url::Url,
     pub state: Option<String>,
 }
 
-impl ToJson for OauthRequest {
-    // ToJson for passing to template
-    fn to_json(&self) -> json::Json {
-        self.session.to_json()
-    }
-}
 
-#[derive(RustcDecodable, RustcEncodable, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Session {
     pub client_id: String,
     pub permissions: PermissionsMap
 }
 
-impl ToJson for Session {
-    fn to_json(&self) -> json::Json {
-        json!{
-            "client_id" => self.client_id,
-            "permissions" => self.permissions
-        }
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct PermissionsMap {
@@ -86,40 +75,26 @@ impl PermissionsMap {
     }
 }
 
-impl rustc_serialize::Decodable for PermissionsMap {
-    fn decode<D: rustc_serialize::Decoder>(d: &mut D) -> Result<Self, D::Error> {
-        collections::HashMap::<String, CategoryPermissions>::decode(d).map(|x| {
+impl Deserialize for PermissionsMap {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer {
+        collections::HashMap::<String, CategoryPermissions>::deserialize(deserializer).map(|x| {
             PermissionsMap { permissions: x }
         })
     }
 }
 
-impl rustc_serialize::Encodable for PermissionsMap {
-    fn encode<S: rustc_serialize::Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
-        self.permissions.encode(s)
+impl Serialize for PermissionsMap {
+     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+         where S: Serializer {
+         self.permissions.serialize(serializer)
     }
 }
 
-impl ToJson for PermissionsMap {
-    fn to_json(&self) -> json::Json {
-        self.permissions.to_json()
-    }
-}
-
-#[derive(RustcDecodable, RustcEncodable, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct CategoryPermissions {
     pub can_read: bool,
     pub can_write: bool
-}
-
-impl ToJson for CategoryPermissions {
-    // ToJson for passing to template
-    fn to_json(&self) -> json::Json {
-        json!{
-            "can_read" => self.can_read,
-            "can_write" => self.can_write
-        }
-    }
 }
 
 fn expect_param(query: &urlencoded::QueryMap, key: &str) -> Result<String, Error> {

@@ -8,17 +8,15 @@ use std::iter::FromIterator;
 
 use chrono;
 
-use rustc_serialize::json;
-use rustc_serialize::json::ToJson;
-use rustc_serialize::base64;
-use rustc_serialize::base64::{FromBase64,ToBase64};
+use serde_json;
+use base64;
 
 use rand;
 use rand::Rng;
 
 use regex;
 
-use rust_sodium::crypto::{auth,pwhash};
+use sodiumoxide::crypto::{auth,pwhash};
 
 use atomicwrites;
 use time;
@@ -182,17 +180,15 @@ pub struct App<'a> {
     pub user: &'a User
 }
 
-impl<'a> ToJson for App<'a> {
-    // for passing to template
-    fn to_json(&self) -> json::Json {
-        json!{
-            "client_id" => self.client_id,
-            "app_id" => self.app_id
-        }
-    }
-}
-
 impl<'a> App<'a> {
+    // for passing to template
+    pub fn to_json(&self) -> serde_json::Value {
+        json!({
+            "client_id": self.client_id,
+            "app_id": self.app_id
+        })
+    }
+
     fn get_path(u: &User, client_id: &str) -> path::PathBuf {
         u.apps_path().join(client_id.replace("/", ""))
     }
@@ -250,7 +246,7 @@ impl<'a> App<'a> {
     }
 }
 
-#[derive(RustcEncodable, RustcDecodable, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Token {
     // Expiration date as POSIX timestamp. Never expires if None.
     pub exp: Option<i64>,
@@ -273,8 +269,9 @@ impl Token {
     pub fn get<'a>(u: &'a User, token: &str) -> Option<(App<'a>, Self)> {
         let key = u.get_key();
 
-        let session = {
-            let mut token_parts = token.split('.').map(|x| x.from_base64());
+        let token: Self = {
+            let mut token_parts = token.split('.')
+                .map(|x| base64::decode(x));
             let payload = match token_parts.next() { Some(Ok(x)) => x, _ => return None };
 
             let tag = match token_parts.next() {
@@ -294,28 +291,28 @@ impl Token {
                 Err(_) => return None
             };
 
-            match json::decode::<Token>(&payload_string) {
+            match serde_json::from_str(&payload_string) {
                 Ok(x) => x,
                 Err(_) => return None
             }
         };
 
-        if let Some(exp) = session.exp {
+        if let Some(exp) = token.exp {
             let now = chrono::UTC::now().timestamp();
             if exp < now {
                 return None;
             }
         }
 
-        let app = match App::get(u, &session.client_id[..]) {
+        let app = match App::get(u, &token.client_id[..]) {
             Some(app) => {
-                if app.app_id == session.app_id { app }
+                if app.app_id == token.app_id { app }
                 else { return None }
             },
             _ => return None
         };
 
-        Some((app, session))
+        Some((app, token))
     }
 
     pub fn create(u: &User, sess: OauthSession, days: Option<u64>) -> Result<(App, Self), ServerError> {
@@ -338,21 +335,21 @@ impl Token {
 
     pub fn token(&self, u: &User) -> String {
         let key = u.get_key();
-        let payload_string = json::encode(self).unwrap();
+        let payload_string = serde_json::to_string(self).unwrap();
         let payload = payload_string.as_bytes();
         let tag = auth::authenticate(payload, &key);
 
         {
             let mut rv = String::new();
-            rv.push_str(&payload.to_base64(base64::STANDARD));
+            rv.push_str(&base64::encode(payload));
             rv.push('.');
-            rv.push_str(&tag.0.to_base64(base64::STANDARD));
+            rv.push_str(&base64::encode(&tag.0));
             rv
         }
     }
 }
 
-#[derive(RustcDecodable, RustcEncodable, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PasswordHash {
     content: pwhash::HashedPassword
 }
@@ -385,7 +382,7 @@ pub trait UserNode<'a> {
     fn get_fs_path(&self) -> &path::Path;
 
     // Get json repr for folder listing
-    fn json_repr(&self) -> Result<json::Json, ServerError>;
+    fn json_repr(&self) -> Result<serde_json::Value, ServerError>;
 
     // Get etag
     fn read_etag(&self) -> Result<String, ServerError> {
@@ -394,7 +391,7 @@ pub trait UserNode<'a> {
     }
 }
 
-#[derive(RustcDecodable, RustcEncodable)]
+#[derive(Serialize, Deserialize)]
 pub struct UserFileMeta {
     pub content_type: String,
     pub content_length: u64
@@ -503,13 +500,13 @@ impl<'a> UserNode<'a> for UserFile<'a> {
     }
     fn get_fs_path(&self) -> &path::Path { self.data_path.as_path() }
     
-    fn json_repr(&self) -> Result<json::Json, ServerError> {
+    fn json_repr(&self) -> Result<serde_json::Value, ServerError> {
         let meta = try!(self.read_meta());
-        Ok(json!{
-            "Content-Type" => meta.content_type,
-            "Content-Length" => meta.content_length,
-            "ETag" => try!(self.read_etag())
-        })
+        Ok(json!({
+            "Content-Type": meta.content_type,
+            "Content-Length": meta.content_length,
+            "ETag": try!(self.read_etag())
+        }))
     }
 }
 
@@ -569,10 +566,10 @@ impl<'a> UserNode<'a> for UserFolder<'a> {
 
     fn get_fs_path(&self) -> &path::Path { self.data_path.as_path() }
 
-    fn json_repr(&self) -> Result<json::Json, ServerError> {
-        Ok(json!{
-            "ETag" => try!(self.read_etag())
-        })
+    fn json_repr(&self) -> Result<serde_json::Value, ServerError> {
+        Ok(json!({
+            "ETag": try!(self.read_etag())
+        }))
     }
 }
 

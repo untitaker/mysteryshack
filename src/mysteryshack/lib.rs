@@ -3,7 +3,12 @@
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 #![cfg_attr(feature = "clippy", deny(warnings))]
 
-extern crate rustc_serialize;
+extern crate serde;
+#[macro_use] extern crate serde_derive;
+#[macro_use] extern crate serde_json;
+
+extern crate base64;
+
 #[macro_use] extern crate iron;
 #[macro_use] extern crate router;
 #[macro_use] extern crate hyper;
@@ -11,10 +16,11 @@ extern crate toml;
 extern crate unicase;
 extern crate atomicwrites;
 extern crate url;
+extern crate url_serde;
 extern crate urlencoded;
 extern crate clap;
 #[macro_use] extern crate please_clap;
-extern crate rust_sodium;
+extern crate sodiumoxide;
 extern crate rand;
 extern crate persistent;
 extern crate handlebars;
@@ -34,7 +40,6 @@ extern crate iron_sessionstorage;
 #[cfg(test)]
 extern crate tempdir;
 
-#[macro_use] mod macros;
 mod utils;
 pub mod cli;
 mod web;
