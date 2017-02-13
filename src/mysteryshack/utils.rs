@@ -5,13 +5,13 @@ use std::io;
 use std::path;
 
 use atomicwrites;
-use config;
 use models;
 
 use url;
 
 use serde::{Serialize,Deserialize};
 use serde_json;
+use toml;
 
 use termion::raw::IntoRawMode;
 use termion::input::TermRead;
@@ -33,7 +33,7 @@ quick_error! {
             cause(error)
             from()
         }
-        Config(error: config::Error) {
+        Config(error: toml::de::Error) {
             display("{}", error)
             description(error.description())
             cause(error)
