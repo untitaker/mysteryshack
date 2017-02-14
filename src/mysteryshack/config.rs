@@ -9,9 +9,14 @@ use utils::ServerError;
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
+    pub main: MainConfig,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct MainConfig {
     pub listen: String,
     pub data_path: path::PathBuf,
-    pub use_proxy_headers: bool
+    pub use_proxy_headers: bool,
 }
 
 impl Config {

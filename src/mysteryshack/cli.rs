@@ -66,7 +66,7 @@ pub fn main() {
         serve() => web::run_server(config),
         user(user_matches) => clap_dispatch!(user_matches; {
             create(_, USERNAME as username) => {
-                if models::User::get(&config.data_path, username).is_some() {
+                if models::User::get(&config.main.data_path, username).is_some() {
                     println!("User already exists. Please delete the user first.");
                     process::exit(1);
                 }
@@ -74,7 +74,7 @@ pub fn main() {
                 let password_hash = models::PasswordHash::from_password(
                     utils::double_password_prompt("Password for new user: ").unwrap_or_else(|| process::exit(1)));
 
-                match models::User::create(&config.data_path, username).map(|user| {
+                match models::User::create(&config.main.data_path, username).map(|user| {
                     user.set_password_hash(password_hash)
                 }) {
                     Ok(_) => (),
@@ -87,7 +87,7 @@ pub fn main() {
                 println!("Successfully created user {}", username);
             },
             setpass(_, USERNAME as username) => {
-                let user = match models::User::get(&config.data_path, username) {
+                let user = match models::User::get(&config.main.data_path, username) {
                     Some(x) => x,
                     None => {
                         println!("User does not exist: {}", username);
@@ -108,7 +108,7 @@ pub fn main() {
                 println!("Changed password for user {}", username);
             },
             delete(_, USERNAME as username) => {
-                let user = match models::User::get(&config.data_path, username) {
+                let user = match models::User::get(&config.main.data_path, username) {
                     Some(x) => x,
                     None => {
                         println!("User does not exist: {}", username);
@@ -147,7 +147,7 @@ pub fn main() {
                     }
                 };
 
-                let user = match models::User::get(&config.data_path, username) {
+                let user = match models::User::get(&config.main.data_path, username) {
                     Some(x) => x,
                     None => {
                         println!("User does not exist: {}", username);

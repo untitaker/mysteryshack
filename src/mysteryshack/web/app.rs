@@ -152,7 +152,7 @@ pub fn run_server(config: config::Config) {
     mount.mount("/static/", get_static_handler());
 
     let mut chain = Chain::new(mount);
-    if config.use_proxy_headers { chain.link_before(XForwardedMiddleware); }
+    if config.main.use_proxy_headers { chain.link_before(XForwardedMiddleware); }
     chain.link(persistent::Read::<AppConfig>::both(config.clone()));
     chain.link(persistent::State::<AppLock>::both(()));
     chain.around(SessionStorage::new({
@@ -183,7 +183,7 @@ pub fn run_server(config: config::Config) {
     chain.link_after(SecurityHeaderMiddleware);
     chain.link_after(ErrorPrinter);
 
-    let listen = &config.listen[..];
+    let listen = &config.main.listen[..];
     println!("Listening on: http://{}", listen);
     Iron::new(chain).http(listen).unwrap();
 }
@@ -195,7 +195,7 @@ fn user_node_response(req: &mut Request) -> IronResult<Response> {
     };
 
     let config = req.get::<persistent::Read<AppConfig>>().unwrap();
-    let data_path = &config.data_path;
+    let data_path = &config.main.data_path;
 
     let (userid, path_str) = {
         let parts = req.extensions.get::<Router>().unwrap();
@@ -280,7 +280,7 @@ fn user_login_get(request: &mut Request) -> IronResult<Response> {
 fn user_login_post(request: &mut Request, url: iron::Url) -> IronResult<Response> {
     check_csrf!(request);
     let config = request.get::<persistent::Read<AppConfig>>().unwrap();
-    let data_path = &config.data_path;
+    let data_path = &config.main.data_path;
 
     let (username, password) = {
         let formdata = itry!(request.get_ref::<urlencoded::UrlEncodedBody>());
@@ -688,7 +688,7 @@ impl Login {
         match self {
             Login::Unverified(ref userid) if !userid.is_empty() => {
                 let config = request.get::<persistent::Read<AppConfig>>().unwrap();
-                if let Some(x) = models::User::get(&config.data_path, userid) {
+                if let Some(x) = models::User::get(&config.main.data_path, userid) {
                     return Login::Verified(x);
                 }
             },
