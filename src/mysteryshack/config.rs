@@ -25,6 +25,8 @@ impl Config {
         let mut s = String::new();
         let mut f = try!(fs::File::open(path));
         try!(f.read_to_string(&mut s));
-        Ok(try!(toml::from_str(&s)))
+        let mut rv: Self = try!(toml::from_str(&s));
+        rv.main.data_path = try!(rv.main.data_path.canonicalize());
+        Ok(rv)
     }
 }
