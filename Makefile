@@ -87,6 +87,7 @@ libsodium:
 	[ -d libsodium ] || git clone https://github.com/jedisct1/libsodium libsodium
 	set -ex && cd libsodium && \
 		git fetch && \
+		git reset --hard && \
 		git checkout origin/stable && \
 		rm -rf lib && \
 		./autogen.sh && \
