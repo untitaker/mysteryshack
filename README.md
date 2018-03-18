@@ -1,3 +1,7 @@
+# not maintained
+
+Please see https://github.com/untitaker/mysteryshack/issues/74
+
 # mysteryshack [![Build Status](https://travis-ci.org/untitaker/mysteryshack.svg?branch=master)](https://travis-ci.org/untitaker/mysteryshack)
 
 <img src="https://shack.unterwaditzer.net/static/logo.svg" width=120 height=120 />
