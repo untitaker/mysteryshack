@@ -41,7 +41,7 @@ mount = "0.3"
 time = "0.1"
 filetime = "0.1"
 chrono = "0.3"
-nix = "0.7"
+nix = "0.20"
 clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
 webicon = "0.3"
 sodiumoxide = { features = ["serde"], version = "0.0" }
