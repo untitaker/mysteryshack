@@ -44,7 +44,7 @@ chrono = "0.3"
 nix = "0.7"
 clippy = {git = "https://github.com/Manishearth/rust-clippy", version = "*", optional = true}
 webicon = "0.3"
-sodiumoxide = { features = ["serde"], version = "0.0" }
+sodiumoxide = { features = ["serde"], version = "0.2" }
 iron-error-router = "0.3"
 please-clap = "0.1"
 termion = "1"
