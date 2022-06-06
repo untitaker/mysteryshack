@@ -35,7 +35,7 @@ persistent = "0.3"
 urlencoded = "0.5"
 handlebars-iron = { features = ["serde_type"], version = "0.23" }
 handlebars = { features = ["serde_type"], version = "0.25" }
-regex = "0.2"
+regex = "1.5"
 quick-error = "1"
 mount = "0.3"
 time = "0.1"
