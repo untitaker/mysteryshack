@@ -20,7 +20,7 @@ doc = false
 serde = "0.9"
 serde_derive = "0.9"
 serde_json = "0.9"
-base64 = "0.4"
+base64 = "0.5"
 
 iron = "0.5"
 router = "0.5"
