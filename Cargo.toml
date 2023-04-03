@@ -38,7 +38,7 @@ handlebars = { features = ["serde_type"], version = "0.25" }
 regex = "0.2"
 quick-error = "1"
 mount = "0.3"
-time = "0.1"
+time = "0.2"
 filetime = "0.1"
 chrono = "0.3"
 nix = "0.7"
